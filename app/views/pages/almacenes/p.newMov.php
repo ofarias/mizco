@@ -37,7 +37,7 @@
                                     </select>
                             <br/><br/>
 
-                            <label class="<?php echo (@$ver=='v2')? '':'hidden' ?>" id="almv">&nbsp;&nbsp;&nbsp;&nbsp;Almacen:
+                            <label class="<?php echo (@$ver=='v2' or  @$mo>=1)? '':'hidden' ?>" id="almv">&nbsp;&nbsp;&nbsp;&nbsp;Almacen:
                                     <select class="alm control">
                                         <?php if($mo>=1 or $ver=='v2'){?>
                                             <option value="<?php echo isset($m->ID_ALMACEN)? $m->ID_ALMACEN:$al?>"><?php echo isset($m->ALMACEN)? $m->ALMACEN:$datos->NOMBRE ?></option>
@@ -53,28 +53,30 @@
 
                             <br/><br/>
 
-                            <label class="<?php echo (@$ver=='v2')? '':'hidden' ?>" id="compPv">&nbsp;&nbsp;&nbsp;&nbsp;Compente Primario (principalmente lineas):
+                            <label class="<?php echo (@$ver=='v2' or  @$mo>=1)? '':'hidden' ?>" id="compPv">&nbsp;&nbsp;&nbsp;&nbsp;Compente Primario (principalmente lineas):
                                         <select class="compP control">
-                                        <?php if($mo >= 1 or $ver=='v2'){?>
-                                            <option value="<?php echo isset($m->ID_COMPP)? $m->ID_COMPP:$c ?>"><?php echo isset($m->COMPP)? $m->COMPP:$datos->COMPP?></option>
-                                        <?php }else{?>   
-                                        <option value="none">Seleccione un componente</option>
+                                        <?php if($mo >= 1){?>
+                                            <option value="<?php echo $m->ID_COMPP ?>"><?php echo $m->COMPP?></option>
+                                        <?php }else{ ?>
+                                        <?php if($ver=='v2'){ ?>
+                                            <option value="<?php echo $c ?>"><?php echo $datos->COMPP?></option>
+                                            <option value="none">Seleccione un componente</option>
                                             <?php foreach($compP as $c1):?>
                                                 <option value="<?php echo $c1->ID_COMP?>"><?php echo $c1->ETIQUETA.' -> '.$c1->ALMACEN.' --> '.$c1->TIPO?></option>
                                             <?php endforeach;?>
-                                        <?php }?>
+                                        <?php } }?>
                                         </select>
                                         
                             </label>
 
                             <br/><br/>
-                            <label class="<?php echo (@$ver=='v2')? '':'hidden' ?>" id="compSv">&nbsp;&nbsp;&nbsp;&nbsp;Compente Secundario (principalmente tarimas/palets):
+                            <label class="<?php echo (@$ver=='v2' or  @$mo>=1)? '':'hidden' ?>" id="compSv">&nbsp;&nbsp;&nbsp;&nbsp;Compente Secundario (principalmente tarimas/palets):
                                     <select class="compS control">
                                         <?php if($mo >= 1){?>
                                         <option value="<?php echo $m->ID_COMPS?>"><?php echo $m->COMPS?></option>
                                         <?php } ?>
                                         <option value="none">Seleccione un componente</option>
-                                        <?php foreach($compS as $c2):?>
+                                        <?php foreach($compA as $c2):?>
                                             <option value="<?php echo $c2->ID_COMP?>"><?php echo $c2->ETIQUETA.' -> '.$c2->ALMACEN.' --> '.$c2->TIPO?></option>
                                         <?php endforeach;?>
                                         
@@ -216,10 +218,9 @@ var mov=<?php echo $mov==''? "'nuevo'":$mov?>
             button.classList.add("hidden")
         }
 
-        if(vtip != 'none' && alm != 'none' ){
+        if(vtip != 'none' && alm != 'none' && compP !='none' ){
             compPv.classList.remove('hidden')
         }else{
-            compPv.classList.add('hidden')
             compSv.classList.add('hidden')   
             button.classList.add("hidden")
 
