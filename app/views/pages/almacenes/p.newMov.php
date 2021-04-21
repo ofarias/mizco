@@ -64,7 +64,12 @@
                                             <?php foreach($compP as $c1):?>
                                                 <option value="<?php echo $c1->ID_COMP?>"><?php echo $c1->ETIQUETA.' -> '.$c1->ALMACEN.' --> '.$c1->TIPO?></option>
                                             <?php endforeach;?>
-                                        <?php } }?>
+                                        <?php }else{?>
+                                            <option value="none">Seleccione un componente</option>
+                                            <?php foreach($compP as $c1):?>
+                                                <option value="<?php echo $c1->ID_COMP?>"><?php echo $c1->ETIQUETA.' -> '.$c1->ALMACEN.' --> '.$c1->TIPO?></option>
+                                            <?php endforeach;?>
+                                        <?php }}?>
                                         </select>
                                         
                             </label>
@@ -218,12 +223,11 @@ var mov=<?php echo $mov==''? "'nuevo'":$mov?>
             button.classList.add("hidden")
         }
 
-        if(vtip != 'none' && alm != 'none' && compP !='none' ){
+        if(vtip != 'none' && alm != 'none' && compP =='none'){
             compPv.classList.remove('hidden')
         }else{
-            compSv.classList.add('hidden')   
+            //compSv.classList.add('hidden')   
             button.classList.add("hidden")
-
         }
 
         if(vtip !='none' && alm!='none' && compP != 'none' && compS=='none'){

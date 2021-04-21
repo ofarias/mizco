@@ -204,7 +204,9 @@ class wms_controller {
             }
             $alm=$data->almacenes($op=" WHERE STATUS = 'Activo'");
             $compP=$data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=2", $param='');
-            //$compS=$data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=1 ".$a, $param='');
+            if(count($compA) <=0){
+                $compA=$data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=1 ".$a, $param='');
+            }
             $prod=$data->productos($op= " WHERE STATUS = 'Alta' and TIPO_INT = 'Lote'");
             $uniE=$data->unidades($op="   WHERE STATUS = 1 AND TIPO = 'E' order by factor asc ");
             $uniS=$data->unidades($op="   WHERE STATUS = 1 AND TIPO = 'S' order by factor asc ");
