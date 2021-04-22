@@ -97,7 +97,11 @@
                                 <td><?php echo $r->PIEZAS?></td>
                                 <td><?php echo $r->COMPONENTE?></td>
                                 <td><input type="button" value="Detalles" mov="<?php echo $r->MOV?>" class="btn-sm btn-info movDet"><br/><?php if($sta==0){?>
-                                    <input type="button" value="Cancelar" mov="<?php echo $r->MOV?>" class="btn-sm btn-danger delMov"><?php }?></td>
+                                    <input type="button" value="Cancelar" mov="<?php echo $r->MOV?>" class="btn-sm btn-danger delMov"><?php }?>
+                                    <?php if($sta == 1){?>
+                                        <input type="button" value="Eliminar" mov="<?php echo $r->MOV?>" class="btn-sm btn-danger canMov">
+                                    <?php } ?>
+                                </td>
                             </tr>
                             <?php endforeach ?>
                         </tbody>

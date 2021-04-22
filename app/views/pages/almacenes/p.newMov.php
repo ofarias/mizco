@@ -124,7 +124,7 @@
                                             <td><select class="uni total">
                                                 <option>Unidades de Entrada</option>    
                                                 <?php foreach($uniE as $u):?>
-                                                    <option value="<?php echo $u->ID_UNI?>" fact="<?php echo $u->FACTOR?>"><?php echo $u->DESC.' -> Factor x '.$u->FACTOR.' En Palet caben: '.$u->PZS_PALET?></option>
+                                                    <option value="<?php echo $u->ID_UNI?>" fact="<?php echo $u->FACTOR?>"><?php echo $u->FACTOR.'--'.$u->DESC.' -> Factor x '.$u->FACTOR.' En Palet caben: '.$u->PZS_PALET?></option>
                                                 <?php endforeach;?>
                                             </select></td>
                                             <td><input class="cant total" type="number" min="1" max="100"></td>
@@ -337,7 +337,7 @@ var mov=<?php echo $mov==''? "'nuevo'":$mov?>
     })
 
     $(".addMov").click(function(){
-        window.open('index.wms.php?action=wms_menu&opc=newMov', "_blank")
+        window.open('index.wms.php?action=wms_menu&opc=newMov', "_self")
     })
 
 
