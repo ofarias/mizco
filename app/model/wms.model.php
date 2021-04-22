@@ -224,7 +224,7 @@ class wms extends database {
                 $msg= 'El movimiento parece estar Finalizado y no permite la edicion de lineas.';
             }    
         }elseif ($tp=='end') {
-            $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status' where MOV = (select mov from FTC_ALMACEN_MOV where id_AM = $idMov) and status='P'";
+            $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status', HORA_F = current_timestamp  where MOV = (select mov from FTC_ALMACEN_MOV where id_AM = $idMov) and status='P'";
             $res= $this->queryActualiza();
             if($res==1){
                 $msg='Se ha finalizado el Momiemiento, ya puede imprimir el QR';

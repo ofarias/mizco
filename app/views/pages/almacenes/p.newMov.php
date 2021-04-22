@@ -92,7 +92,8 @@
                             &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" name="" value="<?php echo $m->STATUS=='Finalizado'? 'Finalizado':'Finalizar'.$m->COMPS?>" class="btn-sm btn-primary execMov" tipo="end" idMov="<?php echo $m->ID_AM?>" <?php echo $m->STATUS=='Finalizado'? 'disabled':''?>>
                             <?php if($m->STATUS == 'Finalizado'):?>
                             &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Imprimir" class="btn-sm btn-warning" >
-                            &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Genera QR" class="btn-sm btn-info" >
+                            &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Genera QR" class="btn-sm btn-success" >
+                            &nbsp;&nbsp;&nbsp;&nbsp;<button class="btn-sm btn-info addMov" >Agregar &nbsp;<i class="fa fa-plus"></i></button>
                             <?php endif;?>
                             <?php }elseif($ver=='v2'){?>
                                 &nbsp;&nbsp;&nbsp;&nbsp;<a class="btn-sm btn-primary" href="index.wms.php?action=wms_menu&opc=newMov" target="_self">Limpiar</a>
@@ -333,6 +334,10 @@ var mov=<?php echo $mov==''? "'nuevo'":$mov?>
                 }
             }
         });
+    })
+
+    $(".addMov").click(function(){
+        window.open('index.wms.php?action=wms_menu&opc=newMov', "_blank")
     })
 
 
