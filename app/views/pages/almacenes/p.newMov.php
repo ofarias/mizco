@@ -76,7 +76,7 @@
 
                             <br/><br/>
                             <label class="<?php echo (@$ver=='v2' or  @$mo>=1)? '':'hidden' ?>" id="compSv">&nbsp;&nbsp;&nbsp;&nbsp;Compente Secundario (principalmente tarimas/palets):
-                                    <select class="compS control">
+                                    <select class="compS control" id="selcomps">
                                         <?php if($mo >= 1){?>
                                         <option value="<?php echo $m->ID_COMPS?>"><?php echo $m->COMPS?></option>
                                         <?php } ?>
@@ -204,8 +204,13 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">  
 
-var mov=<?php echo $mov==''? "'nuevo'":$mov?>
-    
+    $(document).ready(function (){  
+        //or if you want to be more efficient and use less characters, chain it
+        $('#selcomps').focus().select()
+    });
+
+    var mov=<?php echo $mov==''? "'nuevo'":$mov?>
+
     $(".control").change(function(){
         var vtip = $(".tip").val()
         var alm = $(".alm").val()
