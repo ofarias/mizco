@@ -29,11 +29,8 @@ class pegaso_controller {
         session_cache_limiter('private_no_expire');
         $data = new pegaso;
         $rs = $data->AccesoLogin($user, $pass);
-        //var_dump($rs);
-        //exit('sss');
         if (count($rs) > 0) {
             $r = $data->CompruebaRol($user);
-            //var_dump($r);
             switch ($r->USER_ROL) {
                 case 'administrador':
                     $this->MenuAdmin();
@@ -41,38 +38,11 @@ class pegaso_controller {
                 case 'administracion':
                     $this->MenuAd();
                     break;
-                case 'usuario':
-                    $this->MenuUsuario();
-                    break;
-                case 'ventas':
-                    $this->MenuVentas();
-                    break;
-                case 'compras':
-                    $this->MenuCompras();
-                    break;
-                case 'tesoreria':
-                    $this->MenuTesoreria();
-                    break;
-                case 'logistica':
-                    $this->MenuLogistica();
+                case 'almacen':
+                    $this->MenuAlmacen();
                     break;
                 case 'clientes':
                     $this->MenuClientes();
-                    break;
-                case 'bodega':
-                    $this->MenuBodega();
-                    break;
-                case 'glogistica':
-                    $this->MenuGLogistica();
-                    break;
-                case 'cxcr':             //14062016
-                    $this->MenuCxCRevision();
-                    break;
-                case 'cxcc':
-                    $this->MenuCxCCobranza();
-                    break;
-                case 'contabilidad':
-                    $this->MenuContabilidad();
                     break;
                 case 'embarques':
                     $this->MenuEmbarques();
@@ -81,7 +51,6 @@ class pegaso_controller {
                     $e = "Error en acceso 1, favor de revisar usuario y/o contraseña";
                     header('Location: index.php?action=login&e=' . urlencode($e));
                     exit;
-                    break;
             }
         } else {
             $e = "Error en acceso 2, favor de revisar usuario y/o contraseña";
@@ -101,38 +70,11 @@ class pegaso_controller {
                 case 'administracion':
                     $this->MenuAd();
                     break;
-                case 'usuario':
-                    $this->MenuUsuario();
-                    break;
-                case 'ventas':
-                    $this->MenuVentas();
-                    break;
-                case 'compras':
-                    $this->MenuCompras();
-                    break;
-                case 'tesoreria':
-                    $this->MenuTesoreria();
-                    break;
-                case 'logistica':
-                    $this->MenuLogistica();
+                case 'almacen':
+                    $this->MenuAlmacen();
                     break;
                 case 'clientes':
                     $this->MenuClientes();
-                    break;
-                case 'bodega':
-                    $this->MenuBodega();
-                    break;
-                case 'glogistica':
-                    $this->MenuGLogistica();
-                    break;
-                case 'cxcr':             //14062016
-                    $this->MenuCxCRevision();
-                    break;
-                case 'cxcc':
-                    $this->MenuCxCCobranza();
-                    break;
-                case 'contabilidad':
-                    $this->MenuContabilidad();
                     break;
                 case 'embarques':
                     $this->MenuEmbarques();
@@ -145,8 +87,6 @@ class pegaso_controller {
             }
         }
     }
-
-    /* nuevos menus */
 
     function MenuVentas() {
         session_cache_limiter('private_no_expire');
@@ -171,53 +111,6 @@ class pegaso_controller {
             $this->view_page($pagina);
         } else {
             $e = "Favor de Revisar sus datos";
-            header('Location: index.php?action=login&e=' . urlencode($e));
-            exit;
-        }
-    }
-
-    function VerPago() {
-        session_cache_limiter('private_no_expire');
-        if (isset($_SESSION['user'])) {
-            $data = new pegaso;
-            $pagina = $this->load_template('Pedidos');
-            $html = $this->load_page('app/views/pages/p.verpago.php');
-            ob_start();
-            $exec = $data->VerPagadas();
-            if (count($exec) > 0) {
-                include 'app/views/pages/p.verpago.php';
-                $table = ob_get_clean();
-                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-            } else {
-                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-            }
-            $this->view_page($pagina);
-        } else {
-            $e = "Favor de Iniciar Sesión";
-            header('Location: index.php?action=login&e=' . urlencode($e));
-            exit;
-        }
-    }
-
-    function DetallePedido($doc) {
-        session_cache_limiter('private_no_expire');
-        if (isset($_SESSION['user'])) {
-            $data = new pegaso;
-            $pagina = $this->load_template('Pagos');
-            $html = $this->load_page('app/views/pages/p.detallepedidodoc.php');
-            ob_start();
-            $cabecera = $data->CabeceraPedidoDoc($doc);
-            $detalle = $data->DetallePedidoDoc($doc);
-            if (count($detalle) > 0) {
-                include 'app/views/pages/p.detallepedidodoc.php';
-                $table = ob_get_clean();
-                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-            } else {
-                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-            }
-            $this->view_page($pagina);
-        } else {
-            $e = "Favor de Iniciar Sesión";
             header('Location: index.php?action=login&e=' . urlencode($e));
             exit;
         }
@@ -486,12 +379,13 @@ class pegaso_controller {
         }
     }
 
-    function MenuTesoreria() {
+    function MenuAlmacen() {
         session_cache_limiter('private_no_expire');
-        if (isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'tesoreria') {
-            $pagina = $this->load_template('Menu Admin');
-            $html = $this->load_page('app/views/modules/m.mtes.php');
-            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
+        if (isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'almacen') {
+            $pagina = $this->load_templateWMS('Menu Almacen');
+            ob_start();
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             $this->view_page($pagina);
         } else {
             $e = "Favor de Revisar sus datos";
@@ -898,6 +792,14 @@ class pegaso_controller {
 
     function load_template($title = 'Sin Titulo') {
         $pagina = $this->load_page('app/views/master.php');
+        $header = $this->load_page('app/views/sections/s.header.php');
+        $pagina = $this->replace_content('/\#HEADER\#/ms', $header, $pagina);
+        $pagina = $this->replace_content('/\#TITLE\#/ms', $title, $pagina);
+        return $pagina;
+    }
+
+    function load_templateWMS($title = 'Sin Titulo') {
+        $pagina = $this->load_page('app/views/master.wms.php');
         $header = $this->load_page('app/views/sections/s.header.php');
         $pagina = $this->replace_content('/\#HEADER\#/ms', $header, $pagina);
         $pagina = $this->replace_content('/\#TITLE\#/ms', $title, $pagina);

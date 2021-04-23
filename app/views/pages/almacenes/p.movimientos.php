@@ -73,13 +73,15 @@
                         </tfoot>
                         <tbody>
                             <?php $i=0;foreach($info as $r): $i++; 
-                                $color='';
-                                if($r->STATUS == 'Pendiente '){
+                                $color='';$sta='';
+                                if(trim($r->STATUS) == 'Pendiente'){
                                     $color="style='background-color: #FFF7C6;'";$sta=0;
-                                }elseif($r->STATUS == 'Finalizado'){
+                                }elseif(trim($r->STATUS) == 'Finalizado'){
                                     $color="style='background-color:#d1fef8;'";$sta=1;
-                                }elseif($r->STATUS == 'Cancelado '){
+                                }elseif(trim($r->STATUS) == 'Cancelado'){
                                     $color="style='background-color:#FFA07A;'";$sta=3;
+                                }elseif (trim($r->STATUS) == 'Eliminado') {
+                                    $color="style='background-color:#f33737;'";$sta=3;
                                 }
                             ?>
                             <tr class="odd gradeX color" id="linc<?php echo $i?>" <?php echo $color?>>
@@ -96,11 +98,14 @@
                                 <td><?php echo $r->PROD?></td>
                                 <td><?php echo $r->PIEZAS?></td>
                                 <td><?php echo $r->COMPONENTE?></td>
-                                <td><input type="button" value="Detalles" mov="<?php echo $r->MOV?>" class="btn-sm btn-info movDet"><br/><?php if($sta==0){?>
-                                    <input type="button" value="Cancelar" mov="<?php echo $r->MOV?>" class="btn-sm btn-danger delMov"><?php }?>
-                                    <?php if($sta == 1){?>
-                                        <input type="button" value="Eliminar" mov="<?php echo $r->MOV?>" class="btn-sm btn-danger canMov">
-                                    <?php } ?>
+                                <td><?php if($sta==0){?>
+                                    <input type="button" value="Editar" mov="<?php echo $r->MOV?>" class="btn-sm btn-info movDet"><br/>
+                                    <input type="button" value="Cancelar" mov="<?php echo $r->MOV?>" class="btn-sm btn-danger delMov" tipo="c"><?php }elseif($sta == 1){?>
+                                        <input type="button" value="Detalles" mov="<?php echo $r->MOV?>" class="btn-sm btn-warning verDet"><br/>
+                                        <input type="button" value="Eliminar" mov="<?php echo $r->MOV?>" class="btn-sm btn-danger delMov" tipo="b">
+                                    <?php }elseif($sta == 3){?>
+                                        <a href="index.wms.php?action=wms_menu&opc=detMov:<?php echo $r->MOV?>" target="popup" class="btn-sm btn-warning" onclick="window.open(this.href, this.target, 'width=1600, height=1000'); return false;">Detalle</a><br/>
+                                    <?php }?>
                                 </td>
                             </tr>
                             <?php endforeach ?>
@@ -130,11 +135,18 @@
   
     $(".delMov").click(function(){
         var mov = $(this).attr('mov')
+        var t = $(this).attr('tipo')
+        var mensaje = ''; var titulo=''; var titulo2= '';
+        if(t == 'c'){
+            mensaje = 'Desea cancelar el movimiento '+ mov +' ?'; titulo = 'Cancelar '; titulo2 = 'Cancelacion';
+        }else if(t == 'd'){
+            mensaje = 'Desea eliminar el movimiento '+ mov +' ?';titulo = 'Eliminar'; titulo2= 'Eliminacion';
+        }
         $.confirm({
             columnClass: 'col-md-8',
-            title: 'Desea cancelar el movimiento '+ mov +' ?',
-            content: '<b>Cancelar Movimiento</b> <br/>' +
-                    '<b>Motivo de la cancelacion:</b> <input type="text" size="50" maxlength="50" class="mot">'+
+            title: mensaje,
+            content: '<b>'+ titulo + ' Movimiento</b> <br/>' +
+                    '<b>Motivo de la '+titulo2+' :</b> <input type="text" size="50" maxlength="50" class="mot">'+
                     '<br/><font color="red">No se podra recuperar posteriormente.</font>',
                 buttons: {
                     si:function(){
@@ -143,7 +155,7 @@
                             url:'index.wms.php',
                             type:'post',
                             datatType:'json',
-                            data:{canMov:1, mov, mot}, 
+                            data:{canMov:1, mov, mot, t}, 
                             success:function(data){
                                 location.reload(true)
                             },

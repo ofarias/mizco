@@ -41,6 +41,7 @@ class wms_controller {
 
     function wms_menu($opc){
         //session_cache_limiter('private_no_expire');
+        ob_start();
         if (isset($_SESSION['user'])){
             if(substr($opc,0,1) == 'p'){
                 $this->wms_prod($op='');die();
@@ -57,10 +58,14 @@ class wms_controller {
                 $this->wms_newMov($op=substr($opc,7), $ver='');die();
             }elseif (substr($opc, 0,6)=='detCom'){
                 $this->wms_detComp($op=substr($opc,7));die();
+            }elseif (substr($opc, 0,6)=='detMov'){
+                $this->wms_detMov($op=substr($opc, 7));die();
             }
             $pagina = $this->load_template('Menu Almacen');
-            $html = '';//$this->load_page('');
-            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
+            //$html = '';//$this->load_page('');
+            $table = ob_get_clean();
+            $algo = 'Que paso?';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             $this->view_page($pagina);
         } else {
             $e = "Favor de Revisar sus datos";
@@ -238,10 +243,10 @@ class wms_controller {
         }
     }
 
-    function canMov($mov, $mot){
+    function canMov($mov, $mot, $t){
         if($_SESSION['user']){
             $data = new wms;
-            $exec = $data->canMov($mov, $mot);
+            $exec = $data->canMov($mov, $mot, $t);
             return $exec;
         }
     }
@@ -280,6 +285,25 @@ class wms_controller {
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             $this->view_page($pagina);
             
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+    }
+
+    function wms_detMov($op){
+        if (isset($_SESSION['user'])) {
+            $data = new wms;
+            $pagina = $this->load_templateL('Detalle del componente');
+            $html = $this->load_page('app/views/pages/almacenes/p.detMov.php');
+            ob_start();
+            $info = $data->detalleMov($op);
+            //$det = $data->detMov($opc);
+            include 'app/views/pages/almacenes/p.detMov.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this->view_page($pagina); 
         } else {
             $e = "Favor de Iniciar Sesión";
             header('Location: index.php?action=login&e=' . urlencode($e));

@@ -26,7 +26,7 @@ if (isset($_POST['usuario'])) {
 }elseif (isset($_POST['cpLin'])){
     $res=$controller_wms->cpLin($_POST['base'], $_POST['cs']); echo json_encode($res);exit();
 }elseif (isset($_POST['canMov'])) {
-    $res=$controller_wms->canMov($_POST['mov'], $_POST['mot']);echo json_encode($res);exit();
+    $res=$controller_wms->canMov($_POST['mov'], $_POST['mot'], $_POST['t']);echo json_encode($res);exit();
 }
 else{
     switch ($_GET['action']) {

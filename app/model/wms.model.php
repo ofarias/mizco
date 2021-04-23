@@ -175,8 +175,9 @@ class wms extends database {
         return array('msg'=>$msg, "mov"=>$mov);
     }
 
-    function canMov($mov, $mot){
-        $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = 'C' WHERE MOV = $mov and status != 'F'";
+    function canMov($mov, $mot, $t){
+
+        $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = upper('$t') WHERE MOV = $mov ";
         $this->queryActualiza();
         return array("msg"=>'Se ha cancelado el movimiento');
     }
@@ -206,6 +207,16 @@ class wms extends database {
     function movimiento($op){
         $data=array();
         $this->query="SELECT * FROM FTC_ALMACEN_MOVIMIENTO WHERE MOV= $op and status != 'Baja' order by id_AM";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function detalleMov($op){
+        $data=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_MOVIMIENTO WHERE MOV= $op order by id_AM";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;

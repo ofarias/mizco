@@ -14,30 +14,12 @@ class pegaso extends database {
         $row = ibase_fetch_object($rs);
         $actual = date('W');
         $anio = date('Y');
-        if ($actual > $row->NUMERO) {
-            $inicio = date('Y-m-d');
-            $fin = strtotime('+7 day', strtotime($inicio));
-            $fin = date('Y-m-d', $fin);
-
-
-            $this->query = "INSERT INTO SEMANAS(ID, ANIO, INICIO, FIN)
-								VALUES ($actual, $anio, '$inicio', '$fin')";
-            $rs = $this->EjecutaQuerySimple();
-
-            $this->query = "SELECT SUM(f.SALDOFINAL) AS estimado
-							FROM cajas ca
-							left join factf01 f on f.cve_doc = ca.factura
-							and fechavencimiento <= ";
-        }
         $this->query = "SELECT ID, USER_LOGIN, USER_PASS, USER_ROL, LETRA, LETRA2, LETRA3, LETRA4, LETRA5, LETRA6, NUMERO_LETRAS, NOMBRE, CC, CR
 						FROM PG_USERS
-						WHERE USER_LOGIN = '$u' and USER_PASS = '$pass'"; /* Contraseña va encriptada con MD5 */
-        //die($this->query);
+						WHERE USER_LOGIN = '$u' and USER_PASS = '$pass'";
         $log = $this->QueryObtieneDatos();
         if (count($log) > 0) {
-            /* Creamos variable de sesion */
             $_SESSION['user'] = $log;
-            //var_dump($_SESSION['user']);
             return $_SESSION['user'];
         } else {
             return 0;

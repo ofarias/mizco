@@ -70,10 +70,8 @@
                                                 <option value="<?php echo $c1->ID_COMP?>"><?php echo $c1->ETIQUETA.' -> '.$c1->ALMACEN.' --> '.$c1->TIPO?></option>
                                             <?php endforeach;?>
                                         <?php }}?>
-                                        </select>
-                                        
+                                        </select>    
                             </label>
-
                             <br/><br/>
                             <label class="<?php echo (@$ver=='v2' or  @$mo>=1)? '':'hidden' ?>" id="compSv">&nbsp;&nbsp;&nbsp;&nbsp;Compente Secundario (principalmente tarimas/palets):
                                     <select class="compS control" id="selcomps">
