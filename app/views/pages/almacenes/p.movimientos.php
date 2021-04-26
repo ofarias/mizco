@@ -36,6 +36,7 @@
 
     <input type="button" value="ir" name="tipo" class="btn-sm btn-primary filtro">
     &nbsp;&nbsp;<button class="btn-sm btn-info add" >Agregar &nbsp;<i class="fa fa-plus"></i></button>
+    <br/><a class="filtro" value="i">Imprimir</a>&nbsp;&nbsp;<a class="filtro" value="x">Descargar a Excel </a>
 
 </div>
 <br/>

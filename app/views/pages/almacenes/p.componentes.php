@@ -40,7 +40,11 @@
         &nbsp;Si:<input type="radio" name="aso" value='"si"'>&nbsp;
         &nbsp;&nbsp;No:<input type="radio" name="aso" value='"no"'>&nbsp;&nbsp;
 
-    <input type="button" value="ir" name="tipo" class="btn-sm btn-primary filtro">
+    <input type="button" value='"ir"' name="tipo" class="btn-sm btn-primary filtro">
+    <button class="btn-sm btn-info add" >Agregar &nbsp;<i class="fa fa-plus"></i></button>
+    <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <a class="filtro" value='"i"'><font color="purple">Imprimir Pdf</font></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <a class="filtro" value='"x"'><font color="grey">Descargar a Excel</font> </a>
 
 </div>
 <br/>
@@ -77,7 +81,7 @@
                                 <td colspan="14"></td>
                                 <!--
                                 <td><a target="_blank" href="index.php?action=imprimircatgastos" class="btn btn-info">Imprimir <i class="fa fa-print"></i></a></td>-->
-                                <td><button class="btn-sm btn-info add" >Agregar &nbsp;<i class="fa fa-plus"></i></button></td>
+                                <td></td>
                             </tr>
                         </tfoot>
                         <tbody>
@@ -194,13 +198,14 @@
     var form = document.getElementById('formAdd')
 
     $(".filtro").click(function(){
+        var out = $(this).val()
         var t = $(".ftcomp").val()
         var a = $(".falma").val()
         var p = $(".fprod").val()
         var e = $(".fsta").val()
         var as = $('input:radio[name=aso]:checked').val()
-        $.alert('Se filtra por los siguientes valores' + t + a + p + e + as)
-        window.open('index.wms.php?action=wms_menu&opc=c{"t":'+t+',"a":'+a+',"p":'+p+',"e":'+e+',"as":'+as+'}', '_self')
+        //$.alert('Se filtra por los siguientes valores' + t + a + p + e + as)
+        window.open('index.wms.php?action=wms_menu&opc=c{"t":'+t+',"a":'+a+',"p":'+p+',"e":'+e+',"as":'+as+',"out":'+ out +'}', '_self')
     })
 
     $(".add").click(function(){
