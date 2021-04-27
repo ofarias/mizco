@@ -43,9 +43,11 @@
     <input type="button" value='"ir"' name="tipo" class="btn-sm btn-primary filtro">
     <button class="btn-sm btn-info add" >Agregar &nbsp;<i class="fa fa-plus"></i></button>
     <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <a class="filtro" value='"i"'><font color="purple">Imprimir Pdf</font></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <a class="filtro" value='"x"'><font color="grey">Descargar a Excel</font> </a>
-
+    <b>Con movimientos del: <input type="date" id="fi" value='"none"'> &nbsp;&nbsp; al:  <input type="date" id="ff" value='"none"'>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    Guardar en : <button class="filtro" value='"p"'><font color="purple">Pdf</font></button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <button class="filtro" value='"x"'><font color="grey">Excel</font></button>
+    </b>
 </div>
 <br/>
 <div class="row">
@@ -199,13 +201,37 @@
 
     $(".filtro").click(function(){
         var out = $(this).val()
+        var o = ''
         var t = $(".ftcomp").val()
         var a = $(".falma").val()
         var p = $(".fprod").val()
         var e = $(".fsta").val()
         var as = $('input:radio[name=aso]:checked').val()
+        var fi = document.getElementById('fi').value
+        var ff = document.getElementById('ff').value
         //$.alert('Se filtra por los siguientes valores' + t + a + p + e + as)
-        window.open('index.wms.php?action=wms_menu&opc=c{"t":'+t+',"a":'+a+',"p":'+p+',"e":'+e+',"as":'+as+',"out":'+ out +'}', '_self')
+        if(out=='"ir"' || out == '"p"'){
+            if(out=='"ir"'){
+                o='_self'
+            }else{
+                o='_blank'
+            }
+            window.open('index.wms.php?action=wms_menu&opc=c{"t":'+t+',"a":'+a+',"p":'+p+',"e":'+e+',"as":'+as+',"out":'+ out+',"fi":"'+fi+'","ff":"'+ff+'"}', o)
+        }else{
+            var param='{"t":'+t+',"a":'+a+',"p":'+p+',"e":'+e+',"as":'+as+',"out":'+ out+',"fi":"'+fi+'","ff":"'+ff+'"}';
+            $.ajax({
+                url:'index.wms.php',
+                type:'post',
+                dataType:'json',
+                data:{xlsComp:1, op:'c', param},
+                success:function(data){
+                    window.open( data.completa , 'download')
+                },
+                error:function(){
+                    $.alert('Algo ocurrio')
+                }
+            })
+        }
     })
 
     $(".add").click(function(){

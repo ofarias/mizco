@@ -56,6 +56,7 @@
                     <table class="table table-striped table-bordered table-hover" id="dataTables-componentes">
                         <thead>
                             <tr>
+                                <th>Mov</th>
                                 <th>Almacen</th>
                                 <th>Tipo</th>
                                 <th>Usuario</th>
@@ -81,10 +82,9 @@
                             </tr>
                         </tfoot>
                         <tbody>
-                            <?php $i=0;foreach($det as $mov): $i++; 
-                                
-                            ?>
+                            <?php $i=0;foreach($det as $mov): $i++; ?>
                             <tr class="color" id="linc<?php echo $i?>">
+                                <td><?php echo $mov->MOV?></td>
                                 <td><?php echo $mov->ALMACEN?></td>
                                 <td><?php echo $mov->TIPO?></td>
                                 <td><?php echo $mov->USUARIO?></td>

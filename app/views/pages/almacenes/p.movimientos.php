@@ -7,7 +7,7 @@
 <br/>
 <div>
     
-    <font color="black"><b>Almacen:</b></font> 
+    <font color="black"><b>Almacen:</b></font> &nbsp;&nbsp; 
         <select class="falma">
                 <option value='"none"'>Almacen</option>
             <?php foreach($alm as $almac):?>
@@ -15,28 +15,48 @@
             <?php endforeach;?>
         </select>    
     
-    <font color="black"><b>Estado:</b></font>  
+     &nbsp;&nbsp;<font color="black"><b>Estado:</b></font> &nbsp;&nbsp;  
         <select class="fsta">
-                <option value='"none"'>Seleccione el estado</option>
-                <option value="1">Finalizado</option>
-                <option value="0">Pendiente</option>
-                <option value="3">Cancelado</option>
+                <option value='"none"'>Estado</option>
+                <option value='"F"'>Finalizado</option>
+                <option value='"P"'>Pendiente</option>
+                <option value='"C"'>Cancelado</option>
+                <option value='"B"'>Eliminado</option>
         </select>      
-    <font color="black"><b>Producto:</b></font> 
-        <select class="fprod">
-                <option value='"none"'>Productos</option>
-            <?php foreach($prod as $pro):?>
-                <option value="<?php echo $pro->ID_PINT?>"><b><?php echo '<b>'.$pro->ID_INT.'</b>--'.substr($pro->DESC,0,30)?></b></option>
-            <?php endforeach;?>
-        </select>
-    <font color="black"><b>Asociado:</b></font>
-        <input type="radio" name="aso" class="hidden" value='"none"' checked="checked">
-        &nbsp;Si:<input type="radio" name="aso" value='"si"'>&nbsp;
-        &nbsp;&nbsp;No:<input type="radio" name="aso" value='"no"'>&nbsp;&nbsp;
+     &nbsp;&nbsp;<font color="black"><b>Producto:</b></font> &nbsp;&nbsp; 
+                <input type="text" maxlength="60" id="prod" size="60"  placeholder="producto">
+     &nbsp;&nbsp;<font color="black"><b>Tipo:</b></font> &nbsp;&nbsp;     
+    <select class="ftipo">
+        <option value='"none"'>Tipo</option>
+        <option value='"e"'>Entrada</option>
+        <option value='"s"'>Salida</option>
+        <option value='"t"'>Traspaso</option>
+        <option value='"r"'>Reacomodo</option>
+        <option value='"d"'>Devolucion</option>
+        <option value='"m"'>Merma</option>
+    </select>
 
-    <input type="button" value="ir" name="tipo" class="btn-sm btn-primary filtro">
+     &nbsp;&nbsp;<font color="black"><b>Usuario:</b></font> &nbsp;&nbsp;     
+    <select class="fuser">
+        <option value='"none"'>Usuario</option>
+        <?php foreach($usuarios as $us):?>
+            <option value="<?php echo $us->ID?>"><?php echo $us->NOMBRE?></option>
+        <?php endforeach;?>
+    </select>    
+
+     &nbsp;&nbsp;
+    <font color="black"><b>Componente:</b></font>&nbsp;&nbsp;   
+        <input type="text" size="30" maxlength="45" id="comp" size="45" placeholder="Componente">
+    
+    &nbsp;&nbsp;
+    <input type="button" value='"ir"' name="tipo" class="btn-sm btn-primary filtro">
     &nbsp;&nbsp;<button class="btn-sm btn-info add" >Agregar &nbsp;<i class="fa fa-plus"></i></button>
-    <br/><a class="filtro" value="i">Imprimir</a>&nbsp;&nbsp;<a class="filtro" value="x">Descargar a Excel </a>
+    <br/>
+    <b>fecha del movimiento del: <input type="date" id="fi" value='"none"'> &nbsp;&nbsp; al: &nbsp;&nbsp; <input type="date" id="ff" value='"none"'>
+    &nbsp;&nbsp;
+    Guardar en : <button class="filtro" value='"p"'><font color="purple">Pdf</font></button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <button class="filtro" value='"x"'><font color="grey">Excel</font></button>
+    </b>
 
 </div>
 <br/>
@@ -124,6 +144,47 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
+    $(".filtro").click(function(){
+        var out = $(this).val()
+        var o = ''
+        var a = $(".falma").val()
+        var e = $(".fsta").val()
+        var p = document.getElementById("prod").value //auto complete
+        var t = $(".ftipo").val()
+        var us = $(".fuser").val()
+        var comp = document.getElementById("comp").value //auto complete
+        if(p===''){p='"none"';}
+        if(comp===''){comp = '"none"';}
+
+        var fi = document.getElementById('fi').value
+        var ff = document.getElementById('ff').value
+        //$.alert('Se filtra por los siguientes valores'+ out + a + e + 'prod: ' +p + t + ' us:'+us + 'comp:'+ comp)
+        
+        if(out=='"ir"' || out == '"p"'){
+            if(out=='"ir"'){
+                o='_self'
+            }else{
+                o='_blank'
+            }
+            window.open('index.wms.php?action=wms_menu&opc=m{"t":'+t+',"a":'+a+',"p":'+p+',"e":'+e+',"us":'+us+',"out":'+ out+',"fi":"'+fi+'","ff":"'+ff+'"}', o)
+        }else{
+            var param='{"t":'+t+',"a":'+a+',"p":'+p+',"e":'+e+',"us":'+us+',"out":'+ out+',"fi":"'+fi+'","ff":"'+ff+'"}';
+            $.ajax({
+                url:'index.wms.php',
+                type:'post',
+                dataType:'json',
+                data:{xlsComp:1, op:'c', param},
+                success:function(data){
+                    window.open( data.completa , 'download')
+                },
+                error:function(){
+                    $.alert('Algo ocurrio')
+                }
+            })
+        }
+    })
+
+
     $(".add").click(function(){
         window.open('index.wms.php?action=wms_menu&opc=newMov', "_blank")
     })
@@ -169,5 +230,19 @@
                     }
                 }
         });
+    })
+
+    $("#prod").autocomplete({
+        source: "index.wms.php?producto=1",
+        minLength: 2,
+        select: function(event, ui){
+        }
+    })
+
+    $("#comp").autocomplete({
+        source: "index.wms.php?componente=1",
+        minLength: 2,
+        select: function(event, ui){
+        }
     })
 </script>

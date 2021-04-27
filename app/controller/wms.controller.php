@@ -7,6 +7,7 @@ require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
 require_once ('app/model/database.php');
 require_once('app/model/wms.model.php');
+require_once('app/Classes/PHPExcel.php');
 
 class wms_controller {
     var $contexto = "http://SERVIDOR:8081/pegasoFTC/app/";
@@ -50,7 +51,7 @@ class wms_controller {
             }elseif(substr($opc,0,1) == 'a'){
                 $this->wms_alma($op='');die();
             }elseif(substr($opc,0,1) == 'm'){
-                $this->wms_mov($op='');die();
+                $this->wms_mov($op='', $param=substr($opc,1));die();
             }elseif(substr($opc,0,6) == 'newMov'){
                 $ver=substr($opc,6);
                 $this->wms_newMov($opc='', $ver);die();
@@ -110,6 +111,10 @@ class wms_controller {
             $html = $this->load_page('app/views/pages/almacenes/p.componentes.php');
             ob_start();
             $info = $data->componentes($op, $param);
+            if(@$info['tipo']=='x'){
+                return $info;
+                exit();
+            }
             $compP= $data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=2", $param='');
             $alm =  $data->almacenes($op= " WHERE STATUS = 'Activo'");
             $tc  =  $data->tipoComp('componente');
@@ -165,17 +170,18 @@ class wms_controller {
         }
     }
 
-
-    function wms_mov($op){
+    function wms_mov($op, $param){
         //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])) {
             $data = new wms;
             $pagina = $this->load_template('Componentes');
             $html = $this->load_page('app/views/pages/almacenes/p.movimientos.php');
             ob_start();
+            $info=$data->movimientos($op=" ", $param);
             $alm=$data->almacenes($op=" WHERE STATUS = 'Activo'");
             $comp=$data->componentes($op=" WHERE STATUS = 'Activo'", $param='');
-            $info=$data->movimientos($op=" ");
+            $usuarios=$data->usuarios($op = " WHERE STATUS = ''");
+
             include 'app/views/pages/almacenes/p.movimientos.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
@@ -309,6 +315,18 @@ class wms_controller {
             header('Location: index.php?action=login&e=' . urlencode($e));
             exit;
         }
+    }
+
+    function prodAuto($prod){    
+        $data = new wms;
+        $exec = $data->prodAuto($prod);
+        return $exec;
+    }
+
+    function compAuto($comp){    
+        $data = new wms;
+        $exec = $data->compAuto($comp);
+        return $exec;
     }
 }
 ?>

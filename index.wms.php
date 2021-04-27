@@ -27,8 +27,19 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->cpLin($_POST['base'], $_POST['cs']); echo json_encode($res);exit();
 }elseif (isset($_POST['canMov'])) {
     $res=$controller_wms->canMov($_POST['mov'], $_POST['mot'], $_POST['t']);echo json_encode($res);exit();
-}
-else{
+}elseif (isset($_POST['xlsComp'])){
+    $res=$controller_wms->wms_comp($_POST['op']='',$_POST['param']);echo json_encode($res);exit();
+}elseif(isset($_GET['term']) && isset($_GET['producto'])){
+        $buscar = $_GET['term'];
+        $prods = $controller_wms->prodAuto($buscar);
+        echo json_encode($prods);
+        exit;
+}elseif(isset($_GET['term']) && isset($_GET['componente'])){
+        $buscar = $_GET['term'];
+        $prods = $controller_wms->compAuto($buscar);
+        echo json_encode($prods);
+        exit;
+}else{
     switch ($_GET['action']) {
         case 'login':
             $controller->Login();

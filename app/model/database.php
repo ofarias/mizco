@@ -103,6 +103,35 @@ abstract class database {
         $this->CierraCnx();
     }
 
+    protected function devuelveAutoProd(){
+        $this->AbreCnx();
+        $rs = ibase_query($this->cnx, $this->query);
+        while($row = ibase_fetch_object($rs)){
+            $row->ID_PINT = htmlentities(stripcslashes($row->ID_PINT));
+            $row->ID_INT = htmlentities(stripcslashes($row->ID_INT));
+            $row->DESC = htmlentities(stripcslashes($row->DESC));
+            $row_set[] = $row->ID_INT." : ".$row->DESC." : ".$row->ID_PINT;
+        }
+        return $row_set;
+        unset($this->query);    
+        $this->CierraCnx();
+    }
+
+    protected function devuelveAutoComp(){
+        $this->AbreCnx();
+        $rs = ibase_query($this->cnx, $this->query);
+        while($row = ibase_fetch_object($rs)){
+            $row->ID_COMP = htmlentities(stripcslashes($row->ID_COMP));
+            $row->ID_ETIQUETA = htmlentities(stripcslashes($row->ETIQUETA));
+            $row->TIPO = htmlentities(stripcslashes($row->TIPO));
+            $row->DESC = htmlentities(stripcslashes($row->DESC));
+            $row_set[] = $row->ID_ETIQUETA." : ".$row->DESC." : ".$row->TIPO." : ".$row->ID_COMP;
+        }
+        return $row_set;
+        unset($this->query);    
+        $this->CierraCnx();
+    }
+
     #Obtiene la cantidad de filas afectadas en BD
 
     function NumRows($result) {
