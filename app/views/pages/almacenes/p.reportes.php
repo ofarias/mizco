@@ -68,7 +68,7 @@
                     }
                     if(out == 'p'){
                         $.alert('Abrir la pagina en una ventana nueva')
-                        window.open()
+                        window.open(data.completa, '_blank')
                     }
                     if(out == 'b'){
                         $.alert('Descargar el archivo en excel y Abrir la pagina en una ventana nueva')   

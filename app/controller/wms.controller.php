@@ -365,12 +365,13 @@ class wms_controller {
                 return $res;
             }elseif ($out == 'p' and $t=='pc') {
                 $res=$this->repPdfPC($info, $delim);
-                //return $res;
+                return array('status' => 'ok', 'completa'=>'..\\..\\Reportes_Almacen\\Reporte Productos del Componente'.$delim.'.pdf' );
             }elseif ($out=='x' and $t=='pp'){
                 $res=$this->repXlsPP($info, $delim);
                 return $res;
             }elseif ($out=='p' and $t=='pp'){
                 $res=$this->repPdfPP($info, $delim);
+                return array('status' => 'ok', 'completa'=>'..\\..\\Reportes_Almacen\\Reporte Posicion de productos'.$delim.'.pdf' );
                 return $res;
             }elseif ($out=='x' and $t='da') {
                 $res=$this->repXlsDa($info, $delim);
