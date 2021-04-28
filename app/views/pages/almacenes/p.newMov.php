@@ -113,12 +113,16 @@
                                   <tbody>
                                        <tr>
                                             <td><input type="text" name="" placeholder="Codigo de Barras"></td>
-                                            <td><select class="prod">
+                                            <td>
+                                                <input type="text" placeholder="Producto" id="prod" class="prod" size="50" maxlength="100" required="required" class="prod">
+                                        <!--        <select class="prod">
                                                 <option value="none">Seleccione un producto</option>
                                                 <?php foreach($prod as $p):?>
                                                     <option value="<?php echo $p->ID_PINT?>"><?php echo $p->ID_INT.' ('.$p->DESC.')'?></option>
                                                 <?php endforeach;?>
-                                            </select></td>
+                                            </select>
+                                        -->
+                                        </td>
                                             <td><select class="uni total">
                                                 <option>Unidades de Entrada</option>    
                                                 <?php foreach($uniE as $u):?>
@@ -126,7 +130,16 @@
                                                 <?php endforeach;?>
                                             </select></td>
                                             <td><input class="cant total" type="number" min="1" max="100"></td>
-                                            <td><input class="col" type="text" name="" placeholder="color"></td>
+                                            <td>
+                                                <select class="col">
+                                                    <option value="">Seleccione color</option>
+                                                    <option>Rojo</option>
+                                                    <option>Negro</option>
+                                                    <option>Blanco</option>
+                                                    <option>Mixto (R,N,B)</option>
+                                                </select>
+                                                <!--<input class="col" type="text" name="" placeholder="color">-->
+                                            </td>
                                             <td align="rigth"><label id="totPzas"></label></td>
                                             <td>
                                                 <?php if(@$m->STATUS!='Finalizado'):?>
@@ -164,8 +177,11 @@
                                         </tr>
                                     </thead>
                                   <tbody>
-                                    <?php foreach ($partidas as $kp): ?>
-                                       <tr>
+                                    <?php foreach ($partidas as $kp): 
+                                        $color = '';if(trim($kp->STATUS) == 'Eliminado'){ $color="style='background-color:#f33737'";}
+
+                                        ?>
+                                       <tr class="odd gradeX color" <?php echo $color?>>
                                             <td><?php echo $kp->MOV?></td>
                                             <td><?php echo $kp->COMPS?></td>
                                             <td><?php echo $kp->PROD?></td>
@@ -201,6 +217,13 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">  
+
+    $("#prod").autocomplete({
+        source: "index.wms.php?producto=1",
+        minLength: 2,
+        select: function(event, ui){
+        }
+    })
 
     $(document).ready(function (){  
         //or if you want to be more efficient and use less characters, chain it
@@ -282,10 +305,25 @@
             url:'index.wms.php',
             type:'post',
             dataType:'json',
-            data:{addMov:1, tipo, alm, compP, compS, prod, uni, cant, col, mov, pza},
+            data:{valProd:1, prod},
             success:function(data){
-                window.open('index.wms.php?action=wms_menu&opc=ediMov:'+ data.mov, "_self")
+                if(data.val=='ok'){
+                    $.ajax({
+                        url:'index.wms.php',
+                        type:'post',
+                        dataType:'json',
+                        data:{addMov:1, tipo, alm, compP, compS, prod:data.prod, uni, cant, col, mov, pza},
+                        success:function(data){
+                            window.open('index.wms.php?action=wms_menu&opc=ediMov:'+ data.mov, "_self")
+                        }
+                    })
+                }
+            },
+            error:function(){
+
             }
+
+
         })
     })
 

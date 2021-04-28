@@ -39,6 +39,10 @@ if (isset($_POST['usuario'])) {
         $prods = $controller_wms->compAuto($buscar);
         echo json_encode($prods);
         exit;
+}elseif (isset($_POST['valProd'])){
+    $res=$controller_wms->valProd($_POST['prod']);echo json_encode($res);exit();
+}elseif (isset($_POST['report'])){
+    $res=$controller_wms->report($_POST['t'],$_POST['out']);echo json_encode($res);exit();
 }else{
     switch ($_GET['action']) {
         case 'login':

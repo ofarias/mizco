@@ -149,10 +149,10 @@
         var o = ''
         var a = $(".falma").val()
         var e = $(".fsta").val()
-        var p = document.getElementById("prod").value //auto complete
+        var p = '"'+document.getElementById("prod").value+'"' //auto complete
         var t = $(".ftipo").val()
         var us = $(".fuser").val()
-        var comp = document.getElementById("comp").value //auto complete
+        var comp = '"'+document.getElementById("comp").value +'"'//auto complete
         if(p===''){p='"none"';}
         if(comp===''){comp = '"none"';}
 
@@ -166,9 +166,9 @@
             }else{
                 o='_blank'
             }
-            window.open('index.wms.php?action=wms_menu&opc=m{"t":'+t+',"a":'+a+',"p":'+p+',"e":'+e+',"us":'+us+',"out":'+ out+',"fi":"'+fi+'","ff":"'+ff+'"}', o)
+            window.open('index.wms.php?action=wms_menu&opc=m{"t":'+t+',"a":'+a+',"p":'+p+',"e":'+e+',"us":'+us+',"out":'+ out+',"fi":"'+fi+'","ff":"'+ff+'", "cp":'+comp+'}', o)
         }else{
-            var param='{"t":'+t+',"a":'+a+',"p":'+p+',"e":'+e+',"us":'+us+',"out":'+ out+',"fi":"'+fi+'","ff":"'+ff+'"}';
+            var param='{"t":'+t+',"a":'+a+',"p":'+p+',"e":'+e+',"us":'+us+',"out":'+ out+',"fi":"'+fi+'","ff":"'+ff+'", "cp":"'+comp+'"}';
             $.ajax({
                 url:'index.wms.php',
                 type:'post',

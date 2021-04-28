@@ -61,6 +61,8 @@ class wms_controller {
                 $this->wms_detComp($op=substr($opc,7));die();
             }elseif (substr($opc, 0,6)=='detMov'){
                 $this->wms_detMov($op=substr($opc, 7));die();
+            }elseif(substr($opc, 0,1) =='r'){
+                $this->wms_report($opc='', $param='');
             }
             $pagina = $this->load_template('Menu Almacen');
             //$html = '';//$this->load_page('');
@@ -328,6 +330,640 @@ class wms_controller {
         $exec = $data->compAuto($comp);
         return $exec;
     }
+
+    function valProd($prod){
+        $data = new wms;
+        $exec = $data->valProd($prod);
+        return $exec;   
+    }
+
+    function wms_report($op, $param){
+        if (isset($_SESSION['user'])) {
+            $data = new wms;
+            $pagina = $this->load_templateL('Reportes');
+            $html = $this->load_page('app/views/pages/almacenes/p.reportes.php');
+            ob_start();
+            include 'app/views/pages/almacenes/p.reportes.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this->view_page($pagina); 
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+    }
+
+    function report($t, $out){
+        if (isset($_SESSION['user'])) {
+            $data = new wms;
+            ob_start();
+            $delim=date('d-m-Y H_i_s');
+            $info = $data->infoRep($t, $out);
+            if($out=='x' and $t=='pc'){
+                $res=$this->repXlsPC($info);
+                return $res;
+            }elseif ($out == 'p' and $t=='pc') {
+                $res=$this->repPdfPC($info, $delim);
+                //return $res;
+            }elseif ($out=='x' and $t=='pp'){
+                $res=$this->repXlsPP($info, $delim);
+                return $res;
+            }elseif ($out=='p' and $t=='pp'){
+                $res=$this->repPdfPP($info, $delim);
+                return $res;
+            }elseif ($out=='x' and $t='da') {
+                $res=$this->repXlsDa($info, $delim);
+                return $res;
+            }elseif ($out=='p' and $t='da') {
+                $res=$this->repPdfDa($info, $delim);
+                return $res;
+            }
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+    }
+
+    function repXlsPC($info){
+        $usuario = $_SESSION['user']->NOMBRE;   
+        $xls= new PHPExcel();
+        $data = new wms;
+        $col = 'A';$ln=10; $i = 0;
+            foreach ($info['primary'] as $row) {
+                $i++;
+                $ln++;
+                $xls->setActiveSheetIndex()
+                        ->setCellValue($col.$ln,$i)
+                        ->setCellValue(++$col.$ln,$row->ETIQUETA)
+                        ->setCellValue(++$col.$ln,$row->TIPO)
+                        ->setCellValue(++$col.$ln,$row->LARGO.' x '.$row->ANCHO.' x '.$row->ALTO.' '.$row->MEDICION)
+                        ->setCellValue(++$col.$ln,$row->ALMACEN)
+                        ->setCellValue(++$col.$ln,$row->OBS)
+                        ->setCellValue(++$col.$ln,$row->STATUS)
+                ;
+                $linea = "A".$ln;
+                $xls->getActiveSheet()->getStyle("A".$ln.':'.$col.$ln)->applyFromArray(
+                    array(
+                            'font'=> array(
+                                'bold'=>true
+                            ),
+                            'borders'=>array(
+                                'allborders'=>array(
+                                    'style'=>PHPExcel_Style_Border::BORDER_THIN
+                                )
+                            ), 
+                            'fill'=>array( 
+                                    'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                                    'color'=> array('rgb' => 198, 255, 251)
+                            )   
+                        )
+                    );
+
+                $col="A";
+                $ln++;
+                $xls->setActiveSheetIndex()
+                    ->setCellValue($col.$ln,"Id")
+                    ->setCellValue(++$col.$ln,"Etiqueta")
+                    ->setCellValue(++$col.$ln,"Descripción")
+                    ->setCellValue(++$col.$ln,"Tipo")
+                    ->setCellValue(++$col.$ln,"Largo")
+                    ->setCellValue(++$col.$ln,"Ancho")
+                    ->setCellValue(++$col.$ln,"Alto")
+                    ->setCellValue(++$col.$ln,"Almacen")
+                    ->setCellValue(++$col.$ln,"Estado")
+                    
+                ;
+                $xls->getActiveSheet()->getStyle("A".$ln.':'.$col.$ln)->applyFromArray(
+                    array(
+                            'font'=> array(
+                                'bold'=>true
+                            ),
+                            'borders'=>array(
+                                'allborders'=>array(
+                                    'style'=>PHPExcel_Style_Border::BORDER_THIN
+                                )
+                            ), 
+                            'fill'=>array( 
+                                    'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                                    'color'=> array('rgb' => FF0000)
+                            )   
+                        )
+                    );
+                $col="A";
+                $det=0;
+                foreach ($info['secondary'] as $key){
+                    if($key->ID_COMPP == $row->ID_COMP){
+                        $det++;
+                        $ln++;
+                        $in=0;$out=0;$ex=0;
+                        $exist=$data->exist($key->ID_COMP, 'pc');
+
+                        $xls->setActiveSheetIndex()
+                            ->setCellValue($col.$ln,  $key->ID_COMP)
+                            ->setCellValue(++$col.$ln,$key->ETIQUETA)
+                            ->setCellValue(++$col.$ln,$key->DESC)
+                            ->setCellValue(++$col.$ln,$key->TIPO)
+                            ->setCellValue(++$col.$ln,$key->LARGO)
+                            ->setCellValue(++$col.$ln,$key->ANCHO)
+                            ->setCellValue(++$col.$ln,$key->ALTO)
+                            ->setCellValue(++$col.$ln,$key->ALMACEN)
+                            ->setCellValue(++$col.$ln,$key->STATUS)
+                        ;       
+                        $col="A";
+
+                        if(count($exist)>0){
+                            $ln++;
+                            $col="C";
+                            $xls->setActiveSheetIndex()
+                                ->setCellValue($col.$ln,"Producto")
+                                ->setCellValue(++$col.$ln,"Entradas")
+                                ->setCellValue(++$col.$ln,"Salidas")
+                                ->setCellValue(++$col.$ln,"Existencias")
+                            ;
+                            $xls->getActiveSheet()->getStyle("C".$ln.':'.$col.$ln)->applyFromArray(
+                            array(
+                                    'font'=> array(
+                                        'bold'=>true
+                                    ),
+                                    'borders'=>array(
+                                        'allborders'=>array(
+                                            'style'=>PHPExcel_Style_Border::BORDER_THIN
+                                        )
+                                    ), 
+                                    'fill'=>array( 
+                                            'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                                            'color'=> array('rgb' => FFFE00)
+                                    )   
+                                )
+                            );
+                            foreach($exist as $mov)
+                            $ln++;
+                            $col="C";
+                            $xls->setActiveSheetIndex()
+                               ->setCellValue($col.$ln,  $mov->PROD)
+                               ->setCellValue(++$col.$ln,$mov->ENTRADAS)
+                               ->setCellValue(++$col.$ln,$mov->SALIDAS)
+                               ->setCellValue(++$col.$ln,$mov->ENTRADAS - $mov->SALIDAS)
+                            ;
+                            $xls->getActiveSheet()->getStyle("C".$ln.':'.$col.$ln)->applyFromArray(
+                            array(
+                                    'font'=> array(
+                                        'bold'=>true
+                                    ),
+                                    'borders'=>array(
+                                        'allborders'=>array(
+                                            'style'=>PHPExcel_Style_Border::BORDER_THIN
+                                        )
+                                    ), 
+                                    'fill'=>array( 
+                                            'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                                            'color'=> array('rgb' => FFFFCE)
+                                    )   
+                                )
+                            );
+                            $col="A";
+                        }
+                    }
+                }
+
+                if($det== 0){
+                    $ln++;
+                    $xls->setActiveSheetIndex()
+                        ->setCellValue('A'.$ln,"No se encontraron componentes secundarios de este componente")
+                    ;
+                    $col="A";
+                }
+            }
+            
+            $xls->setActiveSheetIndex()
+                ->setCellValue('A1', "IMPORTADORA MIZCO SA DE CV")
+                ->setCellValue('A2', "Reporte de Posición de productos ")
+                //->setCellValue('A3',  "")
+                ->setCellValue('A4', "Elaborado por: ")
+                ->setCellValue('B4', $usuario)
+                ->setCellValue('A5', "Fecha de Elaboracion: ")
+                ->setCellValue('B5', date("d-m-Y H:i:s" ) )
+                ->setCellValue('A6', "Total Componentes Primarios:")
+                ->setCellValue('B6', count($info['primary']))
+                ->setCellValue('A7', "Total Componentes Secundarios:")
+                ->setCellValue('B7', count($info['secondary']))
+                
+            ;
+            /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+            $col = 'A';
+            $xls->getActiveSheet()->getColumnDimension($col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(25);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+
+            $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+            /// Unir celdas
+            $xls->getActiveSheet()->mergeCells('A1:O1');
+            // Alineando
+            $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+            /// Estilando
+            $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+                array('font' => array(
+                        'size'=>20,
+                    )
+                )
+            );
+            $xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+            $xls->getActiveSheet()->mergeCells('A3:F3');
+            $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
+                array('font' => array(
+                        'size'=>15,
+                    )
+                )
+            );
+
+            $xls->getActiveSheet()->getStyle('A3:D3')->applyFromArray(
+                array(
+                    'font'=> array(
+                        'bold'=>true
+                    ),
+                    'borders'=>array(
+                        'allborders'=>array(
+                            'style'=>PHPExcel_Style_Border::BORDER_THIN
+                        )
+                    )
+                )
+            );
+            $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
+                if(!file_exists($ruta) ){
+                    mkdir($ruta);
+                }
+                $nom='Productos del componente '.date("d-m-Y H_i_s").'_'.$usuario.'.xlsx';
+                $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+            /// salida a descargar
+                $x->save($ruta.$nom);
+                ob_end_clean();
+                return array("status"=>'ok',"nombre"=>$nom, "ruta"=>$ruta, "completa"=>'..\\..\\Reportes_Almacen\\'.$nom, "tipo"=>'x');
+                
+    }
+
+    function repPdfPC($info, $delim){
+        $usuario = $_SESSION['user']->NOMBRE;
+        $data = new wms;   
+        $pdf = new FPDF('P', 'mm', 'Letter');
+        $pdf->AddPage();
+        $pdf->Image('app/views/images/LOGOSELECT.jpg', 5, 5, 30, 28);
+        $pdf->SetFont('Arial', 'B', 10);
+        
+        $pdf->SetFont('Arial', 'I',10);
+        $pdf->Ln(28);
+        $pdf->SetX(10);
+        $pdf->write(6, "Elaborado por :". $usuario. " el ".date("d-m-Y h:i:s")."\n");
+        $pdf->write(6, "Total de componentes Primarios :". count($info['primary'])."\n");
+        $pdf->write(6, "Total de componentes Secundarios :". count($info['secondary'])."\n");        
+
+        $pdf->Ln();
+        $pdf->SetFont('Arial', 'B', 8);
+        foreach ($info['primary'] as $pr) {
+            $pdf->Cell(5, 8, $pr->ID_COMP, 1);
+            $pdf->Cell(15, 8, $pr->ETIQUETA, 1);
+            $pdf->Cell(40, 8, $pr->TIPO, 1);
+            $pdf->Cell(30, 8, $pr->LARGO.' x '.$pr->ANCHO.' x '.$pr->ALTO.' '.$pr->MEDICION, 1);
+            $pdf->Cell(18, 8, $pr->ALMACEN, 1);
+            $pdf->Cell(50, 8, substr($pr->PRODUCTOS, 0 , 25), 1);
+            $pdf->Cell(20, 8, $pr->STATUS, 1);
+            $pdf->Ln();
+            //$pdf->Ln();
+            $pdf->SetFont('Arial', 'B', 7);
+            $ctr=0;
+            foreach($info['secondary'] as $sc){
+                if($sc->ID_COMPP == $pr->ID_COMP){
+                    if($ctr== 0){
+                        $pdf->Cell(5, 8, "Id", 1);
+                        $pdf->Cell(15, 8, "Etiqueta", 1);
+                        $pdf->Cell(15, 8, "Descripcion", 1);
+                        $pdf->Cell(30, 8, "Tipo", 1);
+                        $pdf->Cell(10, 8, "Largo", 1);
+                        $pdf->Cell(10, 8, "Ancho", 1);
+                        $pdf->Cell(10, 8, "Alto", 1);
+                        $pdf->Cell(15, 8, "Almacen", 1);
+                        $pdf->Cell(15, 8, "Estado", 1);
+                        $pdf->Ln();
+                        $ctr++;
+                    }
+                    $pdf->Cell(5, 8,$sc->ID_COMP , 1);
+                    $pdf->Cell(15, 8,$sc->ETIQUETA , 1);
+                    $pdf->Cell(15, 8,$sc->DESC , 1);
+                    $pdf->Cell(30, 8,substr($sc->TIPO,0,18), 1);
+                    $pdf->Cell(10, 8,$sc->LARGO  , 1);
+                    $pdf->Cell(10, 8,$sc->ANCHO , 1);
+                    $pdf->Cell(10, 8,$sc->ALTO , 1);
+                    $pdf->Cell(15, 8,$sc->ALMACEN , 1);
+                    $pdf->Cell(15, 8,$sc->STATUS , 1);
+                    $pdf->Ln();
+
+                    $exist=$data->exist($sc->ID_COMP, 'pc');                    
+                    $ctr2=0;
+                    $pdf->SetFillColor(255, 253, 200);
+                    if (count($exist>0)) {
+                        foreach($exist as $ex){
+                            if($ctr2== 0){
+                                $pdf->cell(5, 8 , "", 0);
+                                $pdf->cell(15, 8 , "", 0);
+                                $pdf->cell(15, 8 , "", 0);
+                                $pdf->Cell(110, 8, "Producto", 1, 0, 'L', true);
+                                $pdf->Cell(15, 8, "Entradas", 1, 0, 'L', true);
+                                $pdf->Cell(15, 8, "Salidas", 1, 0, 'L', true);
+                                $pdf->Cell(20, 8, "Existencias", 1, 0, 'L', true);
+                                $pdf->Ln();
+                                $ctr2++;
+                            }
+                            $pdf->cell(5, 8 , "", 0);
+                            $pdf->cell(15, 8 , "", 0);
+                            $pdf->cell(15, 8 , "", 0);
+                            $pdf->Cell(110, 8,substr($ex->PROD, 0, 75) , 1, 0, 'L', true);
+                            $pdf->Cell(15, 8,$ex->ENTRADAS , 1, 0, 'L', true);
+                            $pdf->Cell(15, 8,$ex->SALIDAS , 1, 0, 'L', true);
+                            $pdf->Cell(20, 8,($ex->ENTRADAS-$ex->SALIDAS), 1, 0, 'L', true);
+                            $pdf->Ln();
+
+                        }
+                    }
+
+                }
+            }
+        }
+
+        $pdf->SetFont('Arial', 'I',10);
+        $pdf->Ln(10);
+        //$pdf->SetX(140);
+        $pdf->Write(6,"_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- FIN DEL REPORTE _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-");
+        $pdf->Ln();
+        $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
+        ob_end_clean();
+        $pdf->Output($ruta.'Reporte Productos del Componente'.$delim.'.pdf', 'f');
+    }
+
+    function repXlsPP($info){
+        $usuario = $_SESSION['user']->NOMBRE;   
+        $xls= new PHPExcel();
+        $data = new wms;
+        //Cabecera:
+        $col = 'A'; $ln=10; $i = 0;
+        
+        
+        $col = 'A';$ln=10; $i = 0;
+            foreach ($info['primary'] as $row) {
+                $i++;
+                $ln++;
+                $xls->setActiveSheetIndex()
+                        ->setCellValue($col.$ln,$i)
+                        ->setCellValue(++$col.$ln,$row->ID_INT)
+                        ->setCellValue(++$col.$ln,$row->DESC)
+                        ->setCellValue(++$col.$ln,$row->LARGO.' x '.$row->ANCHO.' x '.$row->ALTO)
+                        ->setCellValue(++$col.$ln,'Master: '.$row->UNIDAD_ORIG)
+                        ->setCellValue(++$col.$ln,'Tipo: '.$row->TIPO_INT)
+                        ->setCellValue(++$col.$ln,$row->STATUS)
+                ;
+                $linea = "A".$ln;
+                $xls->getActiveSheet()->getStyle("A".$ln.':'.$col.$ln)->applyFromArray(
+                    array(
+                            'font'=> array(
+                                'bold'=>true
+                            ),
+                            'borders'=>array(
+                                'allborders'=>array(
+                                    'style'=>PHPExcel_Style_Border::BORDER_THIN
+                                )
+                            ), 
+                            'fill'=>array( 
+                                    'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                                    'color'=> array('rgb' => 198, 255, 251)
+                            )   
+                        )
+                    );
+
+                $col="A";
+                $ln++;
+                $xls->setActiveSheetIndex()
+                    ->setCellValue($col.$ln,"")
+                    ->setCellValue(++$col.$ln,"Almacen")
+                    ->setCellValue(++$col.$ln,"Linea")
+                    ->setCellValue(++$col.$ln,"Tarima")
+                    ->setCellValue(++$col.$ln,"Entradas")
+                    ->setCellValue(++$col.$ln,"Salidas")
+                    ->setCellValue(++$col.$ln,"Existencias")
+                ;
+                $xls->getActiveSheet()->getStyle("B".$ln.':'.$col.$ln)->applyFromArray(
+                    array(
+                            'font'=> array(
+                                'bold'=>true
+                            ),
+                            'borders'=>array(
+                                'allborders'=>array(
+                                    'style'=>PHPExcel_Style_Border::BORDER_THIN
+                                )
+                            ), 
+                            'fill'=>array( 
+                                    'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                                    'color'=> array('rgb' => FF0000)
+                            )   
+                        )
+                    );
+                $col="A";
+                $det=0;
+                foreach ($info['secondary'] as $key){
+
+                    if($key->ID_PROD == $row->ID_PINT){
+                        $det++;
+                        $ln++;
+                        $in=0;$out=0;$ex=0;
+                        $exist=$key->ENTRADAS-$key->SALIDAS;
+                        //$exist=$data->exist($key->ID_COMP);
+                        if($exist!=0){
+                            $xls->setActiveSheetIndex()
+                                ->setCellValue($col.$ln, '')
+                                ->setCellValue(++$col.$ln,$key->ALMACEN)
+                                ->setCellValue(++$col.$ln,$key->COMPP)
+                                ->setCellValue(++$col.$ln,$key->COMPS)
+                                ->setCellValue(++$col.$ln,$key->ENTRADAS)
+                                ->setCellValue(++$col.$ln,$key->SALIDAS)
+                                ->setCellValue(++$col.$ln,number_format($exist))
+                            ;
+                            $xls->getActiveSheet()->getStyle("B".$ln.':'.$col.$ln)->applyFromArray(
+                            array(
+                                    'font'=> array(
+                                        'bold'=>true
+                                    ),
+                                    'borders'=>array(
+                                        'allborders'=>array(
+                                            'style'=>PHPExcel_Style_Border::BORDER_THIN
+                                        )
+                                    ), 
+                                    'fill'=>array( 
+                                            'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                                            'color'=> array('rgb' => dbfbff  )
+                                    )   
+                                )
+                            );       
+                        }
+                        $col="A";
+                    }
+                }
+                if($det== 0){
+                    $ln++;
+                    $xls->setActiveSheetIndex()
+                        ->setCellValue('A'.$ln,"No se encontraron componentes secundarios de este componente")
+                    ;
+                    $col="A";
+                }
+            }
+            
+            $xls->setActiveSheetIndex()
+                ->setCellValue('A1', "IMPORTADORA MIZCO SA DE CV")
+                ->setCellValue('A2', "Reporte de Posición de productos ")
+                //->setCellValue('A3',  "")
+                ->setCellValue('A4', "Elaborado por: ")
+                ->setCellValue('B4', $usuario)
+                ->setCellValue('A5', "Fecha de Elaboracion: ")
+                ->setCellValue('B5', date("d-m-Y H:i:s" ) )
+                ->setCellValue('A6', "Total Componentes Primarios:")
+                ->setCellValue('B6', count($info['primary']))
+                ->setCellValue('A7', "Total Componentes Secundarios:")
+                ->setCellValue('B7', count($info['secondary']))
+                
+            ;
+            /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+            $col = 'A';
+            $xls->getActiveSheet()->getColumnDimension($col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(25);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+
+            $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+            /// Unir celdas
+            $xls->getActiveSheet()->mergeCells('A1:O1');
+            // Alineando
+            $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+            /// Estilando
+            $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+                array('font' => array(
+                        'size'=>20,
+                    )
+                )
+            );
+            $xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+            $xls->getActiveSheet()->mergeCells('A3:F3');
+            $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
+                array('font' => array(
+                        'size'=>15,
+                    )
+                )
+            );
+
+            $xls->getActiveSheet()->getStyle('A3:D3')->applyFromArray(
+                array(
+                    'font'=> array(
+                        'bold'=>true
+                    ),
+                    'borders'=>array(
+                        'allborders'=>array(
+                            'style'=>PHPExcel_Style_Border::BORDER_THIN
+                        )
+                    )
+                )
+            );
+            $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
+                if(!file_exists($ruta) ){
+                    mkdir($ruta);
+                }
+                $nom='Posición de productos '.date("d-m-Y H_i_s").'_'.$usuario.'.xlsx';
+                $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+            /// salida a descargar
+                $x->save($ruta.$nom);
+                ob_end_clean();
+                return array("status"=>'ok',"nombre"=>$nom, "ruta"=>$ruta, "completa"=>'..\\..\\Reportes_Almacen\\'.$nom, "tipo"=>'x');
+                
+    }
+
+    function repPdfPP($info, $delim){
+        $usuario = $_SESSION['user']->NOMBRE;
+        $data = new wms;   
+        $pdf = new FPDF('P', 'mm', 'Letter');
+        $pdf->AddPage();
+        $pdf->Image('app/views/images/LOGOSELECT.jpg', 5, 5, 30, 28);
+        
+        $pdf->SetFont('Arial', 'I',10);
+        $pdf->Ln(28);
+        $pdf->SetX(10);
+        $pdf->write(6, "Elaborado por :". $usuario. " el ".date("d-m-Y h:i:s")."\n");
+        $pdf->write(6, "Total de Productos: ". count($info['primary'])."\n");
+        $pdf->write(6, "Total de componentes: ". count($info['secondary'])."\n");        
+
+        $pdf->Ln();
+        $pdf->SetFont('Arial', 'B', 8);
+        foreach ($info['primary'] as $pr) {
+            $pdf->Cell(25, 8, $pr->ID_INT, 1);
+            $pdf->Cell(80, 8, substr($pr->DESC,0, 60), 1);
+            $pdf->Cell(30, 8, $pr->LARGO.' x '.$pr->ANCHO.' x '.$pr->ALTO.' '.$pr->MEDICION, 1);
+            $pdf->Cell(20, 8, $pr->UNIDAD_ORIG, 1);
+            $pdf->Cell(20, 8, $pr->TIPO_INT, 1);
+            $pdf->Cell(20, 8, $pr->STATUS, 1);
+            $pdf->Ln();
+            //$pdf->Ln();
+            $pdf->SetFont('Arial', 'B', 7);
+            $ctr=0;
+            foreach($info['secondary'] as $sc){
+                if($sc->ID_PROD == $pr->ID_PINT){
+                    $exist=$sc->ENTRADAS-$sc->SALIDAS;
+                    if($exist!=0){
+                        if($ctr== 0){
+                                $pdf->SetFillColor(177, 255, 150);
+                                $pdf->cell(15, 8 , "", 0);
+                                $pdf->cell(25, 8 , "Almacen", 1, 0, 'L', true);
+                                $pdf->cell(25, 8 , "Linea", 1, 0, 'L', true);
+                                $pdf->cell(25, 8 , "Tarima", 1, 0, 'L', true);
+                                $pdf->Cell(15, 8, "Entradas", 1, 0, 'C', true);
+                                $pdf->Cell(15, 8, "Salidas", 1, 0, 'C', true);
+                                $pdf->Cell(20, 8, "Existencias", 1, 0, 'C', true);
+                                $pdf->Ln();
+                            $ctr++;
+                        }
+                        $pdf->SetFillColor(228, 255, 219);
+                        $pdf->Cell(15, 8,"" , 0);
+                        $pdf->Cell(25, 8,substr($sc->ALMACEN,0,15), 1);
+                        $pdf->Cell(25, 8,substr($sc->COMPP,0,15), 1);
+                        $pdf->Cell(25, 8,substr($sc->COMPS,0,15), 1);
+                        $pdf->Cell(15, 8,number_format($sc->ENTRADAS,0),1,0,'R',true);
+                        $pdf->Cell(15, 8,number_format($sc->SALIDAS,0),1,0,'R',true);
+                        $pdf->Cell(20, 8,number_format($exist,0), 1,0,'R',true);
+                        $pdf->Ln();
+                    }else{
+                        $pdf->cell(15, 8 , "Sin existencias", 0);
+                    }
+                }
+            }
+        }
+
+        $pdf->SetFont('Arial', 'I',10);
+        $pdf->Ln(10);
+        //$pdf->SetX(140);
+        $pdf->Write(6,"_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-FIN DEL REPORTE _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-");
+        $pdf->Ln();
+        $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
+        ob_end_clean();
+        $pdf->Output($ruta.'Reporte Posicion de productos'.$delim.'.pdf', 'f');
+    }
+
 }
 ?>
 

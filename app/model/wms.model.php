@@ -369,7 +369,7 @@ class wms extends database {
         $data = array();
         $p='';$i=0;$salida='';
         //echo 'valor de param: '.$param;
-        if($param != ''){
+        if(@$param != ''){
             $param=json_decode($param);
             //print_r( $param);
             foreach ($param as $key => $value) {
@@ -379,8 +379,10 @@ class wms extends database {
                 if($key=='a' and $value != 'none'){
                     $p .= ' and ID_ALMACEN = '.$value.' ';$i++;
                 }
-                if($key=='p' and $value != 'none'){
-                    $p .= " and  id_PROD CONTAINING('".$value."') ";$i++;
+                if($key=='p' and $value != ''){
+                    $pro = explode(":", $value);
+                    //print_r($pro);
+                    $p .= " and  id_PROD CONTAINING(".trim($pro[2]).") ";$i++;
                 }
                 if($key=='e' and $value != 'none'){
                     $p .= " and id_status = '".$value."' ";$i++;
@@ -389,10 +391,14 @@ class wms extends database {
                     $p .= " and id_user = ".$value;$i++;
                 }
                 if($key=='fi' and $value !=""){
-                        $p .= " and fecha >= '".$value."'";$i++;
+                    $p .= " and fecha >= '".$value."'";$i++;
                 }
                 if($key=='ff' and $value !=""){
-                        $p .= " and fecha <= '".$value."'";$i++;
+                    $p .= " and fecha <= '".$value."'";$i++;
+                }
+                if($key=='cp' and $value !=""){
+                    $comp = explode(":", trim($value));
+                    $p .= " and (id_compp = ".$comp[3]." or id_comps= ".$comp[3].") ";$i++;
                 }
                 if ($key=='out'){
                     $salida = $value;
@@ -401,7 +407,7 @@ class wms extends database {
             if($i > 0){$p=' Where id_am > 0 '.$p;}
         }
         $this->query="SELECT mov, max(SIST_ORIGEN) AS SIST_ORIGEN, (select max(nombre) from FTC_ALMACEN a where a.id =  MAX(AM.ID_ALMACEN)) AS ALMACEN, MAX(TIPO) AS TIPO, MAX(FECHA) AS FECHA, MAX(STATUS) AS STATUS, MIN(HORA_I) AS HORA_I, MAX(HORA_F) AS HORA_F, SUM(CANT) AS CANT, SUM(PIEZAS) AS PIEZAS  , MAX(usuario) as usuario, cast( list(DISTINCT prod) as varchar (1000)) as prod, (SELECT MAX(ETIQUETA) FROM FTC_ALMACEN_COMPONENTES AC WHERE AC.ID_COMP = max(AM.ID_compp) ) as componente 
-        FROM FTC_ALMACEN_MOVIMIENTO AM $op $p group by mov ";
+        FROM FTC_ALMACEN_MOVIMIENTO AM $op $p  group by mov order by mov desc";
         //echo 'Consulta de movimientos con filtro: '.$this->query;
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
@@ -502,7 +508,7 @@ class wms extends database {
         }elseif ($tp=='end') {
             $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status', HORA_F = current_timestamp  where MOV = (select mov from FTC_ALMACEN_MOV where id_AM = $idMov) and status='P'";
             $res= $this->queryActualiza();
-            if($res==1){
+            if($res>=1){
                 $msg='Se ha finalizado el Momiemiento, ya puede imprimir el QR';
             }else{
                 $msg='Surgio un inconveniente favor de actulizar';
@@ -566,6 +572,68 @@ class wms extends database {
     function usuarios($op){
         $data=array();
         $this->query="SELECT ID, NOMBRE FROM PG_USERS where USER_ROL = 'almacen'";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function valProd($prod){
+        $row=array();
+        $prod = explode(":", trim($prod));
+        $prod = $prod[2];
+        $this->query="SELECT ID_PINT FROM FTC_ALMACEN_PROD_INT where ID_PINT=$prod";
+        $res=$this->EjecutaQuerySimple();
+        $row = ibase_fetch_row($res);
+        if(count($row) > 0){    
+            return array("val"=>'ok',"prod"=>$row[0],"msg"=>'Existe el producto');   
+        }else{
+            return array("val"=>'no',"prod"=>$row[0],"msg"=>'NO Existe el producto');
+        }
+    }
+
+    function infoRep($t, $out){
+        $primary=array();
+        $secondary=array();
+        if($t=='pc'){
+            $this->query="SELECT * FROM FTC_ALMACEN_COMPONENTES WHERE ID_TIPO = 2";
+            $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)) {
+                $primary[] =$tsArray; 
+            }
+            $secondary=array();
+            $this->query="SELECT * FROM FTC_ALMACEN_COMPONENTES WHERE ID_TIPO = 1";
+            $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)) {
+                $secondary[] =$tsArray; 
+            }
+        }elseif($t='pp'){
+            $this->query="SELECT * FROM FTC_ALMACEN_PROD_INT WHERE TIPO_INT='Lote'";
+            $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)){
+                $primary[]=$tsArray;
+            }
+            $secondary=$this->exist($id='', $tipo=$t);            
+        }elseif ($t=='da'){
+            $this->query="SELECT * FROM FTC_ALMACEN_COMPONENTES ";
+        }
+        return array("primary"=>$primary, "secondary"=>$secondary);
+    }
+
+    function exist($id, $tipo){
+        $data=array();
+        //$this->query="SELECT m.comps, m.prod, iif(m.tipo ='e', sum(piezas), 0) as entradas, iif(m.tipo='s',sum(piezas), 0 ) as salidas from FTC_ALMACEN_MOV m where comps=$id and status ='F' group by m.comps, m.prod, m.tipo";
+        if($tipo == 'pc'){
+            $this->query="SELECT m.almacen, m.id_comps, m.prod, iif(m.id_tipo ='e', sum(piezas), 0) as entradas, iif(m.id_tipo='s',sum(piezas), 0 ) as salidas
+                        from FTC_ALMACEN_MOVimiento m
+                        where id_comps=$id and id_status='F' group by m.id_comps, m.prod, m.id_tipo, m.almacen";
+                        echo $this->query;
+        }elseif($tipo == 'pp'){
+            $this->query="SELECT m.almacen, m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, iif(m.id_tipo ='e', sum(piezas), 0) as entradas, iif(m.id_tipo='s',sum(piezas), 0 ) as salidas
+                        from FTC_ALMACEN_MOVimiento m
+                        where id_status='F' group by m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, m.almacen order by m.id_comps asc ";
+        }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;

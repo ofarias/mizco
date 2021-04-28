@@ -50,6 +50,8 @@
                         <input type="button" name="a" value="Almacenes" class="btn-sm btn-warning exec">
                         &nbsp;&nbsp;&nbsp;
                         <input type="button" name="m" value="Movimientos" class="btn-sm btn-primary exec">
+                        &nbsp;&nbsp;&nbsp;
+                        <input type="button" name="r" value="Reportes" class="btn btn-secondary exec">
                       </div>  
                 </div>
             </div>
