@@ -3,6 +3,7 @@
 require_once 'app/model/database.php';
 require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
+require_once 'app/simplexlsx-master/src/SimpleXLSX.php';
 
 /* Clase para hacer uso de database */
 class wms extends database {
@@ -640,6 +641,85 @@ class wms extends database {
         }
         return $data;
     }
+
+    function ordenes($op){
+        $data=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN WHERE ID_ORD >0 $op";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function saveOrder($file, $fileName){
+        if($xlsx=SimpleXLSX::parse($file)){
+            echo "<h2>$file</h2>";
+            echo "<pre>";
+            echo "</pre>";
+            $i=0;
+            $l=0;
+            $e=0;
+            $hoja = $xlsx->sheetName(0);
+            if(strtoupper( trim($hoja)) == 'COPPEL'){
+                $this->coppel($xlsx, $hoja, $file);
+            }else{
+                return array("msg"=>"Lo siento no tengo el formato para el cliente: ".$hoja.' favor de revisar el nombre de la hoja');
+            }
+        }else {
+            echo "<h2>No se pudo leer el archvivo $file</h2>";
+            echo "<pre>";
+            echo "</pre>";
+        }
+    }
+
+    function coppel($xlsx, $hoja, $file){
+        // coppel se identifica en el valor de la columa "A"
+        $ln=0;$piezas=0;
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file') returning ID_ORD";
+        $res=$this->grabaBD();
+        $res= ibase_fetch_object($res);
+        $idord=$res->ID_ORD;
+        if(@$res->ID >0){
+            foreach ($xlsx->rows() as $key){
+                $col='A';$ln++;$nC=0;
+                for ($i=0; $i < count($key); $i++) { 
+                    //echo '<br/>Columna: '.$col ;
+                        if($ln==7 and $key[$nC]!=''){
+                            //echo '<br/>Valor de la celda: '.$col.$ln.' = '. $key[$nC].'<br/>';
+                            $lnn=0;
+                            foreach($xlsx->rows() as $k2){
+                                $lnn++;
+                                if($lnn >= 10 and $lnn < 65 and $col >='H' and $k2[$nC]!=''){
+                                //echo '<br/>En la linea '.$lnn.' Se solicitan '.$k2[$nC].' piezas del producto: '.$k2[1].' modelo: '.$k2[2].' para el Cedis '.$key[$nC].'<br/>';
+                                    $piezas += $k2[$nC];
+                                    $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS) VALUES(NULL, $idord, '$k2[2]', '$k2[1]', $k2[$nC], 0, '', '$key[$nC]', 0, 0,1, '' ) returning ID_ORDD";
+                                    $this->grabaBD();
+                                }    
+                            }
+                        }
+                    $nC++;
+                    $col++;
+                }
+                $i++;
+                //echo '<br/>Valores de la Columna A:'.$key[0].' B: '.$key[1];
+            }
+        }else{
+            echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
+        }
+            echo '<br/>Ultima Columna: '.$col.'<br/>';
+    }
+
+    function orden($id_o){
+        $data= array();
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET where id_ord=$id_o";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
 }
 ?>
 

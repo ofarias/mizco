@@ -63,6 +63,8 @@ class wms_controller {
                 $this->wms_detMov($op=substr($opc, 7));die();
             }elseif(substr($opc, 0,1) =='r'){
                 $this->wms_report($opc='', $param='');
+            }elseif (substr($opc,0,1)=='o'){
+                $this->wms_ordenes($opc='');die();
             }
             $pagina = $this->load_template('Menu Almacen');
             //$html = '';//$this->load_page('');
@@ -963,6 +965,54 @@ class wms_controller {
         $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
         ob_end_clean();
         $pdf->Output($ruta.'Reporte Posicion de productos'.$delim.'.pdf', 'f');
+    }
+
+    function wms_ordenes($op){
+        if($_SESSION['user']){
+            $data = new wms;
+            $pagina = $this->load_template('Reportes');
+            $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenes.php');
+            ob_start();
+            $ordenes = $data->ordenes($op);
+            include 'app/views/pages/almacenes/p.monitorOrdenes.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this->view_page($pagina); 
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+    }
+
+    function saveOrder($file, $fileName){
+        if (isset($_SESSION['user'])) {
+            $data = new wms;
+            ob_start();
+            $reg=$data->saveOrder($file, $fileName);
+        }else{
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+    }
+
+    function detOrden($id_o){
+        if($_SESSION['user']){
+            $data = new wms;
+            $pagina = $this->load_templateL('Reportes');
+            $html = $this->load_page('app/views/pages/almacenes/p.detOrden.php');
+            ob_start();
+            $orden = $data->orden($id_o);
+            include 'app/views/pages/almacenes/p.detOrden.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this->view_page($pagina); 
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
     }
 
 }

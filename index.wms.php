@@ -52,6 +52,9 @@ if (isset($_POST['usuario'])) {
             $opc=isset($_GET['opc'])? $_GET['opc']:'';
             $controller_wms->wms_menu($opc);
             break;
+        case 'detOrden':
+            $controller_wms->detOrden($_GET['orden']);
+            break;
         default:
             header('Location: index.php?action=login');
             break;
