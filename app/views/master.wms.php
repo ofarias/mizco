@@ -53,7 +53,8 @@
                         &nbsp;&nbsp;&nbsp;
                         <input type="button" name="r" value="Reportes" class="btn btn-secondary exec">
                         &nbsp;&nbsp;&nbsp;
-                        <input type="button" name="o" value="Monitor de Ordenes" class="btn btn-primary exec">
+                        <!--
+                        <input type="button" name="o" value="Monitor de Ordenes" class="btn btn-primary exec">-->
                       </div>  
                 </div>
             </div>

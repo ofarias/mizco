@@ -68,7 +68,7 @@ class wms extends database {
             }
             if($i > 0){$p=' Where id_comp > 0 '.$p;}
         }
-        $this->query="SELECT c.*, 
+        $this->query="SELECT first 100 c.*, 
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 1 ) AS entradasS, 
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 1) AS salidasS, 
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP, 
@@ -407,7 +407,7 @@ class wms extends database {
             }
             if($i > 0){$p=' Where id_am > 0 '.$p;}
         }
-        $this->query="SELECT mov, max(SIST_ORIGEN) AS SIST_ORIGEN, (select max(nombre) from FTC_ALMACEN a where a.id =  MAX(AM.ID_ALMACEN)) AS ALMACEN, MAX(TIPO) AS TIPO, MAX(FECHA) AS FECHA, MAX(STATUS) AS STATUS, MIN(HORA_I) AS HORA_I, MAX(HORA_F) AS HORA_F, SUM(CANT) AS CANT, SUM(PIEZAS) AS PIEZAS  , MAX(usuario) as usuario, cast( list(DISTINCT prod) as varchar (1000)) as prod, (SELECT MAX(ETIQUETA) FROM FTC_ALMACEN_COMPONENTES AC WHERE AC.ID_COMP = max(AM.ID_compp) ) as componente 
+        $this->query="SELECT first 50 mov, max(SIST_ORIGEN) AS SIST_ORIGEN, (select max(nombre) from FTC_ALMACEN a where a.id =  MAX(AM.ID_ALMACEN)) AS ALMACEN, MAX(TIPO) AS TIPO, MAX(FECHA) AS FECHA, MAX(STATUS) AS STATUS, MIN(HORA_I) AS HORA_I, MAX(HORA_F) AS HORA_F, SUM(CANT) AS CANT, SUM(PIEZAS) AS PIEZAS  , MAX(usuario) as usuario, cast( list(DISTINCT prod) as varchar (1000)) as prod, (SELECT MAX(ETIQUETA) FROM FTC_ALMACEN_COMPONENTES AC WHERE AC.ID_COMP = max(AM.ID_compp) ) as componente 
         FROM FTC_ALMACEN_MOVIMIENTO AM $op $p  group by mov order by mov desc";
         //echo 'Consulta de movimientos con filtro: '.$this->query;
         $res=$this->EjecutaQuerySimple();
@@ -644,7 +644,7 @@ class wms extends database {
 
     function ordenes($op){
         $data=array();
-        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN WHERE ID_ORD >0 $op";
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD >0 $op";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -663,6 +663,8 @@ class wms extends database {
             $hoja = $xlsx->sheetName(0);
             if(strtoupper( trim($hoja)) == 'COPPEL'){
                 $this->coppel($xlsx, $hoja, $file);
+            }elseif(strtoupper( trim($hoja)) == 'NUEVO WALMART'){
+                $this->walmart($xlsx, $hoja, $file);
             }else{
                 return array("msg"=>"Lo siento no tengo el formato para el cliente: ".$hoja.' favor de revisar el nombre de la hoja');
             }
@@ -675,12 +677,13 @@ class wms extends database {
 
     function coppel($xlsx, $hoja, $file){
         // coppel se identifica en el valor de la columa "A"
+        $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file') returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
-        $idord=$res->ID_ORD;
-        if(@$res->ID >0){
+        $idord=@$res->ID_ORD;
+        if(@$idord>0){
             foreach ($xlsx->rows() as $key){
                 $col='A';$ln++;$nC=0;
                 for ($i=0; $i < count($key); $i++) { 
@@ -693,7 +696,7 @@ class wms extends database {
                                 if($lnn >= 10 and $lnn < 65 and $col >='H' and $k2[$nC]!=''){
                                 //echo '<br/>En la linea '.$lnn.' Se solicitan '.$k2[$nC].' piezas del producto: '.$k2[1].' modelo: '.$k2[2].' para el Cedis '.$key[$nC].'<br/>';
                                     $piezas += $k2[$nC];
-                                    $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS) VALUES(NULL, $idord, '$k2[2]', '$k2[1]', $k2[$nC], 0, '', '$key[$nC]', 0, 0,1, '' ) returning ID_ORDD";
+                                    $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN) VALUES(NULL, $idord, '$k2[2]', '$k2[1]', $k2[$nC], 0, '', '$key[$nC]', 0, 0,1, '', '') returning ID_ORDD";
                                     $this->grabaBD();
                                 }    
                             }
@@ -702,6 +705,48 @@ class wms extends database {
                     $col++;
                 }
                 $i++;
+                //echo '<br/>Valores de la Columna A:'.$key[0].' B: '.$key[1];
+            }
+        }else{
+            echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
+        }
+            echo '<br/>Ultima Columna: '.$col.'<br/>';
+    }
+
+    function walmart($xlsx, $hoja, $file){
+        // coppel se identifica en el valor de la columa "A"
+        $usuario=$_SESSION['user']->ID;
+        $ln=0;$piezas=0;
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $res=$this->grabaBD();
+        $res= ibase_fetch_object($res);
+        $idord=@$res->ID_ORD;
+        if(@$idord>0){
+            foreach ($xlsx->rows() as $key){
+                $col='A';$ln++;$nC=0;
+                for ($i=0; $i < count($key); $i++) { 
+                    //echo '<br/>Columna: '.$col ;
+                        if($ln==7 and $nC >= 9){
+                            echo '<br/>Valor de la celda: '.$col.$ln.' = '. $key[$nC].'<br/>';
+                            $lnn=0;
+                            foreach($xlsx->rows() as $k2){
+                                $lnn++;
+                                if($lnn >= 8 and $lnn <= 85 and $col >='J' and $k2[$nC]!=''){
+                                //echo '<br/>En la linea '.$lnn.' Se solicitan '.$k2[$nC].' piezas del producto: '.$k2[1].' modelo: '.$k2[2].' para el Cedis '.$key[$nC].'<br/>';
+                                    $piezas += $k2[$nC];
+                                    if(substr($k2[1],0,5)== 'TOTAL'){
+                                        echo 'Es una linea de totales'; 
+                                    }else{
+                                        $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES(NULL, $idord, '$k2[4]', '', $k2[$nC], 0, '', '$key[$nC]', 0, 0, 1, '', '','$k2[2]','$k2[3]','$k2[1]', null) returning ID_ORDD";
+                                        $this->grabaBD();
+                                    }
+                                }    
+                            }
+                        }
+                    $nC++;
+                    $col++;
+                }
+                //$i++;
                 //echo '<br/>Valores de la Columna A:'.$key[0].' B: '.$key[1];
             }
         }else{

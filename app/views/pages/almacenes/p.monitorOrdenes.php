@@ -24,16 +24,21 @@
                                 <table class="table table-striped table-bordered table-hover" id="dataTables">
                                     <thead>
                                         <tr>
+                                            <th> Cliente </th>
                                             <th> Orden </th>
-                                            <th> Usuario </th>
-                                            <th> Fecha de Carga </th>
-                                            <th> Cliente  </th>
+                                            <th> Fecha de Carga <br/> <font color="blue">Final</font> </th>
                                             <th> Cedis </th>
                                             <th> Productos </th>
                                             <th> Piezas </th>
                                             <th> Estado </th>
-                                            <th> Detalle </th>
-                                            <th> Opciones </th>
+                                            <th> Fecha Asigna <br/> <font color="brown">Final</font></th>
+                                            <th> Fecha Almacen <br/><font color="green">Final</font></th>
+                                            
+
+                                            <th> Usuario </th>
+                                            <th> Archivo </th>
+                                            <th> Prioridad </th>
+                                            <th> Detalle <br/> Correo </th>
                                             <th> Eliminar </th>
                                         </tr>
                                     </thead>
@@ -43,23 +48,25 @@
                                         //$color = '';if(trim($kp->STATUS) == 'Eliminado'){ $color="style='background-color:#f33737'";}
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?>>
-                                            <td><?php echo $ord->ORDEN?></td>
-                                            <td><?php echo $ord->USUARIO?></td>
-                                            <td><?php echo $ord->FECHA_CARGA?></td>
                                             <td><?php echo $ord->CLIENTE?></td>
+                                            <td title="<?php echo $ord->ORDEN?>"><?php echo substr($ord->ORDEN, 0, 20) ?></td>
+                                            <td><?php echo $ord->FECHA_CARGA?>
+                                            <br/><font color="blue"><?php echo $ord->FECHA_CARGA_F?></font></td>
                                             <td><?php echo $ord->CEDIS?></td>
-                                            <td><?php echo $ord->FECHA_ASIGNA?></td>
-                                            <td><?php echo $ord->FECHA_CARGA_F?></td>
-                                            <td><?php echo $ord->FECHA_ASIGNA_F?></td>
-                                            <td><?php echo $ord->FECHA_ALMACEN?></td>
-                                            <td><?php echo $ord->FECHA_ALMACEN_F?></td>
+                                            <td align="right"><?php echo $ord->PRODUCTOS?></td>
+                                            <td align="right"><?php echo number_format($ord->PIEZAS,0)?></td>
                                             <td><?php echo $ord->STATUS?></td>
-                                            <td><?php echo $ord->NUM_PROD?></td>
-                                            <td><?php echo $ord->CAJAS?></td>
-                                            <td><?php echo $ord->PRIORIDAD?></td>
+                                            
+                                            <td><?php echo $ord->FECHA_ASIGNA?>
+                                            <br/><font color="brown"><?php echo $ord->FECHA_ASIGNA_F?></font></td>
+
+                                            <td><?php echo $ord->FECHA_ALMACEN?><br/><font color="green"><?php echo $ord->FECHA_ALMACEN_F?></font></td>
+                                            <td><?php echo $ord->USUARIO?></td>
                                             <td><?php echo substr($ord->ARCHIVO,30)?></td>
-                                            <td><a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>" target="popup" onclick="window.open(this.href, this.target, 'width=800,height=600'); return false;"> Detalles</a></td>
-                                            <td><a >Enviar Correo</a></td>
+
+                                            <td><?php echo $ord->PRIORIDAD?></td>
+                                            <td><a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;"> Detalles</a><br/><a href=""> Enviar Correo</a></td>
+                                            <td><input type="button" value="Eliminar" class="btn-sm btn-danger"></td>
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>

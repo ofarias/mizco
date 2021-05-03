@@ -136,7 +136,8 @@
                                                     <option>Rojo</option>
                                                     <option>Negro</option>
                                                     <option>Blanco</option>
-                                                    <option>Mixto (R,N,B)</option>
+                                                    <option>Verde</option>
+                                                    <option>Mixto (R,N,B,V)</option>
                                                 </select>
                                                 <!--<input class="col" type="text" name="" placeholder="color">-->
                                             </td>
