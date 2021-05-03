@@ -33,9 +33,11 @@ class wms extends database {
     function componentes($op, $param){
         $data=array();
         $p='';$i=0;$salida='';
+        $f = ' first 100 ';
         if($param != ''){
             $param=json_decode($param);
             //print_r( $param);
+            $f = '';
             foreach ($param as $key => $value) {
                 if($key=='t' and $value != 'none'){
                     $p .= ' and ID_TIPO = '.$value.' ';$i++;
@@ -68,7 +70,7 @@ class wms extends database {
             }
             if($i > 0){$p=' Where id_comp > 0 '.$p;}
         }
-        $this->query="SELECT first 100 c.*, 
+        $this->query="SELECT $f c.*, 
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 1 ) AS entradasS, 
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 1) AS salidasS, 
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP, 
