@@ -124,11 +124,17 @@
 
                                 </td>
                                 
-                                <td><input type="button" name="dup" value="Duplicar" class="btn-sm btn-primary dup" et="<?php echo $row->ETIQUETA?>" tipo="<?php echo $row->TIPO?>" id="<?php echo $row->ID_COMP?>">&nbsp;&nbsp;&nbsp;&nbsp;<?php if($row->ID_TIPO == 1):?><input type="button" value="Asociar" class="btn-sm btn-info asocia" tipo="<?php echo $row->TIPO ?>" id="<?php echo $row->ID_COMP?>" et="<?php echo $row->ETIQUETA?>"><?php endif;?></td>
-                                <td><?php if(($entradas - $salidas) > 0):?>
-                                            <input type="button" value="Reporte" class="btn-sm btn-warning"><br/><input type="button" value="QR" class="btn-sm btn-primary" >
-                                    <?php endif;?>
+                                <td>
+                                    <input type="button" name="dup" value="Duplicar" class="btn-sm btn-primary dup" et="<?php echo $row->ETIQUETA?>" tipo="<?php echo $row->TIPO?>" id="<?php echo $row->ID_COMP?>">&nbsp;&nbsp;&nbsp;&nbsp;<?php if($row->ID_TIPO == 1):?>
+                                    <input type="button" value="Asociar" class="btn-sm btn-info asocia" tipo="<?php echo $row->TIPO ?>" id="c_<?php echo $row->ID_COMP?>" idc="<?php echo $row->ID_COMP?>" et="<?php echo $row->ETIQUETA?>"><?php endif;?>
                                 </td>
+                                <td><?php if(($entradas - $salidas) > 0){?>
+                                        <input type="button" value="Reporte" class="btn-sm btn-warning "><br/><input type="button" value="QR" class="btn-sm btn-primary" >
+                                    <?php }else{?>
+                                        <input type="button" class="btn-sm btn-danger del" value="Eliminar" id="e_<?php echo $row->ID_COMP?>" idc="<?php echo $row->ID_COMP?>" t="<?php echo $row->ID_TIPO?>">
+                                    <?php }?>
+                                </td>
+
                             </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -198,6 +204,50 @@
 <script type="text/javascript">
 
     var form = document.getElementById('formAdd')
+
+    $(".del").click(function(){
+        var id = $(this).attr('idc')
+        var t = $(this).attr('t')
+        $.confirm({
+            title: 'Eliminar componente!',
+            content: 'Solo se pueden eliminar componentes sin movimientos!',
+            buttons: {
+                Aceptar: function () {
+                    $.ajax({
+                        url:'index.wms.php',
+                        type:'post',
+                        dataType:'json',
+                        data:{delComp:1, id, t},
+                        success:function(data){
+                            if(data.status == 'ok'){
+                                document.getElementById(id).classList.add('hidden')
+                                document.getElementById("c_"+id).classList.add('hidden')
+                                $("#e_"+id).hide()
+                            }else if(data.status== 'no'){
+                                $.alert("Se encontraron movimientos o dependencias del componente")                                
+                            }else if(data.status=='p'){
+                                $.alert("El componente primario tiene asociaciones, hay que eliminar las asociaciones antes.")                                
+                            }
+                        },
+                        error:function(){
+                            $.alert('Ocurrio un error, favor de actualizar su pantalla he intentarlo nuevamente')
+                        }
+                    })
+                },
+                Cancelar: function () {
+                    $.alert('No se realizo ninguna acción.');
+                },
+                //somethingElse: {
+                //    text: 'Something else',
+                //    btnClass: 'btn-blue',
+                //    keys: ['enter', 'shift'],
+                //    action: function(){
+                //        $.alert('Something else?');
+                //    }
+                //}
+            }
+        });
+    })
 
     $(".filtro").click(function(){
         var out = $(this).val()
@@ -419,7 +469,7 @@
     $(".asocia").click(function(){
         var et = $(this).attr('et')
         var tipo = $(this).attr('tipo')
-        var id = $(this).attr('id')
+        var id = $(this).attr('idc')
         var t = 's'
         var e = 0
         var selec = cheks()

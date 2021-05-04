@@ -1015,6 +1015,14 @@ class wms_controller {
         }
     }
 
+    function delComp($id, $t){
+        if($_SESSION['user']){
+            $data = new wms;
+            $exec=$data->delComp($id,$t);
+            return $exec;
+        }
+    }
+
 }
 ?>
 

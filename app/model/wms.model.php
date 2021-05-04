@@ -521,15 +521,15 @@ class wms extends database {
     }
 
     function asocia($cs, $cp, $t, $e) {
-        if($t = 'm'){
+        if($t == 'm'){
             $cs =substr($cs, 1);
             $param = " in (".$cs.")";
         }else{
             $param = " = ".$cs;
         }
         $this->query="UPDATE FTC_ALMACEN_COMP SET COMPP = $cp where id_comp $param and status = 1";
+        echo $this->query;
         $res=$this->queryActualiza();
-        
         if($res >= 1){
             $msg="Se asociaron correctamente ".$res.' componentes';
         }else{
@@ -1056,6 +1056,26 @@ class wms extends database {
         return $data;
     }
 
+    function delComp($id, $t){
+        if($t==1){
+            $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = 9 WHERE ID_COMP = $id and (SELECT coalesce(COUNT(*),0) FROM FTC_ALMACEN_MOV am WHERE am.comps=$id and am.status='F' )=0 and tipo=$t";
+            $res= $this->queryActualiza();
+            if($res == 1 ){
+                $msg= 'Se ha eliminado correctamente'; $sta='ok';
+            }else{
+                $msg= 'No se ha podido eliminar ya que el componente tiene movimientos'; $sta='no';
+            }
+        }elseif($t==2){
+            $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = 9 WHERE ID_COMP = $id and (SELECT coalesce(COUNT(*),0) FROM FTC_ALMACEN_COMP WHERE COMPP= $id and status !=9)=0 and tipo=$t";
+            $res= $this->queryActualiza();
+            if($res == 1 ){
+                $msg= 'Se ha eliminado correctamente'; $sta='ok';
+            }else{
+                $msg= 'No se ha podido eliminar ya que el componente tiene Componentes Secundarios (Tarimas) asociados'; $sta='no';
+            }
+        }
+        return array("msg"=>$msg, "status"=>$sta);
+    }
 }
 ?>
 
