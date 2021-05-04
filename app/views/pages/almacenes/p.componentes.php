@@ -220,9 +220,9 @@
                         data:{delComp:1, id, t},
                         success:function(data){
                             if(data.status == 'ok'){
+                                $("#e_"+id).hide()
                                 document.getElementById(id).classList.add('hidden')
                                 document.getElementById("c_"+id).classList.add('hidden')
-                                $("#e_"+id).hide()
                             }else if(data.status== 'no'){
                                 $.alert("Se encontraron movimientos o dependencias del componente")                                
                             }else if(data.status=='p'){

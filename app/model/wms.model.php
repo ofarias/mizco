@@ -46,7 +46,7 @@ class wms extends database {
                     $p .= ' and ID_ALM = '.$value.' ';$i++;
                 }
                 if($key=='p' and $value != 'none'){
-                    $p .= " and  id_PRODUCTOS CONTAINING('".$value."') ";$i++;
+                    $p .= " and  id_PRODUCTOS in ('".$value."') ";$i++;
                 }
                 if($key=='e' and $value != 'none'){
                     $p .= " and id_status = ".$value." ";$i++;
@@ -76,6 +76,7 @@ class wms extends database {
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP, 
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 2) AS salidasP
         FROM FTC_ALMACEN_COMPONENTES c $op $p ";
+        //echo '<p>'.$this->query.'</p>';
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
