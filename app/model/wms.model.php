@@ -680,6 +680,8 @@ class wms extends database {
                 $this->elektra($xlsx, $hoja, $file);
             }elseif(strtoupper( trim($hoja)) == 'SORIANA'){
                 $this->soriana($xlsx, $hoja, $file);
+            }elseif(strtoupper( substr(trim($hoja),0,9))=='HC FULLER'){
+                $this->hcfuller($xlsx, substr(trim($hoja),0,9), $file);
             }else{
                 echo 'Lo siento no tengo el formato para el cliente: '.$hoja.' favor de revisar el nombre de la hoja';
                 return array("msg"=>"Lo siento no tengo el formato para el cliente: ".$hoja.' favor de revisar el nombre de la hoja');
@@ -976,7 +978,6 @@ class wms extends database {
     }
 
     function soriana($xlsx, $hoja, $file){
-        // coppel se identifica en el valor de la columa "A"
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
         $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
@@ -987,58 +988,42 @@ class wms extends database {
             foreach ($xlsx->rows() as $key){
                 $col='A';$ln++;$nC=0;
                 for ($i=0; $i < count($key); $i++) { 
-                    //echo '<br/>Columna: '.$col ;
-                        if($ln==4 and $nC >=9){
-                            //echo '<br/>Valor de la celda: '.$col.$ln.' = '. $key[$nC].'<br/>';
+                        if($ln==3 and $nC >=9 and $nC <= 10){ ///aqui controlamos las columnas de los cedis en este caso solo son las columnas J y K
                             $lnn=0;
                             foreach($xlsx->rows() as $k2){
                                 $lnn++;
                                 if($lnn >= 4 and $lnn <= count($xlsx->rows()) and $nC>=9 and $k2[$nC]!=''){
-                                //echo '<br/>En la linea '.$lnn.' Se solicitan '.$k2[$nC].' piezas del producto: '.$k2[1].' modelo: '.$k2[2].' para el Cedis '.$key[$nC].'<br/>';
-                                    if(substr($k2[1],0,5)== 'TOTAL'){
-                                        //echo 'Es una linea de totales: '.$k2[1].'-'.$nC.'<br/>'; 
-                                        $oc = $k2[$nC];
-                                        //print_r($odns);
-                                        //echo '<br/>'.$oc.'<br/>';
-                                        if(count($odns)>0){
-                                            //echo 'Id inicial: '.$odns[0].'  id final: '.$odns[count($odns)-1].'<br/>';
-                                            $begin=$odns[0]; $last=$odns[count($odns)-1];
-                                            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ORDEN ='$oc' where id_ordd >= $begin and  id_ordd <= $last";
-                                            $this->EjecutaQuerySimple();
-                                        }
-                                        //die();
-                                        $odns=array();
+                                    if(substr($k2[2],0,6)== 'CODIGO'){
+                                        //echo 'Es una linea de Codigo: '.$k2[1].'-'.$nC.'<br/>'; 
                                     }elseif (trim($k2[4])=='Total general'){
                                         break;
                                     }elseif ($key[$nC] == 'ASIGNADO') {
                                         break;
                                     }else{
-                                    $piezas += $k2[$nC];
-                                        //if(!empty($k2[3])){
-                                        //    $lin_nwm=$k2[3];
-                                        //}
-                                        $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES
-                                        (NULL, $idord, '$k2[5]', '', $k2[$nC], 0, '', '$key[$nC]', 0, 0, 1, '', '','$k2[2]','','', null) returning ID_ORDD";
-                                        $res=$this->grabaBD();
-                                        $res=ibase_fetch_object($res);
-                                        $res=$res->ID_ORDD;
-                                        if($res <= 0){
-                                            echo $this->query;
+                                    if(is_numeric($k2[$nC])){$piezas += $k2[$nC];}
+                                        if(!empty($k2[5])){
+                                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD, CADENA) VALUES
+                                            (NULL, $idord, '$k2[5]', '', $k2[$nC], 0, '', '$key[$nC]', 0, 0, 1, '', '','$k2[2]','','', null, '$k2[1]') returning ID_ORDD";
+                                            //echo $this->query;
                                             //die();
-                                        } else{
-                                            $odns[]=$res;
+                                            $res=$this->grabaBD();
+                                            $res=ibase_fetch_object($res);
+                                            $res=$res->ID_ORDD;
+                                            if($res <= 0){
+                                                echo $this->query;
+                                                //die();
+                                            } else{
+                                                $odns[]=$res;
+                                            }
                                         }
 
                                     }
                                 }
                             }
-
                         }
                     $nC++;
                     $col++;
                 }
-                //$i++;
-                //echo '<br/>Valores de la Columna A:'.$key[0].' B: '.$key[1];
             }
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
@@ -1046,6 +1031,28 @@ class wms extends database {
             echo '<br/>Ultima Columna: '.$col.'<br/>';
     }
     
+    function hcfuller($xlsx, $hoja, $file){
+        $usuario=$_SESSION['user']->ID;
+        $ln=0;$piezas=0;
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $res=$this->grabaBD();
+        $res= ibase_fetch_object($res);
+        $idord=@$res->ID_ORD;
+        if(@$idord>0){
+            foreach ($xlsx->rows() as $key){
+                $col='A';$ln++;
+                        if($ln >= 7 and $ln<=count($xlsx->rows()) - 1 and ($key[3]!='' and $key[6] !='')){
+                            $piezas += $key[6];
+                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $idord, '$key[3]', '', $key[6], 0, '', '', 0, 0, 1, '', '$key[9]','','$key[4]','', null) returning ID_ORDD";
+                            $res=$this->grabaBD();
+                        }else{   
+                        }
+            }
+        }else{
+            echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
+        }
+            echo '<br/>Ultima Columna: '.$col.'<br/>';
+    }
 
     function orden($id_o){
         $data= array();
