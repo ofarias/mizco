@@ -6,16 +6,18 @@
 </style>
 <div class="row">
     <div class="col-lg-12">
-        <div>Detalles de la Orden</div>
+        <div>Detalles del Archivo: </div>
             <br/>
             <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
             <div class="panel-body">
                             <div class="table-responsive">                            
-                                <table class="table table-striped table-bordered table-hover" id="dataTables">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-detOrd">
                                     <thead>
                                         <tr>
+                                            <th> ln </th>
+                                            <th> Orden</th>
                                             <th> Clave </th>
                                             <th> Producto </th>
                                             <th> Piezas </th>
@@ -36,6 +38,8 @@
                                         //$color = '';if(trim($kp->STATUS) == 'Eliminado'){ $color="style='background-color:#f33737'";}
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?>>
+                                            <td><input type="checkbox" name="selector" value="<?php echo $ord->ID_ORDD?>"></td>
+                                            <td><?php echo $ord->ORDEN?></td>
                                             <td><?php echo $ord->PROD?></td>
                                             <td><?php echo $ord->DESCR?></td>
                                             <td><?php echo $ord->PZAS?></td>
