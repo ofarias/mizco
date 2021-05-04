@@ -24,6 +24,7 @@
                                 <table class="table table-striped table-bordered table-hover" id="dataTables">
                                     <thead>
                                         <tr>
+                                            <th> Ln <br/><input type="checkbox" name="selAll" class="selAll"></th>
                                             <th> Cliente </th>
                                             <th> Orden </th>
                                             <th> Fecha de Carga <br/> <font color="blue">Final</font> </th>
@@ -33,8 +34,6 @@
                                             <th> Estado </th>
                                             <th> Fecha Asigna <br/> <font color="brown">Final</font></th>
                                             <th> Fecha Almacen <br/><font color="green">Final</font></th>
-                                            
-
                                             <th> Usuario </th>
                                             <th> Archivo </th>
                                             <th> Prioridad </th>
@@ -48,6 +47,7 @@
                                         //$color = '';if(trim($kp->STATUS) == 'Eliminado'){ $color="style='background-color:#f33737'";}
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?>>
+                                            <th><input type="checkbox" name="sel" class="envio"></th>
                                             <td><?php echo $ord->CLIENTE?></td>
                                             <td title="<?php echo $ord->ORDEN?>"><?php echo substr($ord->ORDEN, 0, 20) ?></td>
                                             <td><?php echo $ord->FECHA_CARGA?>

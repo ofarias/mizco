@@ -680,8 +680,12 @@ class wms extends database {
                 $this->elektra($xlsx, $hoja, $file);
             }elseif(strtoupper( trim($hoja)) == 'SORIANA'){
                 $this->soriana($xlsx, $hoja, $file);
-            }elseif(strtoupper( substr(trim($hoja),0,9))=='HC FULLER'){
+            }elseif(strtoupper(substr(trim($hoja),0,9))=='HC FULLER'){
                 $this->hcfuller($xlsx, substr(trim($hoja),0,9), $file);
+            }elseif(strtoupper(trim($hoja))=='RADIOSHACK'){
+                $this->radio($xlsx, $hoja, $file);
+            }elseif(strtoupper(trim($hoja))=='HEB'){
+                $this->heb($xlsx, $hoja, $file);
             }else{
                 echo 'Lo siento no tengo el formato para el cliente: '.$hoja.' favor de revisar el nombre de la hoja';
                 return array("msg"=>"Lo siento no tengo el formato para el cliente: ".$hoja.' favor de revisar el nombre de la hoja');
@@ -911,8 +915,8 @@ class wms extends database {
             foreach ($xlsx->rows() as $key){
                 $col='A';$ln++;
                         if($ln >= 4 and $ln<=count($xlsx->rows()) - 1 and ($key[3] !='' and $key[4] !='')){
-                            $piezas += $key[6];
-                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $idord, '$key[2]', '', $key[8], $key[4], '', '', 0, 0, 1, '', '','$key[3]','','', $key[6]) returning ID_ORDD";
+                            if(is_numeric($key[6])){$piezas+=$key[6];}
+                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $idord, '$key[2]', '', $key[7], $key[5], '', '', 0, 0, 1, '', '$key[11]','$key[1]','','', $key[4]) returning ID_ORDD";
                             //echo '<br/>'.$this->query.'<br/>';
                             $res=$this->grabaBD();
                             $res=ibase_fetch_object($res);
@@ -1047,6 +1051,52 @@ class wms extends database {
                             $res=$this->grabaBD();
                         }else{   
                         }
+            }
+        }else{
+            echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
+        }
+            echo '<br/>Ultima Columna: '.$col.'<br/>';
+    }
+
+    function radio($xlsx, $hoja, $file){
+        $usuario=$_SESSION['user']->ID;
+        $ln=0;$piezas=0;
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $res=$this->grabaBD();
+        $res= ibase_fetch_object($res);
+        $idord=@$res->ID_ORD;
+        if(@$idord>0){
+            foreach ($xlsx->rows() as $key){
+                $col='A';$ln++;
+                        if($ln >= 5 and $ln<=count($xlsx->rows()) - 1 and ($key[3]!='' and $key[7] !='')){
+                            $piezas += $key[7];
+                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $idord, '$key[3]', '$key[2]', $key[7], 0, '', '', 0, 0, 1, '', '$key[11]','','$key[1]','', null) returning ID_ORDD";
+                            $res=$this->grabaBD();
+                        }else{   
+                        }
+            }
+        }else{
+            echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
+        }
+            echo '<br/>Ultima Columna: '.$col.'<br/>';
+    }
+
+    function heb($xlsx, $hoja, $file){
+        $usuario=$_SESSION['user']->ID;
+        $ln=0;$piezas=0;
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $res=$this->grabaBD();
+        $res= ibase_fetch_object($res);
+        $idord=@$res->ID_ORD;
+        if(@$idord>0){
+            foreach ($xlsx->rows() as $key){
+                $col='A';$ln++;
+                    if($ln >= 4 and $ln<=count($xlsx->rows()) - 1 and ($key[6]!='' and $key[2] !='')){
+                    $piezas += $key[7];
+                        $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $idord, '$key[5]', '', $key[7], $key[6], '', '', 0, 0, 1, '', '$key[11]','','$key[1]','', $key[2]) returning ID_ORDD";
+                            $res=$this->grabaBD();
+                    }else{   
+                    }
             }
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
