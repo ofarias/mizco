@@ -27,6 +27,7 @@
                                             <th> Piezas Surtidas </th>
                                             <th> Cajas Surtidas </th>
                                             <th> Estado </th>
+                                            <th> <font color='blue'>SKU</font> <br/><font color="green"> ITEM</font></th>
                                             <th> Observaciones </th>
                                             <th> Finalizar </th>
                                             <th> Informar / Correo  </th>
@@ -35,6 +36,9 @@
                                   <tbody>
                                     <?php foreach ($orden as $ord): 
                                         $color='';
+                                        if(empty($ord->DESCR)){
+                                            $color = "style='background-color: #FFF7C6;'";
+                                        }
                                         //$color = '';if(trim($kp->STATUS) == 'Eliminado'){ $color="style='background-color:#f33737'";}
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?>>
@@ -49,6 +53,7 @@
                                             <td><?php echo $ord->PZAS_SUR?></td>
                                             <td><?php echo $ord->CAJAS_SUR?></td>
                                             <td><?php echo $ord->STATUS?></td>
+                                            <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
                                             <td><?php echo $ord->OBS?></td>
                                             <td>
                                                 <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>" target="popup" onclick="window.open(this.href, this.target, 'width=800,height=600'); return false;"> Finalizar</a></td>

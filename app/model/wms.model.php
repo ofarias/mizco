@@ -1056,7 +1056,10 @@ class wms extends database {
 
     function orden($id_o){
         $data= array();
-        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET where id_ord=$id_o";
+        $this->query="UPDATE FTC_ALMACEN_ORDENES_DETALLES o set o.descr = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = o.PROD) where o.descr='' ";
+        $this->queryActualiza();
+
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDENES_DETALLES where id_ord=$id_o";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
