@@ -1023,6 +1023,11 @@ class wms_controller {
         }
     }
 
+    function envMail($correos,  $msg, $archivos){
+        echo 'Se envian los archvivos: '.$archivos.' a los correos: '.$correos.' con el mensaje: '.$msg;
+        die();
+    }
+
 }
 ?>
 

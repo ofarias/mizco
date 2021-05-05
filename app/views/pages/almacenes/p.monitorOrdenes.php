@@ -47,7 +47,7 @@
                                         //$color = '';if(trim($kp->STATUS) == 'Eliminado'){ $color="style='background-color:#f33737'";}
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?>>
-                                            <th><input type="checkbox" name="sel" class="envio"></th>
+                                            <th><input type="checkbox" name="sel" value="<?php echo $ord->ARCHIVO?>"></th>
                                             <td><?php echo $ord->CLIENTE?></td>
                                             <td title="<?php echo $ord->ORDEN?>"><?php echo substr($ord->ORDEN, 0, 20) ?></td>
                                             <td><?php echo $ord->FECHA_CARGA?>
@@ -62,10 +62,12 @@
 
                                             <td><?php echo $ord->FECHA_ALMACEN?><br/><font color="green"><?php echo $ord->FECHA_ALMACEN_F?></font></td>
                                             <td><?php echo $ord->USUARIO?></td>
-                                            <td><?php echo substr($ord->ARCHIVO,30)?></td>
+
+                                            <td><a href="..\\..\\Cargas Ordenes\\<?php echo $ord->ARCHIVO?>" download><?php echo $ord->ARCHIVO?></a></td>
 
                                             <td><?php echo $ord->PRIORIDAD?></td>
-                                            <td><a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;"> Detalles</a><br/><a href=""> Enviar Correo</a></td>
+                                            <td><a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;"> Detalles</a><br/>
+                                                <a class="envio"> Enviar Correo</a></td>
                                             <td><input type="button" value="Eliminar" class="btn-sm btn-danger"></td>
                                         </tr>
                                     <?php endforeach ?>               
@@ -86,34 +88,95 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
-    $(".report").click(function(){
-        var t = $(this).val()
-        var out = $("#"+t).val()
-        $.ajax({
-            url:'index.wms.php',
-            type:'post',
-            dataType:'json',
-            data:{report:1, t, out},
-            success:function(data){
-                if(data.status == 'ok'){
-                    if(out == 'x'){
-                        $.alert('Descarga del archivo de Excel')
-                        window.open( data.completa , 'download')
-                    }
-                    if(out == 'p'){
-                        $.alert('Abrir la pagina en una ventana nueva')
-                        window.open(data.completa, '_blank')
-                    }
-                    if(out == 'b'){
-                        $.alert('Descargar el archivo en excel y Abrir la pagina en una ventana nueva')   
-                        window.open( data.completa , 'download')
-                    }
-                }
-            },
-            error:function(){
-                    $.alert('Ocurrio un error')   
-            }
-        })
+    $(".selAll").change(function(){
+        $("input[name=sel]").prop('checked', $(this).prop("checked"));
     })
-    
+
+    $(".envio").click(function(){
+        var selec = cheks();
+        $.confirm({
+            columnClass: 'col-md-8',
+            title: 'Envio de correo de los archivos seleccionados',
+            content: 'Se enviaran los documentos seleccionados.' + 
+            '<form action="index.php" class="formName">' +
+            '<div class="form-group">'+
+            '<br/>Para: '+
+            '<input type="email" multiple placeholder="Separar las direcciones con coma , " class="dir" size="100" maxlenght="150"><br/><br/>'+
+            '<input type="checkbox" name="mail" value="alberto@selectsound.com.mx" correo="alberto@selectsound.com.mx"> Alberto Mizrahi: alberto@selectsound.com.mx<br/>'+
+            '<input type="checkbox" name="mail" value="rafael@selectsound.com.mx" correo="rafael@selectsound.com.mx"> Rafael Mizrahi: rafael@selectsound.com.mx<br/>'+
+            '<input type="checkbox" name="mail" value="esther@selectsound.com.mx" correo="esther@selectsound.com.mx"> Esther Gonzales: esther@selectsound.com.mx<br/>'+
+            '<input type="checkbox" name="mail" value="inteligenciac@selectsound.com.mx" correo="intelicenciac@selectsound.com.mx"> Olga Perez: inteligenciac@selectsound.com.mx<br/>'+
+            '<br/>Mensaje:<br/>'+
+            '<textarea class="msg" cols="100" rows="15"></textarea>'+
+            '<br/><br/>'+
+            '</form>'+
+            'Archivos que se Adjuntaran: <br/>' + selec['lista']
+            ,
+                buttons: {
+                formSubmit: {
+                text: 'Envio de correo',
+                btnClass: 'btn-blue',
+                action: function () {
+                    var dir = this.$content.find('.dir').val();
+                    var msg = this.$content.find('.msg').val();
+                    var a = '';
+                    var c = 0;
+                    this.$content.find("input[name=mail]").each(function(index){ 
+                       if($(this).is(':checked')){
+                          c++;
+                          a+= ','+$(this).val();
+                       }
+                    });
+                    dir += a 
+                    if(dir==''){
+                        $.alert('Debe de contener por lo menos una direccion');
+                        return false;
+                    }else{
+                        //$.alert("Se envia el correo")
+                        $.ajax({
+                            url:'index.wms.php',
+                            type:'post',
+                            dataType:'json',
+                            data:{envMail:1, dir, msg, files:selec['a']},
+                            success:function(data){
+                                alert(data.msg);
+                                //location.reload(true)
+                            }
+                        });
+                    }
+                   }
+                },
+                cancelar: function () {
+                },
+                },
+                onContentReady: function () {
+                // bind to events
+                var jc = this;
+                //alert(jc);
+                this.$content.find('form').on('submit', function (e) {
+                    // if the user submits the form by pressing enter in the field.
+                    e.preventDefault();
+                    jc.$$formSubmit.trigger('click'); // reference the button and click it
+                });
+            }
+        });
+    })
+
+    function cheks(){
+        var a = '';
+        var lista = '';
+        var c = 0;
+        $("input[name=sel]").each(function (index) { 
+           if($(this).is(':checked')){
+              c++;
+              lista+=  c + '.-' + $(this).val() + '<br/>';
+              a+= ','+$(this).val();
+           }
+        });
+        return {lista, c, a};
+    }
+
+
+        
+
 </script>

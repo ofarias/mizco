@@ -45,6 +45,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->report($_POST['t'],$_POST['out']);echo json_encode($res);exit();
 }elseif (isset($_POST['delComp'])){
     $res=$controller_wms->delComp($_POST['id'], $_POST['t']);echo json_encode($res);exit();
+}elseif (isset($_POST['envMail'])){
+    $res=$controller_wms->envMail($_POST['dir'],  $_POST['msg'], $_POST['files']);echo json_encode($res);exit();
 }else{
     switch ($_GET['action']) {
         case 'login':
