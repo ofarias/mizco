@@ -1,11 +1,12 @@
 <?php
-session_start();
-require_once('app/controller/wms.controller.php');
-$controller = new wms_controller;
-$target_dir = "C:\\xampp\\htdocs\\Cargas Ordenes\\";
-if(!file_exists($target_dir)){
-    mkdir($target_dir);
-}
+//session_start();
+//require_once('app/controller/wms.controller.php');
+//$controller = new wms_controller;
+//
+//$target_dir = "C:\\xampp\\htdocs\\Cargas Ordenes\\";
+//if(!file_exists($target_dir)){
+//    mkdir($target_dir);
+//}
 $target_file = $target_dir.basename($_FILES["fileToUpload"]["name"]);
 $uploadOk =0;
 $fileType = pathinfo($target_file,PATHINFO_EXTENSION);

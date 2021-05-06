@@ -1053,9 +1053,6 @@ class wms_controller {
                     } else { // No error found! Move uploaded files 
                         $target_file = $target_dir.basename($_FILES["files"]["name"][$f]);
                         $uploadOk =0;
-                        //$fileType = pathinfo($target_file,PATHINFO_EXTENSION);
-                        //echo '<br/>'.$target_file;
-                        //die();
                         if(move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_file)) {
                         //echo "El Archivo: ". basename( $_FILES["files"]["name"][$f]). " se ha cargado.<p>";
                             $this->saveOrder($target_file, basename($_FILES["files"]["name"][$f]));
@@ -1066,7 +1063,6 @@ class wms_controller {
                     }
                 }
             }
-            //echo "Archivos cargados con exito: $count-$respuesta";
             $this->wms_ordenes($op='');
         } else {
             $e = "Favor de Iniciar Sesión";
