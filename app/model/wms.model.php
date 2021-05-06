@@ -657,9 +657,9 @@ class wms extends database {
 
     function saveOrder($file, $fileName){
         if($xlsx=SimpleXLSX::parse($file)){
-            echo "<h2>Leemos el archivo: $file</h2>";
-            echo "<pre>";
-            echo "</pre>";
+            //echo "<h2>Leemos el archivo: $file</h2>";
+            //echo "<pre>";
+            //echo "</pre>";
             $i=0;
             $l=0;
             $e=0;
@@ -686,6 +686,10 @@ class wms extends database {
                 $this->radio($xlsx, $hoja, $file);
             }elseif(strtoupper(trim($hoja))=='HEB'){
                 $this->heb($xlsx, $hoja, $file);
+            }elseif(strtoupper(trim($hoja))=='CONTROL'){
+                $this->control($xlsx, $hoja, $file);
+            }elseif(strtoupper(trim($hoja))=='CITY CLUB'){
+                $this->city($xlsx, $hoja, $file);
             }else{
                 echo 'Lo siento no tengo el formato para el cliente: '.$hoja.' favor de revisar el nombre de la hoja';
                 return array("msg"=>"Lo siento no tengo el formato para el cliente: ".$hoja.' favor de revisar el nombre de la hoja');
@@ -732,7 +736,8 @@ class wms extends database {
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
-            echo '<br/>Ultima Columna: '.$col.'<br/>';
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+        return;
     }
 
     function walmart($xlsx, $hoja, $file){
@@ -804,7 +809,8 @@ class wms extends database {
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
-            echo '<br/>Ultima Columna: '.$col.'<br/>';
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;
     }
 
     function cimaco($xlsx, $hoja, $file){
@@ -841,7 +847,8 @@ class wms extends database {
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
-            echo '<br/>Ultima Columna: '.$col.'<br/>';
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;
     }
 
     function sanborns($xlsx, $hoja, $file){
@@ -871,7 +878,8 @@ class wms extends database {
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
-            echo '<br/>Ultima Columna: '.$col.'<br/>';
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;
     }
 
     function alSuper($xlsx, $hoja, $file){
@@ -901,7 +909,8 @@ class wms extends database {
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
-            echo '<br/>Ultima Columna: '.$col.'<br/>';
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;
     }
 
     function fresko($xlsx, $hoja, $file){
@@ -932,7 +941,8 @@ class wms extends database {
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
-            echo '<br/>Ultima Columna: '.$col.'<br/>';
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;
     }
 
     function elektra($xlsx, $hoja, $file){
@@ -978,7 +988,8 @@ class wms extends database {
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
-            echo '<br/>Ultima Columna: '.$col.'<br/>';
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;
     }
 
     function soriana($xlsx, $hoja, $file){
@@ -1032,7 +1043,8 @@ class wms extends database {
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
-            echo '<br/>Ultima Columna: '.$col.'<br/>';
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;
     }
     
     function hcfuller($xlsx, $hoja, $file){
@@ -1055,7 +1067,8 @@ class wms extends database {
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
-            echo '<br/>Ultima Columna: '.$col.'<br/>';
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;
     }
 
     function radio($xlsx, $hoja, $file){
@@ -1078,7 +1091,8 @@ class wms extends database {
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
-            echo '<br/>Ultima Columna: '.$col.'<br/>';
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;
     }
 
     function heb($xlsx, $hoja, $file){
@@ -1101,7 +1115,96 @@ class wms extends database {
         }else{
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
-            echo '<br/>Ultima Columna: '.$col.'<br/>';
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;
+    }
+
+    function control($xlsx, $hoja, $file){
+        $usuario=$_SESSION['user']->ID;
+        $ln=0;$piezas=0;
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $res=$this->grabaBD();
+        $res= ibase_fetch_object($res);
+        $idord=@$res->ID_ORD;
+        if(@$idord>0){
+            foreach ($xlsx->rows() as $key){
+                $col='A';$ln++;
+                        if($ln >= 4 and $ln<=count($xlsx->rows()) - 1 and ($key[8] !='' and $key[7] !='')){
+                            if(is_numeric($key[9])){$piezas+=$key[9];}
+                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $idord, '$key[7]', '', $key[9], $key[8], '', '', 0, 0, 1, '', '$key[13]','$key[1]','$key[2]','', $key[6]) returning ID_ORDD";
+                            //echo '<br/>'.$this->query.'<br/>';
+                            $res=$this->grabaBD();
+                            $res=ibase_fetch_object($res);
+                            $res=$res->ID_ORDD;
+                            if($res <= 0){
+                            
+                            } else{
+                                $odns[]=$res;
+                            }
+                        }else{   
+                        }
+            }
+        }else{
+            echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
+        }
+        //    //echo '<br/>Ultima Columna: '.$col.'<br/>';
+        return;
+    }
+
+    function city($xlsx, $hoja, $file){
+        $usuario=$_SESSION['user']->ID;
+        $ln=0;$piezas=0;
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $res=$this->grabaBD();
+        $res= ibase_fetch_object($res);
+        $idord=@$res->ID_ORD;
+        if(@$idord>0){
+            foreach ($xlsx->rows() as $key){
+                $col='A';$ln++;$nC=0;
+                for ($i=0; $i < count($key); $i++) { 
+                        if($ln==3 and $nC >=9 and $nC <= 10){ ///aqui controlamos las columnas de los cedis en este caso solo son las columnas J y K
+                            $lnn=0;
+                            foreach($xlsx->rows() as $k2){
+                                $lnn++;
+                                if($lnn >= 4 and $lnn <= count($xlsx->rows()) and $nC>=9 and $k2[$nC]!=''){
+                                    if(substr($k2[2],0,6)== 'CODIGO'){
+                                        //echo 'Es una linea de Codigo: '.$k2[1].'-'.$nC.'<br/>'; 
+                                    }elseif (trim($k2[4])=='Total general'){
+                                        break;
+                                    }elseif ($key[$nC] == 'ASIGNADO') {
+                                        break;
+                                    }else{
+                                    if(is_numeric($k2[$nC])){$piezas += $k2[$nC];}
+                                        if(!empty($k2[5])){
+                                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD, CADENA) VALUES
+                                            (NULL, $idord, '$k2[5]', '', $k2[$nC], 0, '', '$key[$nC]', 0, 0, 1, '', '','$k2[2]','','', $k2[4], '$k2[1]') returning ID_ORDD";
+                                            //echo $this->query;
+                                            //die();
+                                            $res=$this->grabaBD();
+                                            $res=ibase_fetch_object($res);
+                                            $res=$res->ID_ORDD;
+                                            if($res <= 0){
+                                                echo $this->query;
+                                                //die();
+                                            } else{
+                                                $odns[]=$res;
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    $nC++;
+                    $col++;
+                }
+            }
+        }else{
+            echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
+        }
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;
+        return;
     }
 
     function orden($id_o){

@@ -1028,6 +1028,52 @@ class wms_controller {
         die();
     }
 
+    function cargaOrdenes($files2upload){
+        if (isset($_SESSION['user'])) {            
+            $data = new wms;
+            $valid_formats = array("xlsx", "XLSX");
+            $max_file_size = (1024*1024) * 20; 
+            $target_dir="C:\\xampp\\htdocs\\Cargas Ordenes\\";
+            if(!file_exists($target_dir)){
+                mkdir($target_dir);
+            }
+            $count = 0;
+            $respuesta = 0;
+            foreach ($_FILES['files']['name'] as $f => $name) { 
+                if ($_FILES['files']['error'][$f] == 4) {
+                    continue; // Skip file if any error found
+                }
+                if ($_FILES['files']['error'][$f] == 0) {
+                    if ($_FILES['files']['size'][$f] > $max_file_size) {
+                        $message[] = "$name es demasiado grande para subirlo.";
+                        continue; // Skip large files
+                    }elseif (!in_array(pathinfo($name, PATHINFO_EXTENSION), $valid_formats)) {
+                        $message[] = "$name no es un archivo permitido.";
+                        continue; // Skip invalid file formats
+                    } else { // No error found! Move uploaded files 
+                        $target_file = $target_dir.basename($_FILES["files"]["name"][$f]);
+                        $uploadOk =0;
+                        //$fileType = pathinfo($target_file,PATHINFO_EXTENSION);
+                        //echo '<br/>'.$target_file;
+                        //die();
+                        if(move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_file)) {
+                        //echo "El Archivo: ". basename( $_FILES["files"]["name"][$f]). " se ha cargado.<p>";
+                            $this->saveOrder($target_file, basename($_FILES["files"]["name"][$f]));
+                        } else {
+                            echo "Ocurrio un problema al subir su archivo, favor de revisarlo.";
+                        }
+                            //echo 'Archivo: '.$target_file;
+                    }
+                }
+            }
+            //echo "Archivos cargados con exito: $count-$respuesta";
+            $this->wms_ordenes($op='');
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }   
+    }
 }
 ?>
 

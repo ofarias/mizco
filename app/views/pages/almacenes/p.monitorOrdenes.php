@@ -9,10 +9,15 @@
             <div tyle="color: blue;"> 
                 <p>
                     <label>Carga el el Layout para la carga de Ordenes de compra en excel.</label>
-                    <form action="upload_orden.php" method="post" enctype="multipart/form-data">
-                        <input type="file" name="fileToUpload" id="fileToUpload" accept=".xls, .csv, .txt, .xlsx">
+                    <form action="index.wms.php" method="post" enctype="multipart/form-data">
+                        <input type="file" name="files[]" multiple="" onchange="makeFileList()" id="filesToUpload" accept=".xls, .csv, .txt, .xlsx">
+                        <input type="hidden" name="upload_ordenes" value="upload_ordenes" />
+                        <input type="hidden" name="files2upload" value="" />
                         <input type="submit" value="Cargar Orden" >
                     </form>
+                    <ul id="fileList">
+                        <li>No hay archivos seleccionados</li>        
+                    </ul>
                 </p>
             </div>
             <br/>
@@ -68,7 +73,7 @@
                                             <td><?php echo $ord->PRIORIDAD?></td>
                                             <td><a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;"> Detalles</a><br/>
                                                 <a class="envio"> Enviar Correo</a></td>
-                                            <td><input type="button" value="Eliminar" class="btn-sm btn-danger"></td>
+                                            <td><input type="button" value="Eliminar" class="btn-sm btn-danger del" oc="<?php echo $ord->ID_ORD?>"></td>
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>
@@ -87,6 +92,68 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    function makeFileList() {
+            var input = document.getElementById("filesToUpload");
+            var ul = document.getElementById("fileList");
+            while (ul.hasChildNodes()) {
+                    ul.removeChild(ul.firstChild);
+            }
+            for (var i = 0; i < input.files.length; i++) {
+                    var li = document.createElement("li");
+                    li.innerHTML = input.files[i].name;
+                    ul.appendChild(li);
+            }
+            if(!ul.hasChildNodes()) {
+                    var li = document.createElement("li");
+                    li.innerHTML = 'No hay archivos selccionados.';
+                    ul.appendChild(li);
+            }
+            document.getElementById("files2upload").value = input.files.length;
+    }
+
+    $(".del").click(function(){
+        var id = $(this).attr('oc')
+        $.confirm({
+            title: 'Eliminar la Orden de compra?',
+            content: 'Solo se pueden eliminar Ordenes que no esten trabajadas!',
+            buttons: {
+                Aceptar: function () {
+                    $.ajax({
+                        url:'index.wms.php',
+                        type:'post',
+                        dataType:'json',
+                        data:{delOc:1, id},
+                        success:function(data){
+                            if(data.status == 'ok'){
+                                //$("#e_"+id).hide()
+                                //document.getElementById(id).classList.add('hidden')
+                                //document.getElementById("c_"+id).classList.add('hidden')
+                            }else if(data.status== 'no'){
+                                $.alert("Se encontraron movimientos o dependencias del componente")                                
+                            }else if(data.status=='p'){
+                                $.alert("El componente primario tiene asociaciones, hay que eliminar las asociaciones antes.")                                
+                            }
+                        },
+                        error:function(){
+                            $.alert('Ocurrio un error, favor de actualizar su pantalla he intentarlo nuevamente')
+                        }
+                    })
+                },
+                Cancelar: function () {
+                    $.alert('No se realizo ninguna acción.');
+                },
+                //somethingElse: {
+                //    text: 'Something else',
+                //    btnClass: 'btn-blue',
+                //    keys: ['enter', 'shift'],
+                //    action: function(){
+                //        $.alert('Something else?');
+                //    }
+                //}
+            }
+        });
+    })
 
     $(".selAll").change(function(){
         $("input[name=sel]").prop('checked', $(this).prop("checked"));
