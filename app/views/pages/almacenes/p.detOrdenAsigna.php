@@ -20,8 +20,6 @@
                                             <th> Orden</th>
                                             <th> Clave <br><font color="purple">Clave SKU</font></th>
                                             <th> Producto </th>
-                                            <th> Cajas </th>
-                                            <th> Pizas por Caja</th>
                                             <th> Piezas Totales </th>
                                             <th> Color </th>
                                             <th> Cedis </th>
@@ -44,22 +42,9 @@
                                        <tr class="odd gradeX color" <?php echo $color?>>
                                             <td><input type="checkbox" name="selector" value="<?php echo $ord->ID_ORDD?>"></td>
                                             <td><?php echo $ord->ORDEN?></td>
-                                            <td><?php echo $ord->PROD?>
-                                            
-                                            <a title="Actualizar" class="actProd"  prod="<?php echo $ord->PROD?>" prodn="<?php echo $ord->PROD_SKU?>"><br/>
-                                                <font color="purple" > <?php echo $ord->PROD_SKU ?></font> </a>
-                                                <?php if($ord->PZAS <> $ord->ASIG){?>
-                                                <input type="text" id="rem_<?php echo $ord->PROD?>" class="chgProd hidden" placeholder="Remplazar" prod="<?php echo $ord->PROD?>">
-                                                <br/>
-
-                                                <a title="Reemplazar el producto" class="reemp" p="<?php echo $ord->PROD?>">Remplazar</a>
-                                                <?php }?>
-
-                                            </td>
+                                            <td><?php echo $ord->PROD?><br/><a title="Actualizar"><font color="purple"> <?php echo $ord->PROD_SKU ?></font> </a></td>
                                             <td><?php echo $ord->DESCR?></td>
-                                            <td><?php echo $ord->CAJAS?></td>
-                                            <td><?php echo $ord->UNIDAD?></td>
-                                            <td><?php echo $ord->PZAS.''.$ord->ASIG?></td>
+                                            <td><?php echo $ord->PZAS?></td>
                                             <td><?php echo $ord->COLOR?></td>
                                             <td><?php echo $ord->CEDIS?></td>
                                             <td><?php echo $ord->PZAS_SUR?></td>
@@ -87,14 +72,6 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
-    var ord = <?php echo $id_o?>;
-    
-    $(".chgProd").autocomplete({
-        source: "index.wms.php?producto=1",
-        minLength: 2,
-        select: function(event, ui){
-        }
-    })
 
     $(".report").click(function(){
         var t = $(this).val()
@@ -124,44 +101,6 @@
                     $.alert('Ocurrio un error')   
             }
         })
-    })
-
-    $(".reemp").click(function(){
-        var p = $(this).attr('p')
-        document.getElementById("rem_"+p).classList.remove('hidden')
-    })
-
-    $(".chgProd").change(function(){
-        var nP = $(this).val()
-        var p = $(this).attr('prod')
-        nP = nP.split(":")
-        $.confirm({
-            title: 'Cambio de producto',
-            content: 'Desea Cambiar el producto ' + p+ ' por el producto '+ nP[0] ,
-            buttons:{
-                Si: function(){
-                    $.ajax({
-                        url:'index.wms.php',
-                        type:'post',
-                        dataType:'json',
-                        data:{chgProd:1, p, nP:nP[0], oc:ord, t:'p'}, 
-                        success:function(data){
-                            $.alert(data.msg)
-                            /// cambiar valor en el Prod...
-                            setTimeout(function(){
-                                location.reload(true)
-                            })
-                        },
-                        error:function(){
-                            /// regresar al valor inicial
-                        }
-                    },10000 )
-                },
-                No:function(){
-                   return;
-                }
-            }
-        });
     })
     
 </script>

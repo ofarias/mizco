@@ -1207,12 +1207,17 @@ class wms extends database {
         return;
     }
 
-    function orden($id_o){
+    function orden($id_o, $t){
         $data= array();
         $this->query="UPDATE FTC_ALMACEN_ORDENES_DETALLES o set o.descr = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = o.PROD) where o.descr='' ";
         $this->queryActualiza();
-
-        $this->query="SELECT * FROM FTC_ALMACEN_ORDENES_DETALLES where id_ord=$id_o";
+        if($t == 'd'){
+            $this->query="SELECT * FROM FTC_ALMACEN_ORDENES_DETALLES where id_ord=$id_o";
+        }elseif($t == 'p'){
+            $this->query="SELECT prod, descr, sum(pzas) as pzas, count(cedis) as cedis, max(orden) as orden, upc, item, PROD_SKU, color, sum(PZAS_SUR) as pzas_sur, avg(id_status) as status, sum(asig) as asig
+                from ftc_almacen_ordenes_detalles where id_ord = $id_o 
+                group by prod, upc, PROD_SKU, descr, color, item";
+        }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
@@ -1240,6 +1245,168 @@ class wms extends database {
         }
         return array("msg"=>$msg, "status"=>$sta);
     }
+
+    function actualizaCodigo(){
+        $data=array();
+        $this->query="SELECT * FROM SP_MIZCO_INFORMACIONALMACENES WHERE STATUS IS NULL ";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        if(count($data)>0){
+            foreach ($data as $k) {
+                $clave = $k->CVE;
+                $codigos=explode(";",$k->CODIGO_X_CADENA);
+                for ($i=0; $i < count($codigos) ; $i++){ 
+                    $datos=explode(":", $codigos[$i]);
+                    if(count($datos)>1){
+                        $clie=$datos[0];$codigo=$datos[1];
+                        $this->query="INSERT INTO FTC_ALMACEN_SKU (ID_S, ID_PINT, CLIENTE, SKU) VALUES (NULL, (SELECT ID_PINT FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$clave'),'$clie', '$codigo' )";
+                        $res=$this->grabaBD();
+                        if($res==1){
+                            $this->query="UPDATE SP_MIZCO_INFORMACIONALMACENES SET STATUS = 1 WHERE ID=$k->ID";
+                            $this->queryActualiza();
+                        }
+                    }
+                }
+            }    
+        }
+        return;
+    }
+
+    function actProdSku($id_o){
+        $this->query="UPDATE FTC_ALMACEN_ORDENES_DETALLES SET PROD = (SELECT ID_INT FROM FTC_ALMACEN_PROD_INT WHERE )";
+    }
+
+    function asgProd($ord, $prod, $pza, $t, $c, $s){
+        $data=array();$msg='Se han asignado '.$pza.' del producto '.$prod;
+        if($t=='q'){
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = 0 where PROD = '$prod' and id_ord = $ord";
+            $this->queryActualiza();
+        }
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE PROD = '$prod' and id_ord = $ord";
+        $res=$this->EjecutaQuerySimple();
+        //echo $this->query;
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;            
+        }        
+        if($t== 'q'){
+            $msg="Se han quitado ".$pza." del producto ".$prod;
+            $pza=$s - $pza;
+        }
+        //$pza=$s - $pza;
+        //echo 'Piezas a repartir:'.$pza.'<br/>'; 
+        foreach ($data as $d){
+            $pen = $d->PZAS - $d->ASIG;
+            //echo '<br/>Pendiente: '.$pen.'<br/>'; 
+            if($pen <= $pza){
+                $pza=$pza-$pen;
+                //    echo '<br/>Se asignan '.$pen.' de '.$pen.' teniendo '.$pza.' piezas pendientes por asignar al siguiente renglon';
+                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = $pen where id_ordd = $d->ID_ORDD";
+            }else{
+                //    echo '<br/>Se asignan el residuo parcial '.$pza.' y se marca como 0 las piezas';
+                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = $pza where id_ordd = $d->ID_ORDD";
+                $pza=0;
+            }
+            $res=$this->queryActualiza();
+        }
+        $this->actStaOD('', $prod, $ord, 'm', 'a');
+        return array("status"=>'ok', "msg"=>$msg);
+    }
+
+    function detLinOrd($ord, $prod){
+        $data=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE PROD = '$prod' and id_ord = $ord";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        ///print_r($data);
+        return array("status"=>'ok', "datos"=>$data);
+    }
+
+    function actProOrd($prod, $oc, $prodn){
+        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PROD = '$prodn' where PROD = '$prod' and id_ord = $oc";
+        $res=$this->queryActualiza();
+        return array("status"=>'ok', "val"=>$res);
+    }
+
+    function actDescr($id_o){
+        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET O SET DESCR = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = O.PROD) WHERE DESCR IS NULL AND ID_ORD = $id_o";
+        $this->queryActualiza();
+        return;
+    }
+
+    function asgLn($ln, $c){
+        $sta='ok'; $msg="Se actualizo correctamente";
+        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = $c where id_ordd = $ln and pzas >= $c";
+        $res= $this->queryActualiza();
+        if ($res != 1){
+            $sta='no'; $msg="No se actualizo correctamente, quizas la cantidas excede a lo requerido";
+        }
+        $this->actStaOD($ln, '', '', 'l', 'a');
+        return array("status"=>$sta, "msg"=>$msg);
+    }
+
+    function actStaOD($ln, $prod, $oc, $t, $m){
+        if($t == 'l' and $m == 'a'){
+            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln";
+            $res=$this->EjecutaQuerySimple();
+            $res=ibase_fetch_object($res);
+            if($res->PZAS == $res->ASIG){
+                $status = 2;
+            }elseif ($res->PZAS > $res->ASIG AND $res->ASIG > 0){
+                $status = 5;
+            }elseif ($res->ASIG == 0) {
+                $status = 1;
+            }
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET STATUS = $status where id_ordd = $ln";
+            $this->EjecutaQuerySimple();
+        }
+
+        if($t == 'm' and $m == 'a'){
+            $data=array();
+            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $oc and prod = '$prod'";
+            $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)) {
+                $data[]=$tsArray;
+            }
+            foreach($data as $inf){
+                if($inf->PZAS == $inf->ASIG){
+                    $status = 2;
+                }elseif ($inf->PZAS > $inf->ASIG AND $inf->ASIG > 0){
+                    $status = 5;
+                }elseif ($inf->ASIG == 0) {
+                    $status = 1;
+                }
+                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET STATUS = $status where id_ordd = $inf->ID_ORDD";
+                $this->EjecutaQuerySimple();   
+            }
+        }
+        return;
+    }
+
+    function chgProd($p, $nP, $o, $t){
+        $usuario=$_SESSION['user']->ID;
+        $msg="Se ha cambiado el producto"; $sta='ok';$data=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE PROD = '$p' and id_ord = $o";
+        $r=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($r)) {
+            $data[]=$tsArray;
+        }
+        foreach ($data as $v) {
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PROD = '$nP' where prod ='$p' and asig = 0 and id_ordd = $v->ID_ORDD";
+            $res=$this->queryActualiza();
+            if($res <= 0){
+                $msg="No se ha podido cambiar el producto, favor de revisar la informacion.";$sta='no';
+            }else{
+                $this->query="INSERT INTO FTC_ALMACEN_OC_CHG (id_chg, id_ordd, base, nuevo, cant, color, fecha, usuario, status, tipo) values (null, $v->ID_ORDD, '$p', '$nP', $v->PZAS, '', current_timestamp, $usuario, 0, 'p' )";
+                $this->grabaBD();
+            }
+        }
+        return array("msg"=>$msg, "status"=>$sta);
+    }
+
 }
 ?>
 

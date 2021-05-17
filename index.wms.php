@@ -49,7 +49,18 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->envMail($_POST['dir'],  $_POST['msg'], $_POST['files']);echo json_encode($res);exit();
 }elseif (isset($_POST['upload_ordenes'])){
     $res=$controller_wms->cargaOrdenes($_POST['files2upload']);echo json_encode($res);exit();
-}else{
+}elseif (isset($_POST['asgProd'])){
+    $res=$controller_wms->asgProd($_POST['asgProd'], $_POST['prod'], $_POST['pza'], $_POST['t'], $_POST['c'], $_POST['s']);echo json_encode($res);exit();
+}elseif (isset($_POST['detLinOrd'])){
+    $res=$controller_wms->detLinOrd($_POST['ord'], $_POST['prod']);echo json_encode($res);exit();
+}elseif (isset($_POST['actProOrd'])){
+    $res=$controller_wms->actProOrd($_POST['prod'], $_POST['oc'], $_POST['prodn']);echo json_encode($res);exit();
+}elseif (isset($_POST['asgLn'])){
+    $res=$controller_wms->asgLn($_POST['ln'], $_POST['c']);echo json_encode($res);exit();
+}elseif (isset($_POST['chgProd'])){
+    $res=$controller_wms->chgProd($_POST['p'], $_POST['nP'], $_POST['oc'], $_POST['t']);echo json_encode($res);exit();
+}
+else{
     switch ($_GET['action']) {
         case 'login':
             $controller->Login();
@@ -59,7 +70,7 @@ if (isset($_POST['usuario'])) {
             $controller_wms->wms_menu($opc);
             break;
         case 'detOrden':
-            $controller_wms->detOrden($_GET['orden']);
+            $controller_wms->detOrden($_GET['orden'], $_GET['t']);
             break;
         default:
             header('Location: index.php?action=login');

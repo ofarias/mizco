@@ -974,6 +974,7 @@ class wms_controller {
             $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenes.php');
             ob_start();
             $ordenes = $data->ordenes($op);
+            $a = $data->actualizaCodigo();
             include 'app/views/pages/almacenes/p.monitorOrdenes.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
@@ -997,14 +998,21 @@ class wms_controller {
         }
     }
 
-    function detOrden($id_o){
+    function detOrden($id_o, $t){
         if($_SESSION['user']){
             $data = new wms;
+            if($t=='p'){
+                $p = 'app/views/pages/almacenes/p.detOrdenProd.php';
+            }else{
+                $p = 'app/views/pages/almacenes/p.detOrden.php';
+            }
             $pagina = $this->load_templateL('Reportes');
-            $html = $this->load_page('app/views/pages/almacenes/p.detOrden.php');
+            $html = $this->load_page($p);
             ob_start();
-            $orden = $data->orden($id_o);
-            include 'app/views/pages/almacenes/p.detOrden.php';
+            $actDesc= $data->actDescr($id_o);
+            $act = $data->actProdSku($id_o);
+            $orden = $data->orden($id_o, $t);
+            include $p;
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             $this->view_page($pagina); 
@@ -1069,6 +1077,47 @@ class wms_controller {
             header('Location: index.php?action=login&e=' . urlencode($e));
             exit;
         }   
+    }
+
+    function asgProd($ord, $prod, $pza, $t, $c, $s){
+        if($_SESSION['user']){
+            $data= new wms;
+            $res=$data->asgProd($ord, $prod, $pza, $t, $c, $s);
+            return $res;
+        }
+
+    }
+
+    function detLinOrd($ord, $prod){
+        if($_SESSION['user']){
+            $data= new wms;
+            $res=$data->detLinOrd($ord, $prod);
+            return $res;
+        }
+    }
+
+    function actProOrd($prod, $oc, $prodn){
+        if($_SESSION['user']){
+            $data= new wms;
+            $res=$data->actProOrd($prod, $oc, $prodn);
+            return $res;
+        }
+    }
+
+    function asgLn($ln, $c){
+        if($_SESSION['user']){
+            $data= new wms;
+            $res=$data->asgLn($ln, $c);
+            return $res;
+        }
+    }
+
+    function chgProd($p, $nP, $o, $t){
+        if($_SESSION['user']){
+            $data= new wms;
+            $res=$data->chgProd($p, $nP, $o, $t);
+            return $res;
+        }    
     }
 }
 ?>

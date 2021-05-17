@@ -71,9 +71,12 @@
                                             <td><a href="..\\..\\Cargas Ordenes\\<?php echo $ord->ARCHIVO?>" download><?php echo $ord->ARCHIVO?></a></td>
 
                                             <td><?php echo $ord->PRIORIDAD?></td>
-                                            <td><a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;"> Detalles</a><br/>
+                                            <td><a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=d" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;"> Detalles</a>
+                                                <br/>
+                                                <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=p" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;">Productos de la Orden</a>
+                                                <br/>
                                                 <a class="envio"> Enviar Correo</a></td>
-                                            <td><input type="button" value="Eliminar" class="btn-sm btn-danger del" oc="<?php echo $ord->ID_ORD?>"></td>
+                                            <td><input type="button" value="Eliminar" class="btn-sm btn-danger del" oc="<?php echo $ord->ID_ORD?>"><br/><a>Remplazar Archivo</a></td>
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>
