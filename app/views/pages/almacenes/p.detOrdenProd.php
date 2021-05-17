@@ -284,7 +284,7 @@
                         }
                         det.innerHTML += '<br/>Cedis '+ nomC +': '+ pzasC +
                         '&nbsp;&nbsp; <input type="text" placeholder="Cantidad" size="6" class="asgLn" idOC="'+idOC+'" value="'+asigC+'" id="asl'+idOC+'" org="'+asigC+'" >'+
-                        '&nbsp;&nbsp; <a class="chgLin" idOC="'+idOC+'" c="'+pzasC+'"> + </a>'
+                        '&nbsp;&nbsp; <a class="chgLin" idOC="'+idOC+'" c="'+pzasC+'" > + </a>'
                     }
                 document.getElementById("det+_"+ln).classList.add('hidden')
                 document.getElementById("det-_"+ln).classList.remove('hidden')
@@ -329,10 +329,12 @@
         e.preventDefault();
         var col = $(this).attr('col');
         var cant = $(this).val();
-        $.alert('Cambio el color' + col + ' a: ' + cant + ' piezas');
-        var asig=document.getElementById("colAsig")
-        asig.classList.remove("hidden")
-        asig.innerHTML += ':' +cant
+        //$.alert('Cambio el color' + col + ' a: ' + cant + ' piezas');
+        //var asig=document.getElementById("colAsig")
+        //asig.classList.remove("hidden")
+        ////asig.innerHTML += ':' +cant
+        //var cc = document.getElementById("cntCol")
+        //cc.innerHTML = cant
     })
     
     $(function(){
@@ -351,48 +353,49 @@
             '<br/> <label>Producto: </label><input type="text" size="25" class="chgProd2">' +
             '<br>Si no requiere cambio dejar en blanco.'+
             '<br/><br/> <label>Asignar Colores a '+c+' piezas: </label>'+
-
-            '<br/><br/><p class="hidden" id="colAsig">Asignado:  </p>'+
-            
+            '<br/><br/><p class="hidden" id="colAsig">Asignado:  <label id="cntCol"></label></p>'+ 
             '<br>La Cantidad deber ser la exacta para poder asignar los colores.'+
-            '<br/><br/> <font color="blue">Azul</font>: &nbsp;&nbsp;&nbsp; <input type="text" placeholder="Cantidad" class="colores" col="azul">'+
-            '<br/><br/> Blanco: <input type="text" placeholder="Cantidad">'+
-            '<br/><br/> Negro:&nbsp; <input type="text" placeholder="Cantidad">'+
-            '<br/><br/> <font color="red">Rojo</font>:&nbsp;&nbsp;&nbsp; <input type="text" placeholder="Cantidad">'+
-            '<br/><br/> <font color="gray">Gris</font>:&nbsp;&nbsp;&nbsp;&nbsp; <input type="text" placeholder="Cantidad">'+
+            '<br/><br/> <font color="blue">Azul</font>: &nbsp;&nbsp;&nbsp; <input type="text" placeholder="Cantidad" class="colores az" col="azul">'+
+            '<br/><br/> Blanco: <input type="text" placeholder="Cantidad"  class="colores bl" col="blanco">'+
+            '<br/><br/> Negro:&nbsp; <input type="text" placeholder="Cantidad"  class="colores ng" col="negro">'+
+            '<br/><br/> <font color="#FD95FB ">Rosa:</font>&nbsp; <input type="text" placeholder="Cantidad"  class="colores ro" col="rosa">'+
+            '<br/><br/> <font color="red">Rojo</font>:&nbsp;&nbsp;&nbsp; <input type="text" placeholder="Cantidad" class="colores rj" col="rojo">'+
+            '<br/><br/> <font color="gray">Gris</font>:&nbsp;&nbsp;&nbsp;&nbsp; <input type="text" placeholder="Cantidad" class="colores gr" col="gris">'+
+            '<br/><br/> <font color="#009F0E">Verde</font>:&nbsp;&nbsp;&nbsp;&nbsp; <input type="text" placeholder="Cantidad" class="colores vd" col="verde">'+
             '</form>',
             buttons: {
             formSubmit: {
-            text: 'Duplicar',
+            text: 'Asignar',
             btnClass: 'btn-blue',
             action: function () {
-                    //var cns = this.$content.find('.cns').val();
-                    //var can = this.$content.find('.canr').val();
-                    //var ser = this.$content.find('.ser').val();
-                    //var fol = this.$content.find('.fol').val();
-                    //var sep = this.$content.find('.sep').val();
-
-                    if(cns=='none' ){
-                        $.alert('Debe de colocar un tipo de consecutivo o ninguno...');
+                    var prodN = this.$content.find('.chgProd2').val();
+                    var az = parseFloat(this.$content.find('.az').val());
+                    var bl = parseFloat(this.$content.find('.bl').val());
+                    var ng = parseFloat(this.$content.find('.ng').val());
+                    var ro = parseFloat(this.$content.find('.ro').val());
+                    var rj = parseFloat(this.$content.find('.rj').val());
+                    var gr = parseFloat(this.$content.find('.gr').val());
+                    var vd = parseFloat(this.$content.find('.vd').val());
+                    if(typeof az === "undefined" || isNaN(az)){az = 0;}
+                    if(typeof bl === "undefined" || isNaN(bl)){bl = 0;}
+                    if(typeof ng === "undefined" || isNaN(ng)){ng = 0;}
+                    if(typeof ro === "undefined" || isNaN(ro)){ro = 0;}
+                    if(typeof rj === "undefined" || isNaN(rj)){rj = 0;}
+                    if(typeof gr === "undefined" || isNaN(gr)){gr = 0;}
+                    if(typeof vd === "undefined" || isNaN(vd)){vd = 0;}
+                    var t = az+bl+ng+ro+rj+gr+vd;
+                    if(t<c){
+                        $.alert('Debe de colocar el total de colores faltan ' + (c-t) + ' piezas por asignar color.');
                         return false;
-                    }else if(cns == 'le' && ser == ''){
-                        $.alert('Se te olvido darme la letra que quieres.');
-                        return false;    
-                    }else if(cns == 'nu' && fol <=0){
-                        $.alert('Dame el primer numero.');
-                        return false;    
-                    }else if(cns == 'am' && fol <= 0 && ser ==''){
-                        $.alert('Necesito la letra y numero inicial')
-                        return false;    
-                    }else if(can =='' || can <= 0){
-                        $.alert('La cantidad debe de ser un valor mayor a 0 el valor de la cantidad es ' + can);
-                        return false;    
+                    }else if(t>c){
+                        $.alert('Se estan asignando mas piezas de las necesarias favor de revisar ' );
+                        return false;
                     }else{
                         $.ajax({
                             url:'index.wms.php',
                             type:'post',
                             dataType:'json',
-                            data:{cpComp:1, cns, can, id, ser, fol, sep},
+                            data:{asigCol:1, ln, az, bl, ng, ro, rj, gr, vd, prodN},
                             success:function(data){
                                 alert(data.msg);
                                 location.reload(true)
