@@ -1326,9 +1326,14 @@ class wms extends database {
     }
 
     function actProOrd($prod, $oc, $prodn){
-        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PROD = '$prodn' where PROD = '$prod' and id_ord = $oc";
+        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PROD = '$prodn', DESCR = (SELECT DESCR FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$prodn') where PROD = '$prod' and id_ord = $oc";
         $res=$this->queryActualiza();
-        return array("status"=>'ok', "val"=>$res);
+        if($res >=1){
+            $this->query="SELECT FIRST 1 * FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$prodn'";
+            $r=$this->EjecutaQuerySimple();
+            $data= ibase_fetch_object($r);
+        }
+        return array("status"=>'ok', "prod"=>$data->ID_INT, "desc"=>$data->DESC);
     }
 
     function actDescr($id_o){

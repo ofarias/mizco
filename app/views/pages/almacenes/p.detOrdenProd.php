@@ -66,8 +66,7 @@
                                             $color = "style='background-color: #FFF7C6;'";
                                         }
                                         ?>
-                                       <tr class="odd gradeX color" <?php echo $color?> title="<?php echo $status?>"> 
-                                            
+                                       <tr class="odd gradeX color" <?php echo $color?> title="<?php echo $status?>" id="col_<?php echo $ln?>"> 
                                             <td title="Asignacion Total de la linea">
                                                 <?php if($ord->ASIG == 0){?>
                                                 <input type="checkbox" 
@@ -79,12 +78,14 @@
                                                     ln="<?php echo $ln?>" 
                                                     c="<?php echo $ord->PZAS?>" 
                                                     s="<?php echo $ord->ASIG?>" 
+                                                    lin = "<?php echo $ln?>"
                                                     >
                                                 <?php } ?>
 
                                             </td>
                                             <td><?php echo $ord->ORDEN?></td>
-                                            <td><?php echo $ord->PROD?>
+                                            
+                                            <td><text id="new_<?php echo $ord->PROD?>"><?php echo $ord->PROD?></text>
                                                 <br/>
                                                 <a title="Actualizar" class="actProd"  prod="<?php echo $ord->PROD?>" prodn="<?php echo $ord->PROD_SKU?>"><font color="purple" > <?php echo $ord->PROD_SKU ?></font> </a>
                                                 <?php if($ord->PZAS <> $ord->ASIG){?>
@@ -95,8 +96,11 @@
                                                 <?php }?>
 
                                             </td>
-                                            <td id="det_<?php echo $ln?>"><b><?php echo $ord->DESCR?></b>
-                                                <label class="det" prod="<?php echo $ord->PROD?>" ln="<?php echo $ln?>" id="det+_<?php echo $ln?>">+</label>
+                                            <td id="det_<?php echo $ln?>"><b><text id="newD_<?php echo $ord->PROD?>"><?php echo $ord->DESCR?></text></b>
+                                                <label class="det" 
+                                                    prod="<?php echo $ord->PROD?>" 
+                                                    ln="<?php echo $ln?>" 
+                                                    id="det+_<?php echo $ln?>">+</label>
                                                 <label class="detm hidden" ln="<?php echo $ln?>" id="det-_<?php echo $ln?>">-</label>
 
 
@@ -108,12 +112,12 @@
                                             </td>
                                             <td><input type="text" name="" value="<?php echo $ord->COLOR?>" placeholder="Seleccione Color"></td>
                                             <td><?php echo $ord->CEDIS?></td>
-                                            <td align="right"><?php echo number_format($ord->ASIG)?>
+                                            <td align="right" id="casig_<?php echo $ln?>"><?php echo number_format($ord->ASIG)?>
                                                 <?php if($ord->ASIG > 0){?>
                                                     <br/>
                                                     <input type="text" 
                                                     placeholder="Quitar" 
-                                                    id="asig_<?php echo $ln?>">
+                                                    id="colasig_<?php echo $ln?>">
                                                     &nbsp;&nbsp;
                                                     <input type="button" 
                                                     class="btn-sm btn-success asg" 
@@ -149,7 +153,6 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
     var ord = <?php echo $id_o?>;
-    
     
     $(".chgProd").change(function(){
         var nP = $(this).val()
@@ -190,7 +193,7 @@
     })
 
     $(".asg").click(function(){    
-        var t = $(this).attr('t'); var msg = '';
+        var t = $(this).attr('t'); var msg = '';var lin= $(this).attr('lin')
         if(t == 'a'){
             var prod = $(this).attr('prod')
             var pza = $(this).val()
@@ -202,6 +205,7 @@
         var c = $(this).attr('c')
         var s = $(this).attr('s')
         var pen = c - s;
+        var th = $(this)
         //alert("valor de pieza" + pza)
         if (pza < pen && t == 'a'){
             msg = 'Se asignaran las piezas por cedis y se dejara el ultimo imcompleto?'
@@ -214,25 +218,52 @@
         }
         $.confirm({
             title: "Asignacion de Productos",
-            content: "Se asignaran " + pza + " piezas del producto " + prod + " de la Orden " + ord + "<br/> "+ msg,
+            content: "Se asignaran " + pza + " piezas del producto " + prod + " de la Orden " + ord + "<br/> "+ msg + "<p><font size='1.5 px'><b>Puede usar Enter para Si y ESC para No</b></font></p>", 
             buttons:{
-                Si: function(){
+                Si:{
+                    text:'Si',
+                    keys:['enter'],
+                    action: function(){
                     $.ajax({
                         url:'index.wms.php',
                         type:'post',
                         dataType:'json',
                         data:{asgProd:ord, prod, pza, t, c, s}, 
                         success:function(data){
-                            $.alert(data.msg)
-                            setTimeout(function(){
-                                location.reload(true)
-                            })
+                            if(data.status== 'ok'){
+                                var linea = document.getElementById("col_"+lin)
+                                linea.title='Asignado' /// Asignamos el titulo
+                                linea.style.background='#e2ffd8' /// Pintamos de verde
+                                th.hide() /// desaparecemos el checkbox
+                                document.getElementById('casig_'+lin).innerHTML= c +'<br/> <input type="text" placeholder="Quitar" '+
+                                'id="colasig_'+lin+'">'+
+                                '&nbsp;&nbsp;'+
+                                '<input type="button" '+
+                                'class="btn-sm btn-success asg" '+
+                                'value="&#x23f5" '+
+                                'id="'+ prod +'<?php echo $ord->PROD?>"' +
+                                'ln="'+ lin +'<?php echo $ln?>" '+
+                                'c="'+ c +'"' +
+                                's="'+ c +'"'+
+                                't="q">'
+
+                                /// actualizamos la columna Asignados y hacemos que aparezcan las opciones de quitar.
+                            }else{
+                                $.alert("Se recomienda refrescar la pagina")
+                            }
                         }
-                    },10000 )
-                },
-                No:function(){
-                   return;
+                        },10000 )
+                    }
+                },  
+                No:{
+                    text:'No',
+                    keys:['esc'],
+                    action:function(){
+                        th.prop("checked",false);
+                        return;
+                    }    
                 }
+                
             }
         })
     })
@@ -247,7 +278,12 @@
             data:{actProOrd:1, prod, oc:ord, prodn},
             success:function(data){
                 //$.alert('Se ha actualizado')
-                location.reload(true)
+                if(data.status == 'ok'){
+                    document.getElementById("new_"+prod).innerHTML= data.prod
+                    document.getElementById("newD_"+prod).innerHTML= data.desc
+
+                    //Cambiar el codigo y traer el nuevo nombre
+                }
             },
             error:function(){
 
