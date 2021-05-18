@@ -1127,6 +1127,14 @@ class wms_controller {
             return $res;
         }       
     }
+
+    function finA($p, $ord, $t){
+        if($_SESSION['user']){
+            $data= new wms;
+            $res=$data->finA($p, $ord, $t);
+            return $res;
+        }   
+    }
 }
 ?>
 

@@ -132,7 +132,7 @@
                                             </td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
                                             <td>
-                                                <a class="finA" lin="<?php echo $ln?>"> Finalizar</a></td>
+                                                <a class="finA" lin="<?php echo $ln?>" p="<?php echo $ord->PROD?>"> Finalizar</a></td>
                                             
                                         </tr>
                                     <?php endforeach ?>               
@@ -155,20 +155,21 @@
 
     $(".finA").click(function(){
         var lin = $(this).attr('lin')
+        var p = $(this).attr('p')
         $.confirm({
             columnClass: 'col-md-8',
             title: 'Concluir Asignación',
             content: 'Desaea finalizar la linea o finalizar la orden?',
             buttons:{
                 si:{
-                    text:'Linea',
-                    keys:['enter', 'l', 'L'],
+                    text:'Producto',
+                    keys:['enter', 'p', 'P'],
                     action:function(){
                         $.ajax({
                             url:'index.wms.php',
                             type:'post',
                             dataType:'json',
-                            data:{finA:1, ord, t, lin}, 
+                            data:{finA:1, ord, t:'l', p}, 
                             success:function(data){
                                 if(data.status == 'ok'){
                                     /// marcar como cerrada y bloquear uso.
@@ -186,19 +187,28 @@
                     text:'Orden',
                     keys:['o', 'O'], 
                     action:function(){
-                        
                         $.ajax({
                             url:'index.wms.php',
                             type:'post',
                             dataType:'json',
-                            data:{finA:1, ord, t, lin}, 
+                            data:{finA:1, ord, t:'o', p}, 
                             success:function(data){
                                 if(data.status == 'ok'){
+                                    $.alert({
+                                        title: 'Al parecer hay productos pendientes por Asignar',
+                                        content: 'Alguno de los productos aún no tienen asignación.',
+                                        buttons:{
+                                            OK:{
+                                                text:'Ok',
+                                                keys:['enter']
+                                            }
+                                        }
+                                    })
                                     window.close()
                                 }else{
                                     $.alert({
                                         title: 'Al parecer hay productos pendientes por Asignar',
-                                        content: 'Los productos xxx aún no tienen asignacion de productos.',
+                                        content: 'Alguno de los productos aún no tienen asignación.',
                                         buttons:{
                                             OK:{
                                                 text:'Ok',
@@ -212,8 +222,8 @@
                                 $.alert("favor de actualizar")
                             }
                         })
-                        $.alert("finaliza la orden completa, debe de validar que esten todos los productos asignados.")
-                        window.close()
+                        //$.alert("finaliza la orden completa, debe de validar que esten todos los productos asignados.")
+                        //window.close()
                     }
                 },
                 cancelr:{

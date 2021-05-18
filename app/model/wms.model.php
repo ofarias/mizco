@@ -1488,6 +1488,32 @@ class wms extends database {
         return array("status"=>'ok', "msg"=>'Se ha actualizado la informacion');
     }
 
+    function finA($p, $ord, $t){
+        $val=0;$sta='ok';$msg="Se ha finalizado correctamente";
+        if($t == 'o'){
+            $param = " WHERE ID_ORD = $ord group by id_ord";
+            //$campos = " sum(pzas) as piezas, sum(asig) as asignado ";
+            $param2 = " WHERE ID_ORD = $ord ";
+        }elseif($t=='l'){
+            $param = " WHERE PROD = '$p' and id_ord = $ord group by Prod, id_ord";
+            //$campos = "pzas as piezas, asig as asignado";
+            $param2 = " WHERE PROD = '$p' and id_ord = $ord ";
+        }
+        $this->query= "SELECT id_ord, sum(pzas) as piezas, sum(asig) as asignado  FROM FTC_ALMACEN_ORDEN_DET $param";
+        //echo $this->query;
+        $res=$this->EjecutaQuerySimple();
+        $orden=ibase_fetch_object($res);
+        $val = ($orden->PIEZAS==$orden->ASIGNADO)? 1:0;
+        //echo 'Val: '.$val;
+        if($val == 1){
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET STATUS = 6 $param2";
+            $this->EjecutaQuerySimple();
+        }else{
+            $sta='no';$msg="Error faltan partidas por asignar";
+        }
+        return array("status"=>$sta, "msg"=>$msg);
+    }
+
 }
 ?>
 
