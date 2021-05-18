@@ -1214,9 +1214,10 @@ class wms extends database {
         if($t == 'd'){
             $this->query="SELECT * FROM FTC_ALMACEN_ORDENES_DETALLES where id_ord=$id_o";
         }elseif($t == 'p'){
-            $this->query="SELECT prod, descr, sum(pzas) as pzas, count(cedis) as cedis, max(orden) as orden, upc, item, PROD_SKU, color, sum(PZAS_SUR) as pzas_sur, avg(id_status) as status, sum(asig) as asig
+            $this->query="SELECT prod, descr, sum(pzas) as pzas, count(cedis) as cedis, max(orden) as orden, upc, item, PROD_SKU, CAST(LIST( DISTINCT color) AS varchar(200)) AS COLOR, sum(PZAS_SUR) as pzas_sur, avg(id_status) as status, sum(asig) as asig
                 from ftc_almacen_ordenes_detalles where id_ord = $id_o 
-                group by prod, upc, PROD_SKU, descr, color, item";
+                group by prod, upc, PROD_SKU, descr,  item";
+                //echo $this->query;
         }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
@@ -1410,6 +1411,81 @@ class wms extends database {
             }
         }
         return array("msg"=>$msg, "status"=>$sta);
+    }
+
+    function asigCol($nP, $ln, $col){
+        $usuario=$_SESSION['user']->ID;
+        /// obtenemos los datos originales de la linea.
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln";
+        $r = $this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($r);
+        // Primero cambiamos el producto: 
+        $data =array();
+        if(!empty($nP)){
+            $this->query="SELECT * FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$nP'";
+            $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)) {
+                $data[]=$tsArray;
+            }
+            if(count($data)== 1){
+                    $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PROD = '$nP', descr=(SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$nP') where id_ordd = $ln";
+                    $result=$this->queryActualiza();
+                    if($result <= 0){
+                        $msg="No se ha podido cambiar el producto, favor de revisar la informacion.";$sta='no';
+                    }else{
+                        $this->query="INSERT INTO FTC_ALMACEN_OC_CHG (id_chg, id_ordd, base, nuevo, cant, color, fecha, usuario, status, tipo) values (null, $ln, '$row->PROD', '$nP', $row->PZAS, '', current_timestamp, $usuario, 0, 'p' )";
+                        $this->grabaBD();
+                    }
+            }
+        }
+
+        $c=0;$pzas=0;
+        for ($i=0; $i < count($col) ; $i++){ 
+            $val=explode(":", $col[$i]);
+            if($val[1] > 0 ){
+                $c++;
+                $pzas += $val[1];
+                switch ($val[0]) {
+                    case 'az':
+                        $color = "Azul";
+                        break;
+                    case 'bl':
+                        $color = "Blanco";
+                        break;
+                    case 'ng':
+                        $color = "Negro";
+                        break;
+                    case 'ro':
+                        $color = "Rosa";
+                        break;
+                    case 'rj':
+                        $color = "Rojo";
+                        break;
+                    case 'gr':
+                        $color = "Gris";
+                        break;
+                    case 'vd':
+                        $color = "Verde";
+                        break;
+                    default:
+                        $color = '';
+                        break;
+                }
+                /// echo '<p>Color:'.$val[0]." Cantidad:".$val[1].'</p>';
+                $this->query ="INSERT INTO FTC_ALMACEN_OC_CHG (id_chg, id_ordd, cant, color, fecha, usuario, status, tipo) VALUES (null, $ln, $val[1], '$color', current_timestamp, $usuario, 0 , 'c') ";
+                $this->grabaBD();
+            }
+        }
+
+        if($c>1){
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET COLOR='Mixto', ASIG=$pzas where id_ordd = $ln";
+            $this->queryActualiza();
+        }elseif($c==1){
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET COLOR='$color', ASIG=$pzas where id_ordd = $ln";
+            $this->queryActualiza();
+        }
+
+        return array("status"=>'ok', "msg"=>'Se ha actualizado la informacion');
     }
 
 }

@@ -132,7 +132,7 @@
                                             </td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
                                             <td>
-                                                <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>" target="popup" onclick="window.open(this.href, this.target, 'width=800,height=600'); return false;"> Finalizar</a></td>
+                                                <a class="finA" lin="<?php echo $ln?>"> Finalizar</a></td>
                                             
                                         </tr>
                                     <?php endforeach ?>               
@@ -145,7 +145,6 @@
     </div>
 </div>
 
-
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
@@ -153,6 +152,81 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
     var ord = <?php echo $id_o?>;
+
+    $(".finA").click(function(){
+        var lin = $(this).attr('lin')
+        $.confirm({
+            columnClass: 'col-md-8',
+            title: 'Concluir Asignación',
+            content: 'Desaea finalizar la linea o finalizar la orden?',
+            buttons:{
+                si:{
+                    text:'Linea',
+                    keys:['enter', 'l', 'L'],
+                    action:function(){
+                        $.ajax({
+                            url:'index.wms.php',
+                            type:'post',
+                            dataType:'json',
+                            data:{finA:1, ord, t, lin}, 
+                            success:function(data){
+                                if(data.status == 'ok'){
+                                    /// marcar como cerrada y bloquear uso.
+                                }else{
+                                    $.alert(data.msg)
+                                }
+                            },
+                            error:function(){
+                                $.alert("favor de actualizar")
+                            }
+                        })
+                    }
+                },
+                orden:{
+                    text:'Orden',
+                    keys:['o', 'O'], 
+                    action:function(){
+                        
+                        $.ajax({
+                            url:'index.wms.php',
+                            type:'post',
+                            dataType:'json',
+                            data:{finA:1, ord, t, lin}, 
+                            success:function(data){
+                                if(data.status == 'ok'){
+                                    window.close()
+                                }else{
+                                    $.alert({
+                                        title: 'Al parecer hay productos pendientes por Asignar',
+                                        content: 'Los productos xxx aún no tienen asignacion de productos.',
+                                        buttons:{
+                                            OK:{
+                                                text:'Ok',
+                                                keys:['enter']
+                                            }
+                                        }
+                                    })
+                                }
+                            },
+                            error:function(){
+                                $.alert("favor de actualizar")
+                            }
+                        })
+                        $.alert("finaliza la orden completa, debe de validar que esten todos los productos asignados.")
+                        window.close()
+                    }
+                },
+                cancelr:{
+                    text:'Cancelar',
+                    keys:['esc'],
+                    action:function(){
+                        $.alert("no se realiza cambio.")
+                    }
+                }
+            }
+        })
+
+    })
     
     $(".chgProd").change(function(){
         var nP = $(this).val()
@@ -427,11 +501,12 @@
                         $.alert('Se estan asignando mas piezas de las necesarias favor de revisar ' );
                         return false;
                     }else{
+                        var col=["az:"+az,"bl:"+bl,"ng:"+ng,"ro:"+ro,"rj:"+rj,"gr:"+gr,"vd:"+vd];
                         $.ajax({
                             url:'index.wms.php',
                             type:'post',
                             dataType:'json',
-                            data:{asigCol:1, ln, az, bl, ng, ro, rj, gr, vd, prodN},
+                            data:{asigCol:1, ln, col, nP:prodN},
                             success:function(data){
                                 alert(data.msg);
                                 location.reload(true)

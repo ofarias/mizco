@@ -1119,6 +1119,14 @@ class wms_controller {
             return $res;
         }    
     }
+
+    function asigCol($nP, $ln, $col){
+        if($_SESSION['user']){
+            $data= new wms;
+            $res=$data->asigCol($nP, $ln, $col);
+            return $res;
+        }       
+    }
 }
 ?>
 
