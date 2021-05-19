@@ -22,7 +22,7 @@ class wms_controller {
 
     function load_templateL($title) {
         $pagina = $this->load_page('app/views/master.php');
-        $header = $this->load_page('app/views/sections/s.header.php');
+        $header = $this->load_page('app/views/sections/s2.header.php');
         $pagina = $this->replace_content('/\#HEADER\#/ms', $header, $pagina);
         $pagina = $this->replace_content('/\#TITLE\#/ms', $title, $pagina);
         return $pagina;
@@ -1011,6 +1011,7 @@ class wms_controller {
             ob_start();
             $actDesc= $data->actDescr($id_o);
             $act = $data->actProdSku($id_o);
+            $cabecera =$data->datOrden($id_o);
             $orden = $data->orden($id_o, $t);
             include $p;
             $table = ob_get_clean();

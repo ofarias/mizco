@@ -1207,6 +1207,13 @@ class wms extends database {
         return;
     }
 
+    function datOrden($id_o){
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD = $id_o";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($res);
+        return $row;
+    }
+
     function orden($id_o, $t){
         $data= array();
         $this->query="UPDATE FTC_ALMACEN_ORDENES_DETALLES o set o.descr = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = o.PROD) where o.descr='' ";
@@ -1489,22 +1496,24 @@ class wms extends database {
     }
 
     function finA($p, $ord, $t){
-        $val=0;$sta='ok';$msg="Se ha finalizado correctamente";
+        $val=1;$sta='ok';$msg="Se ha finalizado correctamente";
         if($t == 'o'){
             $param = " WHERE ID_ORD = $ord group by id_ord";
             //$campos = " sum(pzas) as piezas, sum(asig) as asignado ";
             $param2 = " WHERE ID_ORD = $ord ";
+            /// cambiamos el status de la orden a Asignado. 
+            $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 3 WHERE STATUS = 1 AND ID_ORD = $ord";
+            $this->queryActualiza();
+
         }elseif($t=='l'){
             $param = " WHERE PROD = '$p' and id_ord = $ord group by Prod, id_ord";
             //$campos = "pzas as piezas, asig as asignado";
             $param2 = " WHERE PROD = '$p' and id_ord = $ord ";
         }
-        $this->query= "SELECT id_ord, sum(pzas) as piezas, sum(asig) as asignado  FROM FTC_ALMACEN_ORDEN_DET $param";
-        //echo $this->query;
-        $res=$this->EjecutaQuerySimple();
-        $orden=ibase_fetch_object($res);
-        $val = ($orden->PIEZAS==$orden->ASIGNADO)? 1:0;
-        //echo 'Val: '.$val;
+        //$this->query= "SELECT id_ord, sum(pzas) as piezas, sum(asig) as asignado  FROM FTC_ALMACEN_ORDEN_DET $param";
+        //$res=$this->EjecutaQuerySimple();
+        //$orden=ibase_fetch_object($res);
+        //$val = ($orden->PIEZAS==$orden->ASIGNADO)? 1:0;
         if($val == 1){
             $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET STATUS = 6 $param2";
             $this->EjecutaQuerySimple();

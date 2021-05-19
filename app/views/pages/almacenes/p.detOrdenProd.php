@@ -10,7 +10,7 @@
 
 <div class="row">
     <div class="col-lg-12">
-        <div>Detalles del Archivo: </div>
+        <div>Detalles del Archivo: <label><?php echo $cabecera->ARCHIVO?> </label><br/>Para el Cliente: <label><?php echo $cabecera->CLIENTE?></label>  <?php echo !empty($cabecera->ORDEN)? '<br/>Incluye las ordenes:<label>'.$cabecera->ORDEN.'</label>':''?></label></div>
             <br/>
             <div class="row">
                 <div class="col-lg-12">
@@ -184,7 +184,7 @@
                     }
                 },
                 orden:{
-                    text:'Orden',
+                    text:'Todo',
                     keys:['o', 'O'], 
                     action:function(){
                         $.ajax({
