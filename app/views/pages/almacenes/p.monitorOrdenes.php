@@ -42,7 +42,7 @@
                                             <th> Usuario </th>
                                             <th> Archivo </th>
                                             <th> Prioridad </th>
-                                            <th> Detalle <br/> Correo </th>
+                                            <th> Trabajar </th>
                                             <th> Eliminar </th>
                                         </tr>
                                     </thead>
@@ -71,11 +71,14 @@
                                             <td><a href="..\\..\\Cargas Ordenes\\<?php echo $ord->ARCHIVO?>" download><?php echo $ord->ARCHIVO?></a></td>
 
                                             <td><?php echo $ord->PRIORIDAD?></td>
-                                            <td><a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=d" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;"> Detalles</a>
+                                            <td><a class="envio"> Enviar Correo</a>
+                                                <br/>
+                                                <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=d" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;"> Detalles</a>
                                                 <br/>
                                                 <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=p" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;">Productos de la Orden</a>
                                                 <br/>
-                                                <a class="envio"> Enviar Correo</a></td>
+                                                <a href="index.wms.php?action=surtirOrden&orden=<?php echo $ord->ID_ORD?>&t=s" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;">Surtir Orden</a>
+                                                </td>
                                             <td><input type="button" value="Eliminar" class="btn-sm btn-danger del" oc="<?php echo $ord->ID_ORD?>"><br/><a>Remplazar Archivo</a></td>
                                         </tr>
                                     <?php endforeach ?>               
