@@ -1215,7 +1215,7 @@ class wms extends database {
     }
 
     function orden($id_o, $t){
-        $data= array();
+        $data= array(); 
         $this->query="UPDATE FTC_ALMACEN_ORDENES_DETALLES o set o.descr = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = o.PROD) where o.descr='' ";
         $this->queryActualiza();
         if($t == 'd'){
@@ -1224,7 +1224,8 @@ class wms extends database {
             $this->query="SELECT prod, descr, sum(pzas) as pzas, count(cedis) as cedis, max(orden) as orden, upc, item, PROD_SKU, CAST(LIST( DISTINCT color) AS varchar(200)) AS COLOR, sum(PZAS_SUR) as pzas_sur, avg(id_status) as status, sum(asig) as asig
                 from ftc_almacen_ordenes_detalles where id_ord = $id_o 
                 group by prod, upc, PROD_SKU, descr,  item";
-                //echo $this->query;
+        }elseif($t == 's'){
+            $this->query="SELECT UPC, ITEM, PROD, DESCR, PZAS, ASIG, CAJAS, UNIDAD, PROD_SKU, orden, cedis,PZAS_SUR, CAJAS_SUR, status FROM FTC_ALMACEN_ORDENES_DETALLES WHERE ID_ORD = $id_o";
         }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {

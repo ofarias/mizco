@@ -218,7 +218,7 @@ class wms_controller {
                 $datos = $data->datos($t, $al, $c);
             }
             $alm=$data->almacenes($op=" WHERE STATUS = 'Activo'");
-            $compP=$data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=2 ", $param='');
+            $compP=$data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=2", $param='');
             if(count($compA) <=0){
                 $compA=$data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=1 ".$a, $param='');
             }
@@ -1003,6 +1003,8 @@ class wms_controller {
             $data = new wms;
             if($t=='p'){
                 $p = 'app/views/pages/almacenes/p.detOrdenProd.php';
+            }elseif($t=='s'){
+                $p = 'app/views/pages/almacenes/p.detOrdenSurt.php';
             }else{
                 $p = 'app/views/pages/almacenes/p.detOrden.php';
             }
