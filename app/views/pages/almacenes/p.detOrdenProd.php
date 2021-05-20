@@ -6,6 +6,17 @@
     .ui-dialog {
         background: #b6ff00;
     }
+
+    .boton{
+        font-size:8px;
+        font-family:Verdana,Helvetica;
+        font-weight:bold;
+        color:white;
+        background:#638cb5;
+        border:0px;
+        width:20px;
+        height:14px;
+       }
 </style>
 
 <div class="row">
@@ -25,7 +36,7 @@
                                             <th> Clave <br><font color="purple">Clave SKU</font></th>
                                             <th> Producto </th>
                                             <th> Piezas Totales <!--<br/> Existencias AL-PT --></th>
-                                            <th> Color </th>
+                                            <!--<th> Color </th>-->
                                             <th> Cedis </th>
                                             <th> Piezas <br/>Asignadas </th>
                                             <th> <font color='blue'>SKU</font> <br/><font color="green"> ITEM</font></th>
@@ -72,7 +83,7 @@
                                                 <input type="checkbox" 
                                                     name="selector" 
                                                     prod="<?php echo $ord->PROD?>" 
-                                                    class="asg" 
+                                                    class="sel" 
                                                     t="a" 
                                                     value="<?php echo $ord->PZAS?>"
                                                     ln="<?php echo $ln?>" 
@@ -80,6 +91,8 @@
                                                     s="<?php echo $ord->ASIG?>" 
                                                     lin = "<?php echo $ln?>"
                                                     >
+                                                    <br/><br/>
+                                                    <input type="button" class="boton asgM" value="&#x23f5">
                                                 <?php } ?>
 
                                             </td>
@@ -110,7 +123,9 @@
                                                 <br/><input type="text" placeholder="Asignar" id="asig_<?php echo $ln?>" >&nbsp;&nbsp;<input type="button" class="btn-sm btn-success asg" value="&#x23f5" id="<?php echo $ord->PROD?>" ln="<?php echo $ln?>" c="<?php echo $ord->PZAS?>" s="<?php echo $ord->ASIG?>" t="a">
                                                 <?php } ?>-->
                                             </td>
-                                            <td><input type="text" name="" value="<?php echo $ord->COLOR?>" placeholder="Seleccione Color"></td>
+                                            
+                                            <!--<td><input type="text" name="" value="<?php echo $ord->COLOR?>" placeholder="Seleccione Color"></td>-->
+                                            
                                             <td><?php echo $ord->CEDIS?></td>
                                             <td align="right" id="casig_<?php echo $ln?>"><?php echo number_format($ord->ASIG)?>
                                                 <?php if($ord->ASIG > 0){?>
@@ -128,7 +143,6 @@
                                                     s="<?php echo $ord->ASIG?>" 
                                                     t="q">
                                                 <?php }?>
-
                                             </td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
                                             <td>
@@ -352,6 +366,27 @@
         })
     })
 
+    $(".asgM").click(function(){
+        var prod=''; var pza = 0; var t = 'm'; var c = 0; var s = 0;
+        $("input[name=selector]").each(function(index){ 
+            if($(this).is(':checked')){
+                prod += ':' + $(this).attr('prod');
+            }
+        });
+        $.ajax({
+            url:'index.wms.php',
+            type:'post', 
+            dataType:'json',
+            data:{asgProd:ord, prod, pza, t, c, s}, 
+            success:function(){
+                $.alert("Se han cargado los productos")
+            },
+            error:function(){
+                $.alert("Favor de Actualizar")
+            }
+        })
+    })
+
     $(".actProd").click(function(){
         var prod = $(this).attr('prod')
         var prodn = $(this).attr('prodn')
@@ -404,7 +439,8 @@
                         }
                         det.innerHTML += '<br/>Cedis '+ nomC +': '+ pzasC +
                         '&nbsp;&nbsp; <input type="text" placeholder="Cantidad" size="6" class="asgLn" idOC="'+idOC+'" value="'+asigC+'" id="asl'+idOC+'" org="'+asigC+'" >'+
-                        '&nbsp;&nbsp; <a class="chgLin" idOC="'+idOC+'" c="'+pzasC+'" > + </a>'
+                        '&nbsp;&nbsp; <a class="chgLin" idOC="'+idOC+'" c="'+pzasC+'" > + </a> '+
+                        '<a title="No Surtir" class="ns">N.S.</a>'
                     }
                 document.getElementById("det+_"+ln).classList.add('hidden')
                 document.getElementById("det-_"+ln).classList.remove('hidden')
@@ -421,6 +457,8 @@
         select: function(event, ui){
         }
     })
+
+    
     
     $("body").on("change",".asgLn", function(e){
             e.preventDefault();
@@ -458,6 +496,11 @@
     })
     
     $(function(){
+        $("body").on("click", ".ns", function(e){
+            e.preventDefault();
+            $.alert("No surtir")
+        })  
+
         $("body").on("click",".chgLin", function(e){
         e.preventDefault();
         var ln =$(this).attr('idOC')
@@ -546,6 +589,8 @@
         }
         });
         })
+
+
     })
 
     

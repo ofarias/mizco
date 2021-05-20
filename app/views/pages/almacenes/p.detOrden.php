@@ -59,7 +59,7 @@
                                             <td><?php echo $ord->DESCR?></td>
                                             <td><?php echo $ord->CAJAS?></td>
                                             <td><?php echo $ord->UNIDAD?></td>
-                                            <td><?php echo $ord->PZAS.''.$ord->ASIG?></td>
+                                            <td><?php echo $ord->PZAS?></td>
                                             <td><?php echo $ord->COLOR?></td>
                                             <td><?php echo $ord->CEDIS?></td>
                                             <td><?php echo $ord->PZAS_SUR?></td>
