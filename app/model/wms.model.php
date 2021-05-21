@@ -1858,6 +1858,8 @@ class wms extends database {
             $param = " WHERE PROD = '$p' and id_ord = $ord group by Prod, id_ord";
             //$campos = "pzas as piezas, asig as asignado";
             $param2 = " WHERE PROD = '$p' and id_ord = $ord ";
+        }elseif($t== 'lin'){
+            $param2 = " , OBS = '".$p."' WHERE ID_ORDD = ".$ord;
         }
         //$this->query= "SELECT id_ord, sum(pzas) as piezas, sum(asig) as asignado  FROM FTC_ALMACEN_ORDEN_DET $param";
         //$res=$this->EjecutaQuerySimple();
