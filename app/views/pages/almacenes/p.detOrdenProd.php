@@ -440,7 +440,7 @@
                         det.innerHTML += '<br/>Cedis '+ nomC +': '+ pzasC +
                         '&nbsp;&nbsp; <input type="text" placeholder="Cantidad" size="6" class="asgLn" idOC="'+idOC+'" value="'+asigC+'" id="asl'+idOC+'" org="'+asigC+'" >'+
                         '&nbsp;&nbsp; <a class="chgLin" idOC="'+idOC+'" c="'+pzasC+'" > + </a> '+
-                        '<a title="No Surtir" class="ns" idOC="'+idOC+'">N.S.</a>'
+                        '<a title="No Surtir" class="ns" idOC="'+idOC+'" prod= "'+prod+'">N.S.</a>'
                     }
                 document.getElementById("det+_"+ln).classList.add('hidden')
                 document.getElementById("det-_"+ln).classList.remove('hidden')
@@ -499,42 +499,49 @@
         $("body").on("click", ".ns", function(e){
             e.preventDefault();
             var idOC = $(this).attr('idOC')
+            var prod = $(this).attr('prod')
             $.confirm({
             columnClass: 'col-md-8',
             title: 'Motivo de no surtido',
-            content: 'Por que el producto'+ +' no se surtira?' +
+            content: 'Por que el producto <b>'+ prod +'</b> no se surtira?' +
             '<form action="index.php" class="formName">' +
             '<div class="form-group">'+
             '<br/> <label>Motivo: </label><input type="text" size="100" class="mot">' +
             '</form>',
             buttons: {
             formSubmit: {
-            text: 'Aceptar',
-            btnClass: 'btn-blue',
-            action: function () {
-                    var motivo = this.$content.find('.mot').val();
-                        $.ajax({
-                            url:'index.wms.php',
-                            type:'post',
-                            dataType:'json',
-                            data:{finA:1, ord:idOC, t:'lin', p:motivo},
-                            success:function(data){
-                                alert(data.msg);
-                                location.reload(true)
-                            }
-                        });
-                   }
+                text: 'Aceptar',
+                keys:['enter', 'a', 's'],
+                btnClass: 'btn-blue',
+                action: function () {
+                        var motivo = this.$content.find('.mot').val();
+                            $.ajax({
+                                url:'index.wms.php',
+                                type:'post',
+                                dataType:'json',
+                                data:{finA:1, ord:idOC, t:'lin', p:motivo},
+                                success:function(data){
+                                    alert(data.msg);
+                                    location.reload(true)
+                                }
+                            });
+                       }
+                },
+                cancelar:{
+                    text:'Cancelar',
+                    keys:['esc','no'],
+                    btnClass:'btn-red',
+                    action:function(){  
+                    } 
+                },
             },
-            cancelar: function () {
-            },
-            },
-            onContentReady: function () {
-                var jc = this;
-                this.$content.find('form').on('submit', function (e) {
-                    e.preventDefault();
-                    jc.$$formSubmit.trigger('click');
-                });
-            }
+                onContentReady: function () {
+                    var jc = this;
+                    this.$content.find('form').on('submit', function (e) {
+                        e.preventDefault();
+                        jc.$$formSubmit.trigger('click');
+                    });
+                }
         });
             
         })  
