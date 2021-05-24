@@ -451,8 +451,7 @@ class wms extends database {
     }
 
     function canMov($mov, $mot, $t){
-
-        $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = upper('$t') WHERE MOV = $mov ";
+        $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = upper('$t') and piezas = 0 WHERE MOV = $mov ";
         $this->queryActualiza();
         return array("msg"=>'Se ha cancelado el movimiento');
     }
