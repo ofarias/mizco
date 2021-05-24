@@ -1560,7 +1560,7 @@ class wms extends database {
                 from ftc_almacen_ordenes_detalles where id_ord = $id_o 
                 group by prod, upc, PROD_SKU, descr,  item";
         }elseif($t == 's'){
-            $this->query="SELECT UPC, ITEM, PROD, DESCR, PZAS, ASIG, CAJAS, UNIDAD, PROD_SKU, orden, cedis,PZAS_SUR, CAJAS_SUR, status FROM FTC_ALMACEN_ORDENES_DETALLES WHERE ID_ORD = $id_o";
+            $this->query="SELECT UPC, ITEM, PROD, DESCR, PZAS, ASIG, CAJAS, UNIDAD, PROD_SKU, orden, cedis,PZAS_SUR, CAJAS_SUR, status FROM FTC_ALMACEN_ORDENES_DETALLES WHERE ID_ORD = $id_o and status >=3";
         }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
