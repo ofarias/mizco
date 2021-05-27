@@ -49,11 +49,17 @@
                                   <tbody>
                                     <?php foreach ($ordenes as $ord): 
                                         $color='';
-                                        //$color = '';if(trim($kp->STATUS) == 'Eliminado'){ $color="style='background-color:#f33737'";}
+                                        if($ord->ID_STATUS == 3){
+                                            $color="style='background-color:#decfce'";
+                                        }
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?>>
-                                            <th><input type="checkbox" name="sel" value="<?php echo $ord->ARCHIVO?>"></th>
-                                            <td><?php echo $ord->CLIENTE?></td>
+                                            <th><input type="checkbox" name="sel" value="<?php echo $ord->ARCHIVO?>" ids="<?php echo $ord->ID_ORD?>"></th>
+                                            <td><?php echo $ord->CLIENTE?><br/>
+                                                <?php if($ord->LOGS > 0 or $ord->LOGS_DET > 0){?>
+                                                    <label title="Tiene los siguientes movimientos" class="logs" ido="<?php echo $ord->ID_ORD?>">Movimientos </label> 
+                                                <?php }?>
+                                            </td>
                                             <td title="<?php echo $ord->ORDEN?>"><?php echo substr($ord->ORDEN, 0, 20) ?></td>
                                             <td><?php echo $ord->FECHA_CARGA?>
                                             <br/><font color="blue"><?php echo $ord->FECHA_CARGA_F?></font></td>
@@ -99,6 +105,37 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
+    $(".logs").mouseover(function(){
+        var ido = $(this).attr('ido')
+        var titulo = ''
+        var t = $(this)
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{log:1, ido, d:2 },
+            success:function(data){
+                if(data.logs > 0){
+                    for(const [key, value] of Object.entries(data.datos)){
+                        for (const [k, val] of Object.entries(value)){
+                            console.log(k + ' valor: ' + val);
+                            if(k == 'SUBTIPO'){var sub = val;}
+                            if(k == 'USUARIO'){var usr = val;}
+                            if(k == 'FECHA'){var fecha = val;}
+                            if(k == 'OBS'){var obs = val;}
+                        }
+                        //alert(sub)
+                        titulo += sub + " -- " +usr + " el " + fecha + " - "+ obs +"\n"
+                    }
+                }
+                t.prop('title', titulo)
+            },
+            error:function(){
+
+            }
+        });
+    });
+
     function makeFileList() {
             var input = document.getElementById("filesToUpload");
             var ul = document.getElementById("fileList");
@@ -135,6 +172,7 @@
                                 //$("#e_"+id).hide()
                                 //document.getElementById(id).classList.add('hidden')
                                 //document.getElementById("c_"+id).classList.add('hidden')
+                                    $.alert(data.msg)
                             }else if(data.status== 'no'){
                                 $.alert("Se encontraron movimientos o dependencias del componente")                                
                             }else if(data.status=='p'){
@@ -167,6 +205,10 @@
 
     $(".envio").click(function(){
         var selec = cheks();
+        if(selec['lista'].length == 0){
+            $.alert('Debe Seleccionar por lo menos un archivos.');
+            return false;            
+        }
         $.confirm({
             columnClass: 'col-md-8',
             title: 'Envio de correo de los archivos seleccionados',
@@ -200,6 +242,9 @@
                           a+= ','+$(this).val();
                        }
                     });
+                    if(a.length >0){
+                        a = a.substring(1)
+                    }
                     dir += a 
                     if(dir==''){
                         $.alert('Debe de contener por lo menos una direccion');
@@ -210,7 +255,7 @@
                             url:'index.wms.php',
                             type:'post',
                             dataType:'json',
-                            data:{envMail:1, dir, msg, files:selec['a']},
+                            data:{envMail:1, dir, msg, files:selec['a'], ids:selec['ids']},
                             success:function(data){
                                 alert(data.msg);
                                 //location.reload(true)
@@ -239,14 +284,16 @@
         var a = '';
         var lista = '';
         var c = 0;
+        var ids='';
         $("input[name=sel]").each(function (index) { 
            if($(this).is(':checked')){
               c++;
               lista+=  c + '.-' + $(this).val() + '<br/>';
+              ids += ',' + $(this).attr('ids');
               a+= ','+$(this).val();
            }
         });
-        return {lista, c, a};
+        return {lista, c, a, ids};
     }
 
 

@@ -973,7 +973,7 @@ class wms_controller {
             $pagina = $this->load_template('Reportes');
             $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenes.php');
             ob_start();
-            $ordenes = $data->ordenes($op);
+            $ordenes = $data->ordenes($op = ' and id_status != 9');
             $a = $data->actualizaCodigo();
             include 'app/views/pages/almacenes/p.monitorOrdenes.php';
             $table = ob_get_clean();
@@ -1034,9 +1034,20 @@ class wms_controller {
         }
     }
 
-    function envMail($correos,  $msg, $archivos){
-        echo 'Se envian los archvivos: '.$archivos.' a los correos: '.$correos.' con el mensaje: '.$msg;
-        die();
+    function envMail($correos, $msg, $archivos, $ids){
+        if($_SESSION['user']){        
+            $data = new wms;
+            //echo 'Se envian los archvivos: '.$archivos.' a los correos: '.$correos.' con el mensaje: '.$msg;
+            $_SESSION['correos']= $correos;
+            $_SESSION['archivos']= $archivos;
+            $_SESSION['correosP']= $data->correos($opc= "where tipo = 'P' and status= 1");
+            $_SESSION['msg']= $msg;
+            $res= include 'app/mailer/send.OC.php';   ///  se incluye la classe Contrarecibo
+            if($res['status']=='ok'){
+                $upd=$data->actStatus($tabla=1, $tipo='Orden', $sub='Envío', $ids, $obs='');
+            }
+            return;
+        }
     }
 
     function cargaOrdenes($files2upload){
@@ -1135,6 +1146,22 @@ class wms_controller {
         if($_SESSION['user']){
             $data= new wms;
             $res=$data->finA($p, $ord, $t);
+            return $res;
+        }   
+    }
+
+    function delOC($id){
+        if($_SESSION['user']){
+            $data= new wms;
+            $res=$data->delOC($id);
+            return $res;
+        }
+    }
+
+    function log($tabla, $id, $tablad){
+        if($_SESSION['user']){
+            $data= new wms;
+            $res=$data->log($tabla, $id, $tablad);
             return $res;
         }   
     }

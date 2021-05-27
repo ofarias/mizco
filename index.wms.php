@@ -46,7 +46,7 @@ if (isset($_POST['usuario'])) {
 }elseif (isset($_POST['delComp'])){
     $res=$controller_wms->delComp($_POST['id'], $_POST['t']);echo json_encode($res);exit();
 }elseif (isset($_POST['envMail'])){
-    $res=$controller_wms->envMail($_POST['dir'],  $_POST['msg'], $_POST['files']);echo json_encode($res);exit();
+    $res=$controller_wms->envMail($_POST['dir'],  $_POST['msg'], $_POST['files'], $_POST['ids']);echo json_encode($res);exit();
 }elseif (isset($_POST['upload_ordenes'])){
     $res=$controller_wms->cargaOrdenes($_POST['files2upload']);echo json_encode($res);exit();
 }elseif (isset($_POST['asgProd'])){
@@ -63,6 +63,10 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->asigCol($_POST['nP'], $_POST['ln'], $_POST['col']);echo json_encode($res);exit();
 }elseif (isset($_POST['finA'])){
     $res=$controller_wms->finA($_POST['p'], $_POST['ord'], $_POST['t']);echo json_encode($res);exit();
+}elseif (isset($_POST['delOc'])){
+    $res=$controller_wms->delOc($_POST['id']);echo json_encode($res);exit();
+}elseif (isset($_POST['log'])){
+    $res=$controller_wms->log($_POST['log'], $_POST['ido'], $_POST['d']);echo json_encode($res);exit();
 }else{
     switch ($_GET['action']) {
         case 'login':

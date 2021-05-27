@@ -183,7 +183,7 @@
                             url:'index.wms.php',
                             type:'post',
                             dataType:'json',
-                            data:{finA:1, ord, t:'l', p}, 
+                            data:{finA:1, ord, t:'1', p}, 
                             success:function(data){
                                 if(data.status == 'ok'){
                                     /// marcar como cerrada y bloquear uso.

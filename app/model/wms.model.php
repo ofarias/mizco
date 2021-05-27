@@ -1852,13 +1852,15 @@ class wms extends database {
             /// cambiamos el status de la orden a Asignado. 
             $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 3 WHERE STATUS = 1 AND ID_ORD = $ord";
             $this->queryActualiza();
-
+            $tabla = 1; $tipo='Orden';
         }elseif($t=='l'){
             $param = " WHERE PROD = '$p' and id_ord = $ord group by Prod, id_ord";
             //$campos = "pzas as piezas, asig as asignado";
             $param2 = " WHERE PROD = '$p' and id_ord = $ord ";
+            $tabla=2; $tipo='Orden Detalle';
         }elseif($t== 'lin'){
             $param2 = " , OBS = '".$p."' WHERE ID_ORDD = ".$ord;
+            $tabla=1; $tipo='Orden';
         }
         //$this->query= "SELECT id_ord, sum(pzas) as piezas, sum(asig) as asignado  FROM FTC_ALMACEN_ORDEN_DET $param";
         //$res=$this->EjecutaQuerySimple();
@@ -1866,11 +1868,65 @@ class wms extends database {
         //$val = ($orden->PIEZAS==$orden->ASIGNADO)? 1:0;
         if($val == 1){
             $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET STATUS = 6 $param2";
-            $this->EjecutaQuerySimple();
+            $res=$this->queryActualiza();
+            $this->actStatus($tabla, $tipo, "Asignación", ','.$ord, $p);
         }else{
             $sta='no';$msg="Error faltan partidas por asignar";
         }
         return array("status"=>$sta, "msg"=>$msg);
+    }
+
+    function delOC($id){
+        $mov=0; $sta='no'; $msg="no se encontro el resgitro para elminarlo";
+        $this->query="SELECT o.* , (SELECT count(id_log) FROM FTC_ALMACEN_LOG l where tabla= 1 and l.id = o.id_ord) as Logs FROM FTC_ALMACEN_ORDEN o  WHERE ID_ORD = $id";
+        $r=$this->EjecutaQuerySimple();
+        $row = ibase_fetch_object($r);
+        $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS= 9 WHERE ID_ORD = $id and status=1";
+        $res=$this->queryActualiza();
+        if($res == 1){
+            $sta= 'ok';
+            if($row->STATUS == 1){
+                $msg="Se ha eliminado el archivo y sus referencias.";
+            }elseif($row->LOGS > 0 ){
+                $msg="El registro tiene ".$row->LOGS." movimientos";
+                $sta= 'ok';
+                $mov= $row->LOGS;
+            }
+        }
+        return array("status"=>$sta,"msg"=>$msg, "mov"=>$mov);
+    }
+
+    function correos($opc){
+        $data= array();
+        $this->query="SELECT * FROM FTC_ALMACEN_EMAIL $opc";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function actStatus($tabla, $tipo, $sub, $ids, $obs){
+        $usuario=$_SESSION['user']->ID;
+        $ids=explode(",", substr($ids, 1));
+        echo '<p>Entro a la actualizacion:</p>';
+        for ($i=0; $i < count($ids) ; $i++) { 
+            $this->query="INSERT INTO FTC_ALMACEN_LOG (id_log, usuario, tipo, SUBTIPO, tabla, fecha, status, id, obs) VALUES (null, $usuario, '$tipo', '$sub', $tabla, current_timestamp, 0, $ids[$i], '$obs')";
+            echo '<p>Consulta'.$this->query.'<p/>';
+            $this->queryActualiza();
+        }
+        return;
+    }
+
+    function log($tabla, $id, $tablad){
+        $data=array();
+        $this->query="SELECT * from FTC_ALMACEN_LOGS WHERE (tabla = $tabla or tabla = $tablad) and id = $id";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray = ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+
+        return array("logs"=>count($data),"datos"=>$data);
     }
 
 }
