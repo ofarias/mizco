@@ -654,65 +654,62 @@ class wms extends database {
         return $data;
     }
 
-    function saveOrder($file, $fileName){
+    function saveOrder($file, $fileName, $ido){
         if($xlsx=SimpleXLSX::parse($file)){
-            //echo "<h2>Leemos el archivo: $file</h2>";
-            //echo "<pre>";
-            //echo "</pre>";
-            $i=0;
-            $l=0;
-            $e=0;
+            ///$i=0;
+            ///$l=0;
+            ///$e=0;
             $hoja = $xlsx->sheetName(0);
             if(strtoupper( trim($hoja)) == 'COPPEL'){
-                $this->coppel($xlsx, $hoja, $file);
+                $this->coppel($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper( trim($hoja)) == 'NUEVO WALMART'){
-                $this->walmart($xlsx, $hoja, $file);
+                $this->walmart($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper( trim($hoja)) == 'CIMACO'){
-                $this->cimaco($xlsx, $hoja, $file);
+                $this->cimaco($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper( trim($hoja)) == 'SANBORNS'){
-                $this->sanborns($xlsx, $hoja, $file);
+                $this->sanborns($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper( trim($hoja)) == 'AL SUPER'){
-                $this->alSuper($xlsx, $hoja, $file);
+                $this->alSuper($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper( trim($hoja)) == 'FRESKO'){
-                $this->fresko($xlsx, $hoja, $file);
+                $this->fresko($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper( trim($hoja)) == 'ELEKTRA'){
-                $this->elektra($xlsx, $hoja, $file);
+                $this->elektra($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(substr(trim($hoja),0,7)) == 'SORIANA'){
-                $this->soriana($xlsx, $hoja, $file);
+                $this->soriana($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(substr(trim($hoja),0,9))=='HC FULLER'){
-                $this->hcfuller($xlsx, substr(trim($hoja),0,9), $file);
+                $this->hcfuller($xlsx, substr(trim($hoja),0,9), $file, $ido);
             }elseif(strtoupper(trim($hoja))=='RADIOSHACK'){
-                $this->radio($xlsx, $hoja, $file);
+                $this->radio($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='HEB'){
-                $this->heb($xlsx, $hoja, $file);
+                $this->heb($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='CONTROL'){
-                $this->control($xlsx, $hoja, $file);
+                $this->control($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='CITY CLUB'){
-                $this->city($xlsx, $hoja, $file);
+                $this->city($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='CHEDRAUI'){
-                $this->chedraui($xlsx, $hoja, $file);
+                $this->chedraui($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='CASA MARCHAND'){
-                $this->casaMarchand($xlsx, $hoja, $file);
+                $this->casaMarchand($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='OFFICE DEPOT'){
-                $this->officeDepot($xlsx, $hoja, $file);
+                $this->officeDepot($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='HEMSA'){
-                $this->hemsa($xlsx, $hoja, $file);
+                $this->hemsa($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='SEARS'){
-                $this->sears($xlsx, $hoja, $file);
+                $this->sears($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='HERMANOS BATTA'){
-                $this->hermanosBatta($xlsx, $hoja, $file);
+                $this->hermanosBatta($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='CIRCULO K'){
-                $this->hermanosBatta($xlsx, $hoja, $file);
+                $this->hermanosBatta($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='ANDREA'){
-                $this->andrea($xlsx, $hoja, $file);
+                $this->andrea($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='COLCHONES Y MUEBLES'){
-                $this->colchonesYmuebles($xlsx, $hoja, $file);
+                $this->colchonesYmuebles($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='OFFICE MAX'){
-                $this->officeMax($xlsx, $hoja, $file);
+                $this->officeMax($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='PALACIO'){
-                $this->palacio($xlsx, $hoja, $file);
+                $this->palacio($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='DILTEX SA DE CV'){
-                $this->diltex($xlsx, $hoja, $file);
+                $this->diltex($xlsx, $hoja, $file, $ido);
             }
             else{
                 echo 'Lo siento no tengo el formato para el cliente: '.$hoja.' favor de revisar el nombre de la hoja';
@@ -725,11 +722,11 @@ class wms extends database {
         }
     }
 
-    function coppel($xlsx, $hoja, $file){
+    function coppel($xlsx, $hoja, $file, $ido){
         // coppel se identifica en el valor de la columa "A"
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -764,11 +761,11 @@ class wms extends database {
         return;
     }
 
-    function walmart($xlsx, $hoja, $file){
+    function walmart($xlsx, $hoja, $file, $ido){
         // coppel se identifica en el valor de la columa "A"
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -837,11 +834,11 @@ class wms extends database {
             return;
     }
 
-    function cimaco($xlsx, $hoja, $file){
+    function cimaco($xlsx, $hoja, $file, $ido){
         // coppel se identifica en el valor de la columa "A"
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -875,10 +872,10 @@ class wms extends database {
             return;
     }
 
-    function sanborns($xlsx, $hoja, $file){
+    function sanborns($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -906,10 +903,10 @@ class wms extends database {
             return;
     }
 
-    function alSuper($xlsx, $hoja, $file){
+    function alSuper($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -937,10 +934,10 @@ class wms extends database {
             return;
     }
 
-    function fresko($xlsx, $hoja, $file){
+    function fresko($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -969,11 +966,11 @@ class wms extends database {
             return;
     }
 
-    function elektra($xlsx, $hoja, $file){
+    function elektra($xlsx, $hoja, $file, $ido){
         // coppel se identifica en el valor de la columa "A"
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1016,10 +1013,10 @@ class wms extends database {
             return;
     }
 
-    function soriana($xlsx, $hoja, $file){
+    function soriana($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1071,10 +1068,10 @@ class wms extends database {
             return;
     }
     
-    function hcfuller($xlsx, $hoja, $file){
+    function hcfuller($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1095,10 +1092,10 @@ class wms extends database {
             return;
     }
 
-    function radio($xlsx, $hoja, $file){
+    function radio($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1119,10 +1116,10 @@ class wms extends database {
             return;
     }
 
-    function heb($xlsx, $hoja, $file){
+    function heb($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1143,10 +1140,10 @@ class wms extends database {
             return;
     }
 
-    function control($xlsx, $hoja, $file){
+    function control($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1175,10 +1172,10 @@ class wms extends database {
         return;
     }
 
-    function city($xlsx, $hoja, $file){
+    function city($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1231,10 +1228,10 @@ class wms extends database {
         return;
     }
 
-    function chedraui($xlsx, $hoja, $file){
+    function chedraui($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1261,10 +1258,10 @@ class wms extends database {
             return;
     }
 
-    function casaMarchand($xlsx, $hoja, $file){
+    function casaMarchand($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1291,10 +1288,10 @@ class wms extends database {
             return;
     }
 
-    function officeDepot($xlsx, $hoja, $file){
+    function officeDepot($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1315,10 +1312,10 @@ class wms extends database {
             return;
     }
 
-    function hemsa($xlsx, $hoja, $file){
+    function hemsa($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1339,10 +1336,10 @@ class wms extends database {
             return;
     }
 
-    function sears($xlsx, $hoja, $file){
+    function sears($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1363,10 +1360,10 @@ class wms extends database {
             return;
     }
 
-    function hermanosBatta($xlsx, $hoja, $file){
+    function hermanosBatta($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1387,10 +1384,10 @@ class wms extends database {
             return;
     }
 
-    function circuloK($xlsx, $hoja, $file){
+    function circuloK($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1411,10 +1408,10 @@ class wms extends database {
             return;
     }
 
-    function andrea($xlsx, $hoja, $file){
+    function andrea($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1435,10 +1432,10 @@ class wms extends database {
             return;
     }
 
-    function colchonesYmuebles($xlsx, $hoja, $file){
+    function colchonesYmuebles($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1459,10 +1456,10 @@ class wms extends database {
             return;
     }
 
-    function officeMax($xlsx, $hoja, $file){
+    function officeMax($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1485,10 +1482,10 @@ class wms extends database {
             return;
     }
 
-    function palacio($xlsx, $hoja, $file){
+    function palacio($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1510,10 +1507,10 @@ class wms extends database {
     }
 
 
-    function diltex($xlsx, $hoja, $file){
+    function diltex($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;
         $ln=0;$piezas=0;
-        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario) returning ID_ORD";
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
         $res=$this->grabaBD();
         $res= ibase_fetch_object($res);
         $idord=@$res->ID_ORD;
@@ -1909,10 +1906,10 @@ class wms extends database {
     function actStatus($tabla, $tipo, $sub, $ids, $obs){
         $usuario=$_SESSION['user']->ID;
         $ids=explode(",", substr($ids, 1));
-        echo '<p>Entro a la actualizacion:</p>';
+        //echo '<p>Entro a la actualizacion:</p>';
         for ($i=0; $i < count($ids) ; $i++) { 
             $this->query="INSERT INTO FTC_ALMACEN_LOG (id_log, usuario, tipo, SUBTIPO, tabla, fecha, status, id, obs) VALUES (null, $usuario, '$tipo', '$sub', $tabla, current_timestamp, 0, $ids[$i], '$obs')";
-            echo '<p>Consulta'.$this->query.'<p/>';
+            //echo '<p>Consulta'.$this->query.'<p/>';
             $this->queryActualiza();
         }
         return;
@@ -1929,6 +1926,14 @@ class wms extends database {
         return array("logs"=>count($data),"datos"=>$data);
     }
 
+    function chgFile($file, $name, $ido, $mot){
+        $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 8 where ID_ORD = $ido";
+        $res=$this->queryActualiza();
+        if($res == 1){
+            $this->actStatus(1, 'Orden', 'Reemplazar Archivo', ','.$ido, $mot);
+        }
+        return;
+    }
 }
 ?>
 

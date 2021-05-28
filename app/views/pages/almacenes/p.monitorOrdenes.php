@@ -50,7 +50,9 @@
                                     <?php foreach ($ordenes as $ord): 
                                         $color='';
                                         if($ord->ID_STATUS == 3){
-                                            $color="style='background-color:#decfce'";
+                                            $color="style='background-color:#ddf8ff'";
+                                        }elseif($ord->ID_STATUS == 8){
+                                            $color="style='background-color:#ffb7b2'";
                                         }
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?>>
@@ -85,7 +87,8 @@
                                                 <br/>
                                                 <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=s" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;">Surtir Orden</a>
                                                 </td>
-                                            <td><input type="button" value="Eliminar" class="btn-sm btn-danger del" oc="<?php echo $ord->ID_ORD?>"><br/><a>Remplazar Archivo</a></td>
+                                            <td><input type="button" value="Eliminar" class="btn-sm btn-danger del" oc="<?php echo $ord->ID_ORD?>"><br/>
+                                                <a class="remp" ido="<?php echo $ord->ID_ORD?>" logs="<?php echo $ord->LOGS + $ord->LOGS_DET?>">Remplazar Archivo</a></td>
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>
@@ -104,6 +107,40 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(".remp").click(function(){
+        var m = $(this).attr('logs')
+        var ord = $(this).attr('ido')
+            $.confirm({
+                columnClass: 'col-md-8',
+                title: 'Reemplazar archivo de Orden de compra',
+                content: 'Desea reemplazar el archivo con ' + m + ' movimientos?' +
+                '<form action="upload_reemp.php" method="post" enctype="multipart/form-data" class="formName">' +
+                '<div class="form-group">'+
+                '<br/>Archivo nuevo: '+
+                '<input type="file" name="fileToUpload" class="file" accept=".xls, .csv, .txt, .xlsx"><br/>'+
+                '<input type="hidden" name="ido" value="'+ord+'">'+
+                '<br/>Motivo del reemplazo:<br/>'+
+                '<textarea class="mot" cols="80" rows="10" name="mot"></textarea>'+
+                '<br/><br/>'+
+                '</form>'
+                ,
+                buttons: {
+                formSubmit: {
+                text: 'Reemplazar y avisar',
+                btnClass: 'btn-blue',
+                action: function () {
+                    var file = this.$content.find('.file').val();
+                    var mot = this.$content.find('.mot').val()
+                    var form = this.$content.find('.formName')
+                    form.submit()        
+                   }
+                },
+                cancelar: function () {
+                },
+                },
+        });
+    })
 
     $(".logs").mouseover(function(){
         var ido = $(this).attr('ido')

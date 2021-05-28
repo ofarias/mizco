@@ -990,7 +990,7 @@ class wms_controller {
         if (isset($_SESSION['user'])) {
             $data = new wms;
             ob_start();
-            $reg=$data->saveOrder($file, $fileName);
+            $reg=$data->saveOrder($file, $fileName, $ido=0);
         }else{
             $e = "Favor de Iniciar Sesión";
             header('Location: index.php?action=login&e=' . urlencode($e));
@@ -1077,7 +1077,7 @@ class wms_controller {
                         $uploadOk =0;
                         if(move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_file)) {
                         //echo "El Archivo: ". basename( $_FILES["files"]["name"][$f]). " se ha cargado.<p>";
-                            $this->saveOrder($target_file, basename($_FILES["files"]["name"][$f]));
+                            $this->saveOrder($target_file, basename($_FILES["files"]["name"][$f]), $ido=0);
                         } else {
                             echo "Ocurrio un problema al subir su archivo, favor de revisarlo.";
                         }
@@ -1164,6 +1164,24 @@ class wms_controller {
             $res=$data->log($tabla, $id, $tablad);
             return $res;
         }   
+    }
+
+    function chgFile($file, $name, $ido, $mot){
+        if($_SESSION['user']){
+            $data = new wms;
+            $data->chgFile($file, $name, $ido, $mot);
+            $data->saveOrder($file, $fileName=$name, $ido);
+            return;
+        }    
+    }
+
+    function limpiaForm($param){
+        $pagina = $this->load_template('Pedidos');
+        $redirec = $param;
+        $html = $this->load_page('app/views/pages/p.redirectform.wms.php');
+        ob_start();
+        $response = true;
+        include 'app/views/pages/p.redirectform.wms.php';
     }
 }
 ?>
