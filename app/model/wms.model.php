@@ -1934,6 +1934,21 @@ class wms extends database {
         }
         return;
     }
+
+    function chgComp($idc, $d, $t){
+        $sta="no"; $msg=""; $campo = ""; $titulo="";
+        if($t == 'd'){
+            $campo= 'Desc'; $titulo=" la Descripción";
+        }elseif($t == 'o'){
+            $campo = 'Obs'; $titulo=" las Observaciones";
+        }
+        $this->query="UPDATE FTC_ALMACEN_COMP SET $campo = '$d' where id_comp=$idc";
+        $r=$this->queryActualiza();
+        if($r == 1){
+            $sta='ok'; $msg="Se ha cambiado ".$titulo; 
+        }
+        return array("sta"=>$sta, "msg"=>utf8_encode($msg));
+    }
 }
 ?>
 

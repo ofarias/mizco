@@ -1183,6 +1183,14 @@ class wms_controller {
         $response = true;
         include 'app/views/pages/p.redirectform.wms.php';
     }
+
+    function chgComp($idc, $d, $t){
+        if($_SESSION['user']){
+            $data= new wms;
+            $res=$data->chgComp($idc, $d, $t);
+            return $res;
+        }
+    }
 }
 ?>
 

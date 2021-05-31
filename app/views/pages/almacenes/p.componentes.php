@@ -99,14 +99,14 @@
                             <tr class="color" id="linc<?php echo $i?>">
                                 <td><input type="checkbox" class="selCompP" name="componentes" value="<?php echo $row->ID_COMP?>"></td>
                                 <td><?php echo $row->ETIQUETA?></td>
-                                <td><?php echo $row->DESC?></td>
+                                <td><textarea cols="25" rows="3" class="chgDesc" t="d" o="<?php echo $row->DESC?>" c="<?php echo $row->ID_COMP?>"><?php echo $row->DESC?></textarea></td>
                                 <td><?php echo $row->TIPO?><br/><font color="blue"><?php echo $row->COMPPR?></font></td>
                                 <td><?php echo number_format($row->MEDICION=='m'? $row->LARGO/100: $row->LARGO,2).' '.$row->MEDICION?></td>
                                 <td><?php echo number_format($row->MEDICION=='m'? $row->ANCHO/100: $row->ANCHO,2).' '.$row->MEDICION?></td>
                                 <td><?php echo number_format($row->MEDICION=='m'? $row->ALTO/100: $row->ALTO,2).' '.$row->MEDICION?></td>
                                 <td><?php echo $row->ALMACEN?></td>
                                 <td><?php echo $row->PRODUCTOS?></td>
-                                <td><?php echo $row->OBS?></td>
+                                <td><textarea cols="25" rows="3" class="chgDesc" t="o" o="<?php echo $row->OBS?>" c="<?php echo $row->ID_COMP?>"><?php echo $row->OBS?></textarea></td>
                                 <td>
                                     <SELECT class="sta" comp="<?php echo $row->ID_COMP?>">
                                         <option value="<?php echo $row->ID_STATUS?>"><?php echo $row->STATUS?></option>
@@ -204,6 +204,40 @@
 <script type="text/javascript">
 
     var form = document.getElementById('formAdd')
+
+
+    $(".chgDesc").change(function(){
+        var t = $(this).attr("t")
+        var o = $(this).attr("o")
+        var c = $(this)
+        var d = $(this).val()
+        var idc = $(this).attr("c")
+        $.confirm({
+            title:"Cambio de " + t,
+            content:"Se cambiara la descripcion del componente" + d,
+            buttons:{
+                Aceptar:function(){
+                    $.ajax({
+                        url:'index.wms.php',
+                        type:'post', 
+                        dataType:'json', 
+                        data:{chgComp:1, idc, d, t},
+                        success:function(data){
+                            if(data.status == 'ok'){
+                                c.val(d)
+                            }
+                        },
+                        error:function(){
+                            c.val(o)
+                        }
+                    });
+                },
+                Cancelar:function(){
+                    c.val(o) 
+                }
+            }
+        })
+    })
 
     $(".del").click(function(){
         var id = $(this).attr('idc')
