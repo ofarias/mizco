@@ -6,7 +6,19 @@
 </style>
 <div class="row">
     <div class="col-lg-12">
-        <div>Detalles del Archivo: <label><?php echo $cabecera->ARCHIVO?> </label><br/>Para el Cliente: <label><?php echo $cabecera->CLIENTE?></label>  <?php echo !empty($cabecera->ORDEN)? '<br/>Incluye las ordenes:<label>'.$cabecera->ORDEN.'</label>':''?></label></div>
+        <div>Detalles del Archivo: <label><?php echo $cabecera->ARCHIVO?> </label><br/>Para el Cliente: <label><?php echo $cabecera->CLIENTE?></label>  <?php echo !empty($cabecera->ORDEN)? '<br/>Incluye las ordenes:<label>'.$cabecera->ORDEN.'</label>':''?></label>
+            <p> <?php if(!empty($cabecera->CEDIS)):
+                $cedis= explode(":", trim($cabecera->CEDIS));?>
+                <label>Cedis:</label>
+                    <?php for($i=0; $i< count($cedis); $i++):?>
+                        <a class="fCedis" c="<?php echo trim($cedis[$i])?>"><?php echo $cedis[$i] ?> </a>
+                        <label>, </label>
+                    <?php endfor; ?>
+                <?php endif;?>
+                <a class="fCedis" c="">TODOS </a>
+            </p>
+    <input type="button" name="" value="Imprimir" class="btn-sm btn-primary imp" p="<?php echo $param?>">
+        </div>
             <br/>
             <div class="row">
                 <div class="col-lg-12">
@@ -29,8 +41,8 @@
                                         </tr>
                                     </thead>
                                   <tbody>
-                                    <?php foreach ($orden as $ord): 
-                                        $color='';
+                                    <?php $ln=0; foreach ($orden as $ord): 
+                                        $color=''; $ln++;
                                         if(empty($ord->DESCR)){
                                             $color = "style='background-color: #FFF7C6;'";
                                         }
@@ -42,8 +54,8 @@
                                             <td><?php echo $ord->PROD?>
                                             <br/> <font color="purple" > <?php echo $ord->PROD_SKU ?></font>
                                             </td>
-                                            <td><?php echo $ord->PZAS.' / '.$ord->ASIG?></td>
-
+                                            <td><?php echo $ord->PZAS.' / '.$ord->ASIG?><br/>
+                                                <p class="comp" mod="<?php echo $ord->PROD?>" ln="<?php echo $ln?>" ordd="<?php echo $ord->ID_ORDD?>"></p></td>
                                             <td><?php echo $ord->CAJAS?></td>
                                             <td><?php echo $ord->UNIDAD?></td>
                                             <!--<td><?php echo $ord->COLOR?></td>-->
@@ -63,7 +75,6 @@
             </div>
         </div>
     </div>
-
 </div>
 
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
@@ -73,7 +84,79 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
     var ord = <?php echo $id_o?>;
+
+    $(".imp").click(function(){
+        var param = $(this).attr('p')
+        //$.alert("Impresion de la orden" + ord + " cedis " + param)
+        window.open("index.wms.php?action=impOrden&orden="+ord+"&t=s&param="+param, "_blank")
+    })
+
+    $(".fCedis").click(function(){
+        var cedi = $(this).attr('c')
+        window.open("index.wms.php?action=detOrden&orden="+ord+"&t=s&param="+cedi, '_self')
+    })
     
+    $(document).ready(function(){
+        $(".comp").each(function(){
+            var mod = $(this).attr("mod")
+            var ln = $(this).attr("ln")
+            var ordd = $(this).attr('ordd')
+            var comp = $(this)
+            $.ajax({
+                url:'index.wms.php',
+                type:'post',
+                dataType:'json',
+                data:{comPro:mod},
+                success:function(data){
+                    if(data.status== 'ok'){
+
+                        for(const [key, value] of Object.entries(data.datos)){
+                            for(const[k, val] of Object.entries(value)){
+                                if(k == 'COMPP'){var compp=val}
+                                if(k == 'COMPS'){var comps=val}
+                                if(k == 'ID_COMPS'){var id_comp=val} 
+                                if(k == 'PIEZAS_A'){var pzas= val}
+                                if(k == 'PRIMARIO'){var prim= val}
+                                if(k == 'SECUNDARIO'){var secu= val}
+                            }
+                            comp.prop('id', ln+'_'+id_comp)
+                            comp.prop('title', compp + '_:_' + comps)
+                            comp.append('<p><b>Linea: </b>' +prim+'</p>')
+                            comp.append('<p><b>Tarima: </b>' +secu+ '</p>')
+                            comp.append('<p><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'"><font color="red">'+pzas+'</font></a></p>')
+                            //comp.append('<hr size=20 color="red"/>')
+                        }
+                    }else{
+                        comp.text('Sin existencia')
+                    }
+                }, 
+                error:function(){
+                    comp.text("No se pudo leer la informacion, revise con soporte tecnico al 55-5055-3392")
+                }
+            })
+        })
+    })
+
+
+    $("body").on("click", ".surte", function(e){
+        e.preventDefault();
+        var ordd = $(this).attr('ordd');
+        var comps = $(this).attr('comps');
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{surte:1, ordd, comps},
+            success:function(data){
+
+            }, 
+            error:function(){
+
+            }
+        })
+    })
+
+
     $(".chgProd").autocomplete({
         source: "index.wms.php?producto=1",
         minLength: 2,

@@ -998,7 +998,7 @@ class wms_controller {
         }
     }
 
-    function detOrden($id_o, $t){
+    function detOrden($id_o, $t, $param, $out){
         if($_SESSION['user']){
             $data = new wms;
             if($t=='p'){
@@ -1014,11 +1014,15 @@ class wms_controller {
             $actDesc= $data->actDescr($id_o);
             $act = $data->actProdSku($id_o);
             $cabecera =$data->datOrden($id_o);
-            $orden = $data->orden($id_o, $t);
+            $orden = $data->orden($id_o, $t, $param);
+            if($out=='i'){/// la salida es la impresion.
+                $this->impOrden($cabecera, $orden, $param);
+            }
             include $p;
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             $this->view_page($pagina); 
+
         } else {
             $e = "Favor de Iniciar Sesión";
             header('Location: index.php?action=login&e=' . urlencode($e));
@@ -1190,6 +1194,138 @@ class wms_controller {
             $res=$data->chgComp($idc, $d, $t);
             return $res;
         }
+    }
+
+    function comPro($prod){
+        if($_SESSION['user']){
+            $data=new wms;
+            $res=$data->comPro($prod);
+            return $res;
+        }
+    }
+
+    function impOrden($cabecera, $orden, $param){
+        $usuario = $_SESSION['user']->NOMBRE;
+        $data = new wms;
+        $pdf = new FPDF('L', 'mm', 'Letter');
+        $pdf->AddPage();
+        $pdf->Image('app/views/images/LOGOSELECT.jpg', 5, 5, 30, 28);
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->SetFont('Arial', 'I',10);
+        $pdf->Ln(23);
+        $pdf->SetX(10);
+        $pdf->write(5, "Cliente :". $cabecera->CLIENTE."\n");
+        $pdf->write(5, "Cedis :". $cabecera->CEDIS."\n");
+        $pdf->write(5, "Archivo: ".$cabecera->ARCHIVO." Orden :". $cabecera->ID_ORD."\n");
+        $pdf->write(5, "Partidas :". count($orden)."\n");
+        $pdf->write(5, "Elaborado por :". $usuario. " el ".date("d-m-Y h:i:s")."\n");
+
+        $pdf->Ln();
+        $pdf->SetFont('Arial', 'B', 8);
+
+        $pdf->Cell(50, 6, 'Cedis','LRT');
+        $pdf->Cell(30, 6, 'UPC','LRT');
+        $pdf->Cell(25, 6, 'Modelo','LRT');
+        $pdf->Cell(40, 6, 'Cantidad / ','LRT',0,'C');
+        $pdf->Cell(20, 6, 'Cajas','LRT');
+        $pdf->Cell(20, 6, 'Piezas x','LRT',0,'C');
+        $pdf->Cell(20, 6, 'Piezas ','LRT',0,'C');
+        $pdf->Cell(20, 6, 'Cajas','LRT',0,'C');
+        $pdf->Cell(30, 6, 'Etiqueta','LRT');
+        $pdf->Ln();
+        $pdf->Cell(50, 6, '','LRB');
+        $pdf->Cell(30, 6, '','LRB');
+        $pdf->Cell(25, 6, '','LRB');
+        $pdf->SetTextColor(30,117,0);
+        $pdf->Cell(40, 6, 'Asigando','LRB',0,'C');
+        $pdf->SetTextColor(0,0,0);
+        $pdf->Cell(20, 6, '','LRB');
+        $pdf->Cell(20, 6, 'Caja ','LRB',0,'C');
+        $pdf->Cell(20, 6, 'Surtidas','LRB',0,'C');
+        $pdf->Cell(20, 6, 'Surtidas','LRB',0,'C');
+        $pdf->Cell(30, 6, '','LRB');
+        $pdf->Ln();
+
+        foreach ($orden as $ord) {
+            $componentes=$data->comPro($ord->PROD);
+            $pdf->Cell(50, 6, $ord->CEDIS, 'LRT');
+            $pdf->Cell(30, 6, $ord->UPC, 'LRT');
+            $pdf->Cell(25, 6, $ord->PROD, 'LRT');
+            $pdf->Cell(40, 6, number_format($ord->PZAS,0), 'LRT',0,'R');
+            $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRT',0,'R');
+            $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRT',0,'R');
+            $pdf->Cell(20, 6, number_format($ord->PZAS_SUR,0), 'LRT',0,'R');
+            $pdf->Cell(20, 6, number_format($ord->CAJAS_SUR,0), 'LRT',0,'R');
+            $pdf->Cell(30, 6, $ord->ETIQUETA , 'LRT');
+            $pdf->Ln();
+            $pdf->Cell(50, 6, '', 'LR');
+            $pdf->Cell(30, 6, '', 'LR');
+            $pdf->Cell(25, 6, '', 'LR');
+            $pdf->SetTextColor(50,117,0);
+            $pdf->Cell(40, 6, number_format($ord->ASIG,0), 'LRB',0,'R');
+            $pdf->SetTextColor(0,0,0);
+            $pdf->Cell(20, 6, '', 'LR',0,'R');
+            $pdf->Cell(20, 6, '', 'LR',0,'R');
+            $pdf->Cell(20, 6, '', 'LR',0,'R');
+            $pdf->Cell(20, 6, '', 'LR',0,'R');
+            $pdf->Cell(30, 6, '', 'LR');
+            $pdf->Ln();
+            print_r($componentes);
+            if (count($componentes['datos'])>0){  
+                foreach($componentes['datos'] as $comp){
+                    $pdf->Cell(50, 4, '', 'LR');
+                    $pdf->Cell(30, 4, '', 'LR');
+                    $pdf->Cell(25, 4, '', 'LR');
+                    $pdf->Cell(40, 4, 'Linea: '.$comp->PRIMARIO, 'LR',0,'L');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(30, 4, '', 'LR');
+                    $pdf->Ln();
+                    $pdf->Cell(50, 4, '', 'LR');
+                    $pdf->Cell(30, 4, '', 'LR');
+                    $pdf->Cell(25, 4, '', 'LR');
+                    $pdf->Cell(40, 4, 'Tarima: '.$comp->SECUNDARIO, 'LR',0,'L');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(30, 4, '', 'LR');
+                    $pdf->Ln();
+                    $pdf->Cell(50, 4, '', 'LR');
+                    $pdf->Cell(30, 4, '', 'LR');
+                    $pdf->Cell(25, 4, '', 'LR');
+                    $pdf->Cell(40, 4, 'Cantidad: '.number_format($comp->PIEZAS_A,0), 'LRB',0,'L');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(30, 4, '', 'LR');
+                    $pdf->Ln();
+                }
+            }else{
+                    $pdf->Cell(50, 4, '', 'LR');
+                    $pdf->Cell(30, 4, '', 'LR');
+                    $pdf->Cell(25, 4, '', 'LR');
+                    $pdf->Cell(40, 4, 'Sin existencias', 'LR',0,'L');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(20, 4, '', 'LR',0,'R');
+                    $pdf->Cell(30, 4, '', 'LR');
+                    $pdf->Ln();
+            }
+        }
+        $pdf->SetFont('Arial', 'I',10);
+        $pdf->Ln(10);
+        //$pdf->SetX(140);
+        $pdf->Write(6,"_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- FIN DEL REPORTE _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-");
+        $pdf->Ln();
+        $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
+        ob_end_clean();
+        //print_r($cabecera);
+        $pdf->Output($ruta.'Picking list'.$cabecera->ID_ORD.'_'.$param.'.pdf', 'i');
     }
 }
 ?>

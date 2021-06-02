@@ -1545,8 +1545,8 @@ class wms extends database {
         return $row;
     }
 
-    function orden($id_o, $t){
-        $data= array(); 
+    function orden($id_o, $t, $param){
+        $data= array(); $p='';
         $this->query="UPDATE FTC_ALMACEN_ORDENES_DETALLES o set o.descr = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = o.PROD) where o.descr='' ";
         $this->queryActualiza();
         if($t == 'd'){
@@ -1556,7 +1556,10 @@ class wms extends database {
                 from ftc_almacen_ordenes_detalles where id_ord = $id_o 
                 group by prod, upc, PROD_SKU, descr,  item";
         }elseif($t == 's'){
-            $this->query="SELECT UPC, ITEM, PROD, DESCR, PZAS, ASIG, CAJAS, UNIDAD, PROD_SKU, orden, cedis,PZAS_SUR, CAJAS_SUR, status FROM FTC_ALMACEN_ORDENES_DETALLES WHERE ID_ORD = $id_o and status >=3";
+            if(!empty($param)){
+                $p= " and cedis = '".$param."'";
+            }
+            $this->query="SELECT ID_ORDD,UPC, ITEM, PROD, DESCR, PZAS, ASIG, CAJAS, UNIDAD, PROD_SKU, orden, cedis,PZAS_SUR, CAJAS_SUR, status, ETIQUETA FROM FTC_ALMACEN_ORDENES_DETALLES WHERE ID_ORD = $id_o and id_status >=3 $p";
         }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
@@ -1948,6 +1951,40 @@ class wms extends database {
             $sta='ok'; $msg="Se ha cambiado ".$titulo; 
         }
         return array("sta"=>$sta, "msg"=>utf8_encode($msg));
+    }
+
+    function comPro($prod){
+        $data=array();
+        //$this->query="SELECT first 1 * from FTC_ALMACEN_COMPONENTES where productos containing ('$prod')";
+        $this->query="SELECT first 4 m.*, (select
+                coalesce( sum(ms.piezas), 0) from ftc_almacen_movimiento ms where ms.id_am = m.id_am
+                and status= 'F' and id_tipo = 's'
+            ) as salidas, piezas - (select
+                coalesce( sum(ms.piezas), 0) from ftc_almacen_movimiento ms where ms.id_am = m.id_am
+                and status= 'F' and id_tipo = 's'
+            ) as piezas_a
+            from ftc_almacen_movimiento m
+            where
+                m.id_prod = (select p.id_pint from ftc_almacen_prod_int p where p.id_int='$prod')
+            and
+                m.id_status = 'F'
+            and
+                m.piezas -
+                (
+                    (select
+                        coalesce( sum(ms.piezas), 0) from ftc_almacen_movimiento ms where ms.id_am = m.id_am
+                        and status= 'F' and id_tipo = 's'
+                    )
+                )
+            > 0 
+            order by m.fecha asc";
+
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        $sta= count($data)>0? 'ok':'no';
+        return array("status"=>$sta,"datos"=>$data);
     }
 }
 ?>

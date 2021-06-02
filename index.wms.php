@@ -69,6 +69,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->log($_POST['log'], $_POST['ido'], $_POST['d']);echo json_encode($res);exit();
 }elseif (isset($_POST['chgComp'])){
     $res=$controller_wms->chgComp($_POST['idc'], $_POST['d'], $_POST['t']);echo json_encode($res);exit();
+}elseif (isset($_POST['comPro'])){
+    $res=$controller_wms->comPro($_POST['comPro']);echo json_encode($res);exit();
 }else{
     switch ($_GET['action']) {
         case 'login':
@@ -79,7 +81,12 @@ if (isset($_POST['usuario'])) {
             $controller_wms->wms_menu($opc);
             break;
         case 'detOrden':
-            $controller_wms->detOrden($_GET['orden'], $_GET['t']);
+            $param= isset($_GET['param'])? $_GET['param']:'';
+            $controller_wms->detOrden($_GET['orden'], $_GET['t'], $param, 'p');
+            break;
+        case 'impOrden':
+            $param= isset($_GET['param'])? $_GET['param']:'';
+            $controller_wms->detOrden($_GET['orden'], $_GET['t'], $param, 'i');
             break;
         default:
             header('Location: index.php?action=login');
