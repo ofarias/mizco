@@ -33,10 +33,13 @@ class wms extends database {
     function componentes($op, $param){
         $data=array();
         $p='';$i=0;$salida='';
-        $f = ' first 100 ';
+        if(empty($param)){
+            $f = ' first 100 ';
+        }else{
+            $f='';
+        }
         if($param != ''){
             $param=json_decode($param);
-            //print_r( $param);
             $f = '';
             foreach ($param as $key => $value) {
                 if($key=='t' and $value != 'none'){
@@ -70,13 +73,14 @@ class wms extends database {
             }
             if($i > 0){$p=' Where id_comp > 0 '.$p;}
         }
+
         $this->query="SELECT $f c.*, 
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 1 ) AS entradasS, 
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 1) AS salidasS, 
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP, 
             (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 2) AS salidasP
-        FROM FTC_ALMACEN_COMPONENTES c $op $p ";
-        ///echo '<p>'.$this->query.'</p>';
+        FROM FTC_ALMACEN_COMPONENTES c $op $p order by id_comp desc";
+        //echo '<p>'.$this->query.'</p>';
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -549,10 +553,17 @@ class wms extends database {
     }
 
     function datos($t, $al, $c){
-        $this->query = "SELECT nombre,  
-                                case '$t' when 'e' then 'Entrada' when 's' then 'Salida' when 'r' then 'Reacomodo' when 't' then 'Traspaso' when 'd' then 'Entrada x Devolucion' when 'm' then 'Merma' end as tipo,
-                                (SELECT ETIQUETA||'--'||TIPO FROM FTC_ALMACEN_COMPONENTES WHERE ID_COMP = $c) as compp
-        FROM FTC_ALMACEN where id = $al";
+        if(empty($c)){
+            $this->query = "SELECT nombre,  
+                                    case '$t' when 'e' then 'Entrada' when 's' then 'Salida' when 'r' then 'Reacomodo' when 't' then 'Traspaso' when 'd' then 'Entrada x Devolucion' when 'm' then 'Merma' end as tipo,
+                                    '' as compp
+            FROM FTC_ALMACEN where id = $al";
+        }else{
+            $this->query = "SELECT nombre,  
+                                    case '$t' when 'e' then 'Entrada' when 's' then 'Salida' when 'r' then 'Reacomodo' when 't' then 'Traspaso' when 'd' then 'Entrada x Devolucion' when 'm' then 'Merma' end as tipo,
+                                    (SELECT ETIQUETA||'--'||TIPO FROM FTC_ALMACEN_COMPONENTES WHERE ID_COMP = $c) as compp
+            FROM FTC_ALMACEN where id = $al";
+        }
         $res=$this->EjecutaQuerySimple();
         $row=ibase_fetch_object($res);
         return $row;

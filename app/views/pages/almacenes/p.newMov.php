@@ -73,7 +73,7 @@
                                         </select>    
                             </label>
                             <br/><br/>
-                            <label class="<?php echo (@$ver=='v2' or  @$mo>=1)? '':'hidden' ?>" id="compSv">&nbsp;&nbsp;&nbsp;&nbsp;Compente Secundario (principalmente tarimas/palets):
+                            <label class="<?php echo (@$ver=='v2' and !empty(@$c) or @$mo>=1)? '':'hidden' ?>" id="compSv">&nbsp;&nbsp;&nbsp;&nbsp;Compente Secundario (principalmente tarimas/palets):
                                     <select class="compS control" id="selcomps">
                                         <?php if($mo >= 1){?>
                                         <option value="<?php echo $m->ID_COMPS?>"><?php echo $m->COMPS?></option>
@@ -242,6 +242,7 @@
         var compPv = document.getElementById('compPv')
         var compSv = document.getElementById('compSv')
         var button = document.getElementById('btnAdd')
+        
         if(vtip != 'none'){
             almv.classList.remove('hidden')
         }else{
@@ -250,13 +251,22 @@
             compSv.classList.add('hidden')
             button.classList.add("hidden")
         }
-
+        
         if(vtip != 'none' && alm != 'none' && compP =='none'){
+            window.open('index.wms.php?action=wms_menu&opc=newMovv2:t:'+vtip+':a:'+alm+':compp:', '_self')            
+        }else{
+            //compSv.classList.add('hidden')   
+            button.classList.add("hidden")
+        }
+/*
+        if(vtip != 'none' && alm != 'none' && compP != 'none'){
+            $.alert("entra 2")
             compPv.classList.remove('hidden')
         }else{
             //compSv.classList.add('hidden')   
             button.classList.add("hidden")
         }
+*/
 
         if(vtip !='none' && alm!='none' && compP != 'none' && compS=='none'){
             window.open('index.wms.php?action=wms_menu&opc=newMovv2:t:'+vtip+':a:'+alm+':compp:'+compP, '_self')            

@@ -199,7 +199,8 @@ class wms_controller {
 
     function wms_newMov($op, $ver){
         //session_cache_limiter('private_no_expire');
-        $a='';$datos=array();$compA=array();
+        //echo $ver;
+        $a='';$datos=array();$compA=array();$p='';$param='';$fa='';
         if (isset($_SESSION['user'])) {
             $data = new wms;
             $pagina = $this->load_templateL('Componentes');
@@ -210,18 +211,23 @@ class wms_controller {
             if($mov!=''){
                 $partidas=$data->movimiento($mov);
                 $compA = $data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=1 and id_compp = (select max(compp) from ftc_almacen_mov amov where amov.mov =".$mov." ) ", $param='');
-
             }
+
             if (substr($ver,0,2)=="v2"){/// se trae solo la relacion de componente primario con componente secundario. Array ( [0] => v2 [1] => t [2] => e [3] => a [4] => 1 [5] => compp [6] => 1 ) 
                 $p=explode(":", $ver); $ver=$p[0];$t=$p[2];$al=$p[4];$c=$p[6];
-                $a= ' and ID_compP = '.$c;
+                $fa=' and ID_ALM = '.$al;
+                if(!empty($c)){
+                    $a= ' and ID_compP = '.$c.$fa;
+                }
                 $datos = $data->datos($t, $al, $c);
             }
             $alm=$data->almacenes($op=" WHERE STATUS = 'Activo'");
-            $compP=$data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=2", $param='');
+            $compP=$data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=2 ".$fa, $param='');
+            
             if(count($compA) <=0){
                 $compA=$data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=1 ".$a, $param='');
             }
+
             $prod=$data->productos($op= " WHERE STATUS = 'Alta' and TIPO_INT = 'Lote'");
             $uniE=$data->unidades($op="   WHERE STATUS = 1 AND TIPO = 'E' order by factor asc ");
             $uniS=$data->unidades($op="   WHERE STATUS = 1 AND TIPO = 'S' order by factor asc ");
