@@ -26,7 +26,7 @@
                     <div class="panel panel-default">
             <div class="panel-body">
                             <div class="table-responsive">                            
-                                <table class="table table-striped table-bordered table-hover" id="dataTables">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-monitorOC">
                                     <thead>
                                         <tr>
                                             <th> Ln <br/><input type="checkbox" name="selAll" class="selAll"></th>

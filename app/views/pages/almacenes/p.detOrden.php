@@ -44,15 +44,16 @@
                                        <tr class="odd gradeX color" <?php echo $color?>>
                                             <td><input type="checkbox" name="selector" value="<?php echo $ord->ID_ORDD?>"></td>
                                             <td><?php echo $ord->ORDEN?></td>
-                                            <td><?php echo $ord->PROD?>
+                                            <td><?php echo htmlspecialchars($ord->PROD)?>
                                             
-                                            <a title="Actualizar" class="actProd"  prod="<?php echo $ord->PROD?>" prodn="<?php echo $ord->PROD_SKU?>"><br/>
+                                            <a title="Actualizar" class="actProd"  prod="<?php echo htmlspecialchars($ord->PROD)?>" prodn="<?php echo $ord->PROD_SKU?>"><br/>
                                                 <font color="purple" > <?php echo $ord->PROD_SKU ?></font> </a>
                                                 <?php if($ord->PZAS <> $ord->ASIG){?>
-                                                <input type="text" id="rem_<?php echo $ord->PROD?>" class="chgProd hidden" placeholder="Remplazar" prod="<?php echo $ord->PROD?>">
+                                                <br/>
+                                                <input type="text" id="rem_<?php echo htmlspecialchars($ord->PROD)?>" class="chgProd" placeholder="Remplazar" prod="<?php echo htmlspecialchars($ord->PROD)?>">
                                                 <br/>
 
-                                                <a title="Reemplazar el producto" class="reemp" p="<?php echo $ord->PROD?>">Remplazar</a>
+                                                <a title="Reemplazar el producto" class="reemp" p="<?php echo htmlspecialchars($ord->PROD)?>">Remplazar</a>
                                                 <?php }?>
 
                                             </td>
@@ -128,10 +129,14 @@
 
     $(".reemp").click(function(){
         var p = $(this).attr('p')
-        document.getElementById("rem_"+p).classList.remove('hidden')
+        var ln = document.getElementById("rem_"+p)
+        ln.classList.remove('hidden')
+        ln.focus()        
     })
 
     $(".chgProd").change(function(){
+        var a = $(this)
+        var ln = $(this).attr('ln')
         var nP = $(this).val()
         var p = $(this).attr('prod')
         nP = nP.split(":")
@@ -139,26 +144,36 @@
             title: 'Cambio de producto',
             content: 'Desea Cambiar el producto ' + p+ ' por el producto '+ nP[0] ,
             buttons:{
-                Si: function(){
-                    $.ajax({
-                        url:'index.wms.php',
-                        type:'post',
-                        dataType:'json',
-                        data:{chgProd:1, p, nP:nP[0], oc:ord, t:'p'}, 
-                        success:function(data){
-                            $.alert(data.msg)
-                            /// cambiar valor en el Prod...
-                            setTimeout(function(){
-                                location.reload(true)
-                            })
-                        },
-                        error:function(){
-                            /// regresar al valor inicial
-                        }
-                    },10000 )
+                Si:{
+                    text:"Si",
+                    keys:['enter', 's','S'],
+                    action:function(){
+                        $.ajax({
+                            url:'index.wms.php',
+                            type:'post',
+                            dataType:'json',
+                            data:{chgProd:1, p, nP:nP[0], oc:ord, t:'p'}, 
+                            success:function(data){
+                                if(data.status=='ok'){
+                                    document.getElementById('new_'+p).innerHTML=nP[0]
+                                    document.getElementById('newD_'+p).innerHTML=nP[1]
+                                    document.getElementById('det+_'+ln).setAttribute('prod', nP[0])
+                                    a.val('')
+                                    a.attr('class', 'chgProd hidden')
+                                }
+                            },
+                            error:function(){
+                                /// regresar al valor inicial
+                            }
+                        },10000 )
+                    }
                 },
-                No:function(){
-                   return;
+                No:{
+                    text:'No',
+                    keys:['esc', 'N', 'n'],
+                    action:function(){
+                       return;
+                    }
                 }
             }
         });

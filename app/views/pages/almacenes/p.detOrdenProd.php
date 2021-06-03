@@ -82,7 +82,7 @@
                                                 <?php if($ord->ASIG == 0){?>
                                                 <input type="checkbox" 
                                                     name="selector" 
-                                                    prod="<?php echo $ord->PROD?>" 
+                                                    prod="<?php echo htmlspecialchars($ord->PROD)?>" 
                                                     class="sel" 
                                                     t="a" 
                                                     value="<?php echo $ord->PZAS?>"
@@ -98,34 +98,25 @@
                                             </td>
                                             <td><?php echo $ord->ORDEN?></td>
                                             
-                                            <td><text id="new_<?php echo $ord->PROD?>"><?php echo $ord->PROD?></text>
+                                            <td><text id="new_<?php echo htmlspecialchars($ord->PROD)?>"><?php echo htmlspecialchars($ord->PROD)?></text>
                                                 <br/>
-                                                <a title="Actualizar" class="actProd"  prod="<?php echo $ord->PROD?>" prodn="<?php echo $ord->PROD_SKU?>"><font color="purple" > <?php echo $ord->PROD_SKU ?></font> </a>
+                                                <a title="Actualizar" class="actProd"  prod="<?php echo htmlspecialchars($ord->PROD)?>" prodn="<?php echo $ord->PROD_SKU?>"><font color="purple" > <?php echo $ord->PROD_SKU ?></font> </a>
                                                 <?php if($ord->PZAS <> $ord->ASIG){?>
-                                                <input type="text" id="rem_<?php echo $ord->PROD?>" class="chgProd hidden" placeholder="Remplazar" prod="<?php echo $ord->PROD?>">
-                                                <br/>
-
-                                                <a title="Reemplazar el producto" class="reemp" p="<?php echo $ord->PROD?>">Remplazar</a>
+                                                    <input type="text" id="rem_<?php echo htmlspecialchars($ord->PROD)?>" class="chgProd hidden" placeholder="Remplazar" prod="<?php echo htmlspecialchars($ord->PROD)?>" ln="<?php echo $ln?>">
+                                                    <br/>
+                                                    <a title="Reemplazar el producto" class="reemp" p="<?php echo htmlspecialchars($ord->PROD)?>">Remplazar</a>
                                                 <?php }?>
 
                                             </td>
-                                            <td id="det_<?php echo $ln?>"><b><text id="newD_<?php echo $ord->PROD?>"><?php echo $ord->DESCR?></text></b>
+                                            <td id="det_<?php echo $ln?>"><b><text id="newD_<?php echo htmlspecialchars($ord->PROD)?>"><?php echo $ord->DESCR?></text></b>
                                                 <label class="det" 
-                                                    prod="<?php echo $ord->PROD?>" 
+                                                    prod="<?php echo htmlspecialchars($ord->PROD)?>" 
                                                     ln="<?php echo $ln?>" 
                                                     id="det+_<?php echo $ln?>">+</label>
                                                 <label class="detm hidden" ln="<?php echo $ln?>" id="det-_<?php echo $ln?>">-</label>
-
-
                                             </td>
                                             <td align="right" ><b><?php echo number_format($ord->PZAS)?></b>&nbsp;&nbsp;&nbsp;
-                                                <!--<?php if( ($ord->PZAS - $ord->ASIG) > 0){?>
-                                                <br/><input type="text" placeholder="Asignar" id="asig_<?php echo $ln?>" >&nbsp;&nbsp;<input type="button" class="btn-sm btn-success asg" value="&#x23f5" id="<?php echo $ord->PROD?>" ln="<?php echo $ln?>" c="<?php echo $ord->PZAS?>" s="<?php echo $ord->ASIG?>" t="a">
-                                                <?php } ?>-->
                                             </td>
-                                            
-                                            <!--<td><input type="text" name="" value="<?php echo $ord->COLOR?>" placeholder="Seleccione Color"></td>-->
-                                            
                                             <td><?php echo $ord->CEDIS?></td>
                                             <td align="right" id="casig_<?php echo $ln?>"><?php echo number_format($ord->ASIG)?>
                                                 <?php if($ord->ASIG > 0){?>
@@ -137,7 +128,7 @@
                                                     <input type="button" 
                                                     class="btn-sm btn-success asg" 
                                                     value="&#x23f5" 
-                                                    id="<?php echo $ord->PROD?>" 
+                                                    id="<?php echo htmlspecialchars($ord->PROD)?>" 
                                                     ln="<?php echo $ln?>" 
                                                     c="<?php echo $ord->PZAS?>" 
                                                     s="<?php echo $ord->ASIG?>" 
@@ -146,8 +137,7 @@
                                             </td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
                                             <td>
-                                                <a class="finA" lin="<?php echo $ln?>" p="<?php echo $ord->PROD?>"> Finalizar</a></td>
-                                            
+                                                <a class="finA" lin="<?php echo $ln?>" p="<?php echo htmlspecialchars($ord->PROD)?>"> Finalizar</a></td>
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>
@@ -249,10 +239,11 @@
                 }
             }
         })
-
     })
     
     $(".chgProd").change(function(){
+        var a = $(this)
+        var ln = $(this).attr('ln')
         var nP = $(this).val()
         var p = $(this).attr('prod')
         nP = nP.split(":")
@@ -260,26 +251,36 @@
             title: 'Cambio de producto',
             content: 'Desea Cambiar el producto ' + p+ ' por el producto '+ nP[0] ,
             buttons:{
-                Si: function(){
-                    $.ajax({
-                        url:'index.wms.php',
-                        type:'post',
-                        dataType:'json',
-                        data:{chgProd:1, p, nP:nP[0], oc:ord, t:'p'}, 
-                        success:function(data){
-                            $.alert(data.msg)
-                            /// cambiar valor en el Prod...
-                            setTimeout(function(){
-                                location.reload(true)
-                            })
-                        },
-                        error:function(){
-                            /// regresar al valor inicial
-                        }
-                    },10000 )
+                Si:{
+                    text:"Si",
+                    keys:['enter', 's','S'],
+                    action:function(){
+                        $.ajax({
+                            url:'index.wms.php',
+                            type:'post',
+                            dataType:'json',
+                            data:{chgProd:1, p, nP:nP[0], oc:ord, t:'p'}, 
+                            success:function(data){
+                                if(data.status=='ok'){
+                                    document.getElementById('new_'+p).innerHTML=nP[0]
+                                    document.getElementById('newD_'+p).innerHTML=nP[1]
+                                    document.getElementById('det+_'+ln).setAttribute('prod', nP[0])
+                                    a.val('')
+                                    a.attr('class', 'chgProd hidden')
+                                }
+                            },
+                            error:function(){
+                                /// regresar al valor inicial
+                            }
+                        },10000 )
+                    }
                 },
-                No:function(){
-                   return;
+                No:{
+                    text:'No',
+                    keys:['esc', 'N', 'n'],
+                    action:function(){
+                       return;
+                    }
                 }
             }
         });
@@ -287,7 +288,9 @@
 
     $(".reemp").click(function(){
         var p = $(this).attr('p')
-        document.getElementById("rem_"+p).classList.remove('hidden')
+        var ln = document.getElementById("rem_"+p)
+        ln.classList.remove('hidden')
+        ln.focus()        
     })
 
     $(".asg").click(function(){    
@@ -339,7 +342,7 @@
                                 '<input type="button" '+
                                 'class="btn-sm btn-success asg" '+
                                 'value="&#x23f5" '+
-                                'id="'+ prod +'<?php echo $ord->PROD?>"' +
+                                'id="'+ prod +'<?php echo htmlspecialchars($ord->PROD)?>"' +
                                 'ln="'+ lin +'<?php echo $ln?>" '+
                                 'c="'+ c +'"' +
                                 's="'+ c +'"'+
@@ -458,8 +461,6 @@
         }
     })
 
-    
-    
     $("body").on("change",".asgLn", function(e){
             e.preventDefault();
             var ln =$(this).attr('idOC')

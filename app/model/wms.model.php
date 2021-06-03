@@ -1767,7 +1767,7 @@ class wms extends database {
             $data[]=$tsArray;
         }
         foreach ($data as $v) {
-            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PROD = '$nP' where prod ='$p' and asig = 0 and id_ordd = $v->ID_ORDD";
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PROD = '$nP', descr = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT= '$nP') where prod ='$p' and asig = 0 and id_ordd = $v->ID_ORDD";
             $res=$this->queryActualiza();
             if($res <= 0){
                 $msg="No se ha podido cambiar el producto, favor de revisar la informacion.";$sta='no';
