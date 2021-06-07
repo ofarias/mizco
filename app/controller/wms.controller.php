@@ -1333,6 +1333,14 @@ class wms_controller {
         //print_r($cabecera);
         $pdf->Output($ruta.'Picking list'.$cabecera->ID_ORD.'_'.$param.'.pdf', 'i');
     }
+
+    function surte($surte, $orden, $comps){
+        if($_SESSION['user']){
+            $data = new wms;
+            $res=$data->surte($surte, $orden, $comps);
+            return $res;
+        }
+    }
 }
 ?>
 

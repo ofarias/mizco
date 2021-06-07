@@ -1997,6 +1997,20 @@ class wms extends database {
         $sta= count($data)>0? 'ok':'no';
         return array("status"=>$sta,"datos"=>$data);
     }
+
+    function surte($surte, $ordd, $comps){
+
+        /// Obtenemos las piezas necesarias:
+
+        /// Revisamos las existencias actuales antes de la afectacion:
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV WHERE ID_AM=$surte";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($res);
+        $cant= $row->CANT;
+        $this->query="UPDATE";
+        /// Validamos la cantidad y la sobrante la surtimos. 
+        /// No importa si faltan o quedan pendientes, solo importa cuanta cantidad se surtio para poder restar de la asignada. 
+    }
 }
 ?>
 

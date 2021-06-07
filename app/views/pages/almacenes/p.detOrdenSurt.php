@@ -118,12 +118,14 @@
                                 if(k == 'PIEZAS_A'){var pzas= val}
                                 if(k == 'PRIMARIO'){var prim= val}
                                 if(k == 'SECUNDARIO'){var secu= val}
+                                if(k == 'ID_AM'){var mov= val}
+
                             }
                             comp.prop('id', ln+'_'+id_comp)
                             comp.prop('title', compp + '_:_' + comps)
                             comp.append('<p><b>Linea: </b>' +prim+'</p>')
                             comp.append('<p><b>Tarima: </b>' +secu+ '</p>')
-                            comp.append('<p><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'"><font color="red">'+pzas+'</font></a></p>')
+                            comp.append('<p><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'"><font color="red">'+pzas+'</font></a></p>')
                             //comp.append('<hr size=20 color="red"/>')
                         }
                     }else{
@@ -142,11 +144,12 @@
         e.preventDefault();
         var ordd = $(this).attr('ordd');
         var comps = $(this).attr('comps');
+        var mov = $(this).attr('mov')
         $.ajax({
             url:'index.wms.php',
             type:'post',
             dataType:'json',
-            data:{surte:1, ordd, comps},
+            data:{surte:mov, ordd, comps},
             success:function(data){
 
             }, 

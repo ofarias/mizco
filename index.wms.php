@@ -71,6 +71,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->chgComp($_POST['idc'], $_POST['d'], $_POST['t']);echo json_encode($res);exit();
 }elseif (isset($_POST['comPro'])){
     $res=$controller_wms->comPro($_POST['comPro']);echo json_encode($res);exit();
+}elseif (isset($_POST['surte'])){
+    $res=$controller_wms->surte($_POST['surte'], $_POST['ordd'], $_POST['comps']);echo json_encode($res);exit();
 }else{
     switch ($_GET['action']) {
         case 'login':
