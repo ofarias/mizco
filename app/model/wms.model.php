@@ -34,7 +34,7 @@ class wms extends database {
         $data=array();
         $p='';$i=0;$salida='';
         if(empty($param)){
-            $f = ' first 100 ';
+            $f = ' first 150 ';
         }else{
             $f='';
         }
@@ -455,7 +455,7 @@ class wms extends database {
     }
 
     function canMov($mov, $mot, $t){
-        $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = upper('$t') and piezas = 0 WHERE MOV = $mov ";
+        $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = upper('$t') and piezas=0, cant=0 WHERE MOV = $mov ";
         $this->queryActualiza();
         return array("msg"=>'Se ha cancelado el movimiento');
     }
@@ -505,7 +505,7 @@ class wms extends database {
     function delMov($idMov, $tp){
         $status = $tp=='del'? 'B':'F';
         if($tp=='del'){
-            $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status' where id_AM = $idMov and status= 'P'";
+            $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status', cant=0, piezas=0 where id_AM = $idMov and status= 'P'";
             $res=$this->queryActualiza();
             if($res == 1){
                 $msg = 'Se ha dado de baja la linea';

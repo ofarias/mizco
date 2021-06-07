@@ -511,8 +511,8 @@
             '</form>',
             buttons: {
             formSubmit: {
-                text: 'Aceptar',
-                keys:['enter', 'a', 's'],
+                text: 'Ok',
+                keys:['enter', 'a', 'o'],
                 btnClass: 'btn-blue',
                 action: function () {
                         var motivo = this.$content.find('.mot').val();
