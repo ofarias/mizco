@@ -74,13 +74,17 @@ class wms extends database {
             if($i > 0){$p=' Where id_comp > 0 '.$p;}
         }
 
-        $this->query="SELECT $f c.*, 
-            (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 1 ) AS entradasS, 
-            (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 1) AS salidasS, 
-            (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP, 
-            (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 2) AS salidasP
-        FROM FTC_ALMACEN_COMPONENTES c $op $p order by id_comp desc";
+        //$this->query="SELECT $f c.*,   
+        //    (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 1 ) AS entradasS, 
+        //    (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 1) AS salidasS, 
+        //    (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP, 
+        //    (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 2) AS salidasP
+        //FROM FTC_ALMACEN_COMPONENTES c $op $p order by id_comp desc";
         //echo '<p>'.$this->query.'</p>';
+        $this->query="SELECT $f c.*,
+        (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 1 ) AS entradasS, 
+        (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP 
+         FROM FTC_ALMACEN_COMPONENTES c $op $p order by id_comp desc";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -544,7 +548,7 @@ class wms extends database {
 
     function detMov($opc){
         $data =array();
-        $this->query="SELECT * FROM FTC_ALMACEN_MOVIMIENTO WHERE ID_COMPP = $opc or ID_COMPS = $opc";
+        $this->query="SELECT m.*, (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE  ms.ID_COMPS = m.id_comps) as salidas FROM FTC_ALMACEN_MOVIMIENTO m WHERE m.ID_COMPP = $opc or m.ID_COMPS = $opc";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
@@ -639,12 +643,16 @@ class wms extends database {
         $data=array();
         //$this->query="SELECT m.comps, m.prod, iif(m.tipo ='e', sum(piezas), 0) as entradas, iif(m.tipo='s',sum(piezas), 0 ) as salidas from FTC_ALMACEN_MOV m where comps=$id and status ='F' group by m.comps, m.prod, m.tipo";
         if($tipo == 'pc'){
-            $this->query="SELECT m.almacen, m.id_comps, m.prod, iif(m.id_tipo ='e', sum(piezas), 0) as entradas, iif(m.id_tipo='s',sum(piezas), 0 ) as salidas
+            $this->query="SELECT m.almacen, m.id_comps, m.prod, iif(m.id_tipo ='e', sum(piezas), 0) as entradas,
+                        -- iif(m.id_tipo='s',sum(piezas), 0 ) as salidas
+                        (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps )  as salidas
                         from FTC_ALMACEN_MOVimiento m
                         where id_comps=$id and id_status='F' group by m.id_comps, m.prod, m.id_tipo, m.almacen";
                         echo $this->query;
         }elseif($tipo == 'pp'){
-            $this->query="SELECT m.almacen, m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, iif(m.id_tipo ='e', sum(piezas), 0) as entradas, iif(m.id_tipo='s',sum(piezas), 0 ) as salidas
+            $this->query="SELECT m.almacen, m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, iif(m.id_tipo ='e', sum(piezas), 0) as entradas, 
+            --iif(m.id_tipo='s',sum(piezas), 0 ) as salidas
+                        (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps )  as salidas
                         from FTC_ALMACEN_MOVimiento m
                         where id_status='F' group by m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, m.almacen order by m.id_comps asc ";
         }
@@ -2031,9 +2039,9 @@ class wms extends database {
         /// Revisamos las existencias actuales antes de la afectacion:
         $this->query="SELECT *  FROM FTC_ALMACEN_MOV_DET WHERE ID_AM=$surte and disponible > 0 ";
         $res=$this->EjecutaQuerySimple();
-        $row=ibase_fetch_object($res);
-        if(count($row)>0){
-            $disp=$row->DISPONIBLE;
+        $row2=ibase_fetch_object($res);
+        if(@count($row)>0){
+            $disp=$row2->DISPONIBLE;
         }
         /// Validamos la cantidad y la sobrante la surtimos. 
         //echo 'Pendiente: '.$pen.' Disponible: '.$disp; 
@@ -2044,7 +2052,7 @@ class wms extends database {
             }elseif($disp < $pen){
                 $surt= $disp;
             }   
-            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD) VALUES (NULL, $comps, 0, $ordd, $usuario, current_timestamp, 'P', $surte, $surt, 1) returning ID_MS";
+            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, COMPP) VALUES (NULL, $comps, 0, $ordd, $usuario, current_timestamp, 'P', $surte, $surt, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $comps)) returning ID_MS";
             $rs=$this->grabaBD();
             if($rs > 0){
                 $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = (PZAS_SUR + $surt) where id_ordd = $ordd";

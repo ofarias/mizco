@@ -121,12 +121,16 @@
                                         <br/>/<br/> 
                                         <a href="index.wms.php?action=wms_menu&opc=detComp<?php echo $row->ID_COMP?>"><font color ="blue">Reporte del componente</font></a>
                                     <?php endif;?>
-
                                 </td>
                                 
                                 <td>
                                     <input type="button" name="dup" value="Duplicar" class="btn-sm btn-primary dup" et="<?php echo $row->ETIQUETA?>" tipo="<?php echo $row->TIPO?>" id="<?php echo $row->ID_COMP?>">&nbsp;&nbsp;&nbsp;&nbsp;<?php if($row->ID_TIPO == 1):?>
+                                    <br/><br/>
                                     <input type="button" value="Asociar" class="btn-sm btn-info asocia" tipo="<?php echo $row->TIPO ?>" id="c_<?php echo $row->ID_COMP?>" idc="<?php echo $row->ID_COMP?>" et="<?php echo $row->ETIQUETA?>"><?php endif;?>
+                                    <?php if(($entradas - $salidas) > 0):?>
+                                        <br/><br/>
+                                    <input type="button" value="mover" title="Mover componente" class="btn-sm btn-success" >
+                                    <?php endif;?>
                                 </td>
                                 <td><?php if(($entradas - $salidas) > 0){?>
                                         <input type="button" value="Reporte" class="btn-sm btn-warning "><br/><input type="button" value="QR" class="btn-sm btn-primary" >
@@ -144,7 +148,6 @@
         </div>
     </div>
 </div>
-
 <div id='formAdd' class="hidden">
     <div class="panel-body">
                 <div class="table-responsive">                            
@@ -205,6 +208,33 @@
 
     var form = document.getElementById('formAdd')
 
+    $(".mov").click(function(){
+        $.confirm({
+            title:"Mover el componente",
+            content:"Se puede cambiar la linea completa o la tarima",
+            buttons:{
+                Aceptar:function(){
+                    $.ajax({
+                        url:'index.wms.php',
+                        type:'post', 
+                        dataType:'json', 
+                        data:{chgComp:1, idc, d, t},
+                        success:function(data){
+                            if(data.status == 'ok'){
+                                c.val(d)
+                            }
+                        },
+                        error:function(){
+                            c.val(o)
+                        }
+                    });
+                },
+                Cancelar:function(){
+                    c.val(o) 
+                }
+            }
+        })
+    })
 
     $(".chgDesc").change(function(){
         var t = $(this).attr("t")
