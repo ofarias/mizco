@@ -1202,10 +1202,10 @@ class wms_controller {
         }
     }
 
-    function comPro($prod){
+    function comPro($prod, $ordd){
         if($_SESSION['user']){
             $data=new wms;
-            $res=$data->comPro($prod);
+            $res=$data->comPro($prod, $ordd);
             return $res;
         }
     }

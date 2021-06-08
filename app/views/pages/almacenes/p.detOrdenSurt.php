@@ -34,7 +34,7 @@
                                             <th> Cantidad / <br/> Asignado</th>
                                             <th> Cajas </th>
                                             <th> Piezas por Caja</th>
-                                            <th> Piezas Surtidas </th>
+                                            <th> <b>Piezas Surtidas</b> <br/> <font color="blue">Pendientes</font> </th>
                                             <th> Cajas Surtidas </th>
                                             <th> Etiqueta </th>
                                             <th> Estado <br/> Finalizar</th>
@@ -55,11 +55,20 @@
                                             <br/> <font color="purple" > <?php echo $ord->PROD_SKU ?></font>
                                             </td>
                                             <td><?php echo $ord->PZAS.' / '.$ord->ASIG?><br/>
-                                                <p class="comp" mod="<?php echo $ord->PROD?>" ln="<?php echo $ln?>" ordd="<?php echo $ord->ID_ORDD?>"></p></td>
+                                                <label class="comp" mod="<?php echo $ord->PROD?>" ln="<?php echo $ln?>" ordd="<?php echo $ord->ID_ORDD?>" pnd="<?php echo ($ord->ASIG-$ord->PZAS_SUR)?>" srt="<?php echo ($ord->PZAS_SUR)?>"/>
+                                                </td>
                                             <td><?php echo $ord->CAJAS?></td>
                                             <td><?php echo $ord->UNIDAD?></td>
                                             <!--<td><?php echo $ord->COLOR?></td>-->
-                                            <td align="center"><input type="text" size="10" class="surtir" ><br/><?php echo $ord->PZAS_SUR ?></td>
+                                            <td align="center">
+                                                
+                                                    <text id="act_<?php echo $ord->ID_ORDD?>">
+                                                        <b><?php echo $ord->PZAS_SUR ?></b> / 
+                                                        <font color="blue"><?php echo ($ord->ASIG-$ord->PZAS_SUR)?></font>
+                                                    </text>
+
+                                                <p id="surt_<?php echo $ln?>"></p> 
+                                            </td>
                                             <td align="center"><input type="text" size="10" class="surtir" ><br/><?php echo $ord->CAJAS_SUR?></td>
                                             <td><input type="text" size="10" class="Etiqueta" ></td>
                                             <td><?php echo $ord->STATUS?>
@@ -97,19 +106,27 @@
     })
     
     $(document).ready(function(){
+        revisa()
+    })
+
+    function revisa(){    
         $(".comp").each(function(){
             var mod = $(this).attr("mod")
             var ln = $(this).attr("ln")
             var ordd = $(this).attr('ordd')
             var comp = $(this)
+            var pos = document.getElementById("surt_"+ln)
+            var pnd = $(this).attr('pnd')
+            pos.innerHTML=''
+            //comp.remove('p')
+            $("p").remove(".Lit")
             $.ajax({
                 url:'index.wms.php',
                 type:'post',
                 dataType:'json',
-                data:{comPro:mod},
+                data:{comPro:mod, ordd},
                 success:function(data){
                     if(data.status== 'ok'){
-
                         for(const [key, value] of Object.entries(data.datos)){
                             for(const[k, val] of Object.entries(value)){
                                 if(k == 'COMPP'){var compp=val}
@@ -123,10 +140,23 @@
                             }
                             comp.prop('id', ln+'_'+id_comp)
                             comp.prop('title', compp + '_:_' + comps)
-                            comp.append('<p><b>Linea: </b>' +prim+'</p>')
-                            comp.append('<p><b>Tarima: </b>' +secu+ '</p>')
-                            comp.append('<p><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'"><font color="red">'+pzas+'</font></a></p>')
+                            comp.append('<p class="Lit"><b>Linea: </b>' +prim+'</p>')
+                            comp.append('<p class="Lit"><b>Tarima: </b>' +secu+ '</p>')
+                            comp.append('<p class="Lit"><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'" pnd="'+pnd+'" ><font color="red">'+pzas+'</font></a></p>')
                             //comp.append('<hr size=20 color="red"/>')
+                        }
+                        
+                        if(data.posiciones.length > 0){
+                            for(const [key, value] of Object.entries(data.posiciones)){
+                                for(const [k,val] of Object.entries(value)){
+                                    if(k=='LINEA'){var s_lin=val}
+                                    if(k=='TARIMA'){var s_tar=val}
+                                    if (k=='PIEZAS'){ var s_cant=val}    
+                                }
+                                pos.innerHTML+="<p><b>Linea: </b> " + s_lin
+                                pos.innerHTML+="<p><b>Tarima: </b> " + s_tar
+                                pos.innerHTML+="<p><b>Piezas: </b> <font color='green'>" + s_cant +"</font>"
+                            }
                         }
                     }else{
                         comp.text('Sin existencia')
@@ -137,26 +167,35 @@
                 }
             })
         })
-    })
-
+    }
 
     $("body").on("click", ".surte", function(e){
         e.preventDefault();
         var ordd = $(this).attr('ordd');
         var comps = $(this).attr('comps');
         var mov = $(this).attr('mov')
-        $.ajax({
-            url:'index.wms.php',
-            type:'post',
-            dataType:'json',
-            data:{surte:mov, ordd, comps},
-            success:function(data){
-
-            }, 
-            error:function(){
-
-            }
-        })
+        var pnd = $(this).attr('pnd')
+        if(pnd == 0){
+            $.alert("El pedido esta surtido")
+            return
+        }else{    
+            $.ajax({
+                url:'index.wms.php',
+                type:'post',
+                dataType:'json',
+                data:{surte:mov, ordd, comps},
+                success:function(data){
+                    if(data.status=='ok'){
+                        /// aqui ponemos los nuevos datos de las existencias
+                        revisa()
+                        document.getElementById('act_'+ordd).innerHTML=(parseFloat(data.srt))+'\/<font color="blue">'+(parseFloat(data.pnd))+'</font>'
+                        // restamos lo asignado a lo pendiente para que cuadre la informacion. 
+                    }
+                }, 
+                error:function(){
+                }
+            })
+        }
     })
 
 

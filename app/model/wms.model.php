@@ -1964,15 +1964,19 @@ class wms extends database {
         return array("sta"=>$sta, "msg"=>utf8_encode($msg));
     }
 
-    function comPro($prod){
+    function comPro($prod, $ordd){
         $data=array();
-        //$this->query="SELECT first 1 * from FTC_ALMACEN_COMPONENTES where productos containing ('$prod')";
         $this->query="SELECT first 4 m.*, (select
-                coalesce( sum(ms.piezas), 0) from ftc_almacen_movimiento ms where ms.id_am = m.id_am
-                and status= 'F' and id_tipo = 's'
-            ) as salidas, piezas - (select
-                coalesce( sum(ms.piezas), 0) from ftc_almacen_movimiento ms where ms.id_am = m.id_am
-                and status= 'F' and id_tipo = 's'
+                coalesce( sum(ms.piezas), 0) from ftc_almacen_mov_sal ms where ms.id_mov = m.id_am
+                and status= 'F' 
+            ) as salidas, 
+            piezas - ((select
+                coalesce( sum(ms.piezas), 0) from ftc_almacen_mov_sal ms where ms.id_mov = m.id_am
+                and status= 'F' 
+            )+(select
+                coalesce( sum(ms.piezas), 0) from ftc_almacen_mov_sal ms where ms.id_mov = m.id_am
+                and status= 'P' 
+            )
             ) as piezas_a
             from ftc_almacen_movimiento m
             where
@@ -1983,56 +1987,74 @@ class wms extends database {
                 m.piezas -
                 (
                     (select
-                        coalesce( sum(ms.piezas), 0) from ftc_almacen_movimiento ms where ms.id_am = m.id_am
-                        and status= 'F' and id_tipo = 's'
+                        coalesce( sum(ms.piezas), 0) from FTC_ALMACEN_MOV_sal ms where ms.id_mov = m.id_am
+                        and status= 'F'
+                    ) +
+                    (select
+                        coalesce( sum(ms.piezas), 0) from FTC_ALMACEN_MOV_sal ms where ms.id_mov = m.id_am
+                        and status= 'P' 
                     )
                 )
             > 0 
             order by m.fecha asc";
-
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
         }
         $sta= count($data)>0? 'ok':'no';
-        return array("status"=>$sta,"datos"=>$data);
+        $pos= $this->posiciones($ordd);
+        return array("status"=>$sta,"datos"=>$data, "posiciones"=>$pos);
+    }
+
+    function posiciones($ordd){
+        $data=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and status= 'P ' or status = 'F'";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
     }
 
     function surte($surte, $ordd, $comps){
         $usuario=$_SESSION['user']->ID;
+        $row = array(); $disp=0;$sta='no'; $msg="No hay producto Disponible, intente otro componente";
         // surte es el numero de movimiento de entrada en la tabla de Movimientos. 
         // ordd es la linea del detalle de la Orden de compra.
         // comps es la referencia al componente de donde se va a sacar el productos. 
         /// Obtenemos las piezas necesarias:
         $this->query ="SELECT * FROM FTC_ALMACEN_ORDEN_DET where id_ordd = $ordd";
         $res=$this->EjecutaQuerySimple();
-        $row=ibase_fetch_object($res);
-        $pen=$row->ASIG - $row->PZAS_SUR;
+        @$row=ibase_fetch_object($res);
+            $srt= $row->PZAS_SUR;
+            $pen=$row->ASIG - $row->PZAS_SUR;
         /// Revisamos las existencias actuales antes de la afectacion:
         $this->query="SELECT *  FROM FTC_ALMACEN_MOV_DET WHERE ID_AM=$surte and disponible > 0 ";
         $res=$this->EjecutaQuerySimple();
         $row=ibase_fetch_object($res);
-        $disp= $row->DISPONIBLE;
-
+        if(count($row)>0){
+            $disp=$row->DISPONIBLE;
+        }
         /// Validamos la cantidad y la sobrante la surtimos. 
-        echo 'Pendiente: '.$pen.' Disponible: '.$disp; 
+        //echo 'Pendiente: '.$pen.' Disponible: '.$disp; 
         if($pen > 0 and $disp > 0){/// Si hacen falta se asignan las pendientes
+            
             if($disp >= $pen){/// si la existencia disponible es igual o mayor a la necesaria, se aplica todo y se crea un movimiento de salida por el pendiente.
                 $surt= $pen;
             }elseif($disp < $pen){
                 $surt= $disp;
             }   
-            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD) VALUES (NULL, $comps, 0, $ordd, $usuario, current_timestamp, 'P', $surte, $pen, 1) returning ID_MS";
+            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD) VALUES (NULL, $comps, 0, $ordd, $usuario, current_timestamp, 'P', $surte, $surt, 1) returning ID_MS";
             $rs=$this->grabaBD();
             if($rs > 0){
-                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = $surte where id_ordd = $ordd";
+                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = (PZAS_SUR + $surt) where id_ordd = $ordd";
                 $rs=$this->queryActualiza();
                 if($rs == 1){
                     $sta= 'ok';$msg="Se ha surtido el producto";
                 }
             }
         }
-        return array("status"=>$sta, "msg"=>$msg, "pzas"=>$surt);
+        return array("status"=>$sta, "msg"=>$msg, "pzas"=>$surt, "srt"=>($srt+$surt), "pnd"=>$pen-$surt);
         /// No importa si faltan o quedan pendientes, solo importa cuanta cantidad se surtio para poder restar de la asignada. 
     }
 }

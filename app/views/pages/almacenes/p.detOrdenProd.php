@@ -512,7 +512,7 @@
             buttons: {
             formSubmit: {
                 text: 'Ok',
-                keys:['enter', 'a', 'o'],
+                keys:['enter'],
                 btnClass: 'btn-blue',
                 action: function () {
                         var motivo = this.$content.find('.mot').val();
@@ -530,7 +530,7 @@
                 },
                 cancelar:{
                     text:'Cancelar',
-                    keys:['esc','no'],
+                    keys:['esc'],
                     btnClass:'btn-red',
                     action:function(){  
                     } 
