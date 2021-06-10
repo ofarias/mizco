@@ -102,7 +102,13 @@ class wms extends database {
     }
 
     function compLib($op, $param){
-
+        $data = array();
+        $this->query="SELECT * FROM FTC_ALMACEN_COMPONENTES $op ";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
     }
 
     function compExcel($data){
@@ -2068,6 +2074,66 @@ class wms extends database {
         }
         return array("status"=>$sta, "msg"=>$msg, "pzas"=>$surt, "srt"=>($srt+$surt), "pnd"=>$pen-$surt);
         /// No importa si faltan o quedan pendientes, solo importa cuanta cantidad se surtio para poder restar de la asignada. 
+    }
+
+    function reasig($idcomp, $compp, $comps, $t){
+        $data=array(); $data2=array();
+        if($t==1){ //// solo se cambia la tarima a otra tarima.
+            $this->reasigTarima($idcomp, $comps, 'Componente ', 'Tarima');
+        }else{/// se cambian todas las tarimas a la nueva linea.
+            /// obtenemos el contenido de la line Origen
+            $this->query="SELECT * FROM FTC_ALMACEN_COMPP WHERE ID_COMP = $idcomp ";
+            $res=$this->EjecutaQuerySimple();
+            $rowO=ibase_fetch_object($res);
+            $need=$rowO->COMPS - $rowO->COMPS_DISP;
+            echo 'El componente'.$rowO->ID_COMP.'Esta linea tiene '.$rowO->COMPS.' componetes de los cuales estan ocupados '.$need.' y disponibles '.$rowO->COMPS_DISP;
+            /// revisamos la disponibilidad de la linea destino.
+            
+            $this->query="SELECT * FROM FTC_ALMACEN_COMPP WHERE ID_COMP = $compp";
+            $res=$this->EjecutaQuerySimple();
+            $rowD=ibase_fetch_object($res);
+            $disp=$rowD->COMPS_DISP;
+            echo '<br/> El componente'.$rowD->ID_COMP.' Esta linea tiene tiene disponibles '.$disp.' tarimas de las cuales se necesitan '.$need;
+            
+            if($disp > $need){
+                echo '<br/> Se puede hacer el movimiento';
+                ///inicia el movimiento por Tarima a la nueva linea.
+                /// Traemos los componentes de la linea nueva que estan disponibles 
+                $this->query="SELECT * FROM FTC_ALMACEN_COMP WHERE COMPP = $idcomp and status = 1 ";
+                $res=$this->EjecutaQuerySimple();
+                while ($tsArray=ibase_fetch_object($res)) {
+                    $data2[]=$tsArray;
+                }
+                foreach($data2 as $o){
+                    $this->query="SELECT first 1 * FROM FTC_ALMACEN_COMPS WHERE COMPP = $rowD->ID_COMP and disp='si'";
+                    $r=$this->EjecutaQuerySimple();
+                    $row3=ibase_fetch_object($r);
+                    $this->reasigTarima($o->ID_COMP, $row3->ID_COMP,'Componente ', 'Linea');
+                }
+            }else{
+                echo '<br/> Disponible es menor al requerido.';
+            }
+            die();
+        }
+    }
+
+    function reasigTarima($idcompO, $idcompD, $t, $c){
+        /// trar el ultimo movimiento de la tarima valida. 
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_EXI WHERE TARIMA = $idcompO and disp = 'si'";
+        echo '<br/'.$this->query;
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        foreach($data as $mov){
+            $this->query="UPDATE FTC_ALMACEN_MOV SET COMPS = $idcompD, COMPP = (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP= $idcompD) where id_am = $mov->ID_AM";
+            $this->queryActualiza();
+            $this->query="UPDATE FTC_ALMACEN_MOV_SAL SET ID_COMPS = $idcompD, ID_COMPP = (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP= $idcompD) where id_mov = $mov->ID_AM ";
+            $this->queryActualiza();
+            $this->actStatus($tabla=3, $tipo='Reacomodo', $sub=$c, $ids=$mov->ID_AM, $obs=$t.' Origen: '.$idcompO.' Destino: '.$idcompD);
+        }
+
+        return;
     }
 }
 ?>

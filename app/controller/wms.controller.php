@@ -119,9 +119,8 @@ class wms_controller {
                 return $info;
                 exit();
             }
-            $info2=$data->compLib($op=" WHERE STATUS = 'Activo'", '');
-            echo 'info2: '.count($info2).' info: '.count($info);
-            //die();
+            $infoL=$data->compLib($op=" WHERE STATUS = 'Activo' and id_tipo = 2 and Disponible = 'si' ", '');
+            $infoT=$data->compLib($op=" WHERE STATUS = 'Activo' and id_tipo = 1 and Disponible = 'si' ", '');
             $compP= $data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=2", $param='');
             $alm =  $data->almacenes($op= " WHERE STATUS = 'Activo'");
             $tc  =  $data->tipoComp('componente');
@@ -1489,6 +1488,14 @@ class wms_controller {
         if($_SESSION['user']){
             $data = new wms;
             $res=$data->surte($surte, $orden, $comps);
+            return $res;
+        }
+    }
+
+    function reasig($idcomp, $compp, $comps, $t){
+        if($_SESSION['user']){
+            $data = new wms;
+            $res=$data->reasig($idcomp, $compp, $comps, $t);
             return $res;
         }
     }

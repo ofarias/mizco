@@ -73,6 +73,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->comPro($_POST['comPro'], $_POST['ordd']);echo json_encode($res);exit();
 }elseif (isset($_POST['surte'])){
     $res=$controller_wms->surte($_POST['surte'], $_POST['ordd'], $_POST['comps']);echo json_encode($res);exit();
+}elseif (isset($_POST['reasig'])){
+    $res=$controller_wms->reasig($_POST['reasig'], $_POST['compp'], $_POST['comps'], $_POST['it']);echo json_encode($res);exit();
 }else{
     switch ($_GET['action']) {
         case 'login':

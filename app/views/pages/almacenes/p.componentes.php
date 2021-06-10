@@ -125,11 +125,11 @@
                                 
                                 <td>
                                     <input type="button" name="dup" value="Duplicar" class="btn-sm btn-primary dup" et="<?php echo $row->ETIQUETA?>" tipo="<?php echo $row->TIPO?>" id="<?php echo $row->ID_COMP?>">&nbsp;&nbsp;&nbsp;&nbsp;<?php if($row->ID_TIPO == 1):?>
-                                    <br/><br/>
+                                    <br/>
                                     <input type="button" value="Asociar" class="btn-sm btn-info asocia" tipo="<?php echo $row->TIPO ?>" id="c_<?php echo $row->ID_COMP?>" idc="<?php echo $row->ID_COMP?>" et="<?php echo $row->ETIQUETA?>"><?php endif;?>
                                     <?php if(($entradas - $salidas) > 0):?>
                                         <br/><br/>
-                                    <input type="button" it="<?php echo $row->ID_TIPO?>" value="mover" t="<?php echo $row->TIPO?>" eti="<?php echo $row->ETIQUETA?>" title="Mover componente" class="btn-sm btn-success mov" >
+                                    <input type="button" it="<?php echo $row->ID_TIPO?>" value="mover" t="<?php echo $row->TIPO?>" eti="<?php echo $row->ETIQUETA?>" idc="<?php echo $row->ID_COMP?>" title="Mover componente" class="btn-sm btn-success mov" >
                                     <?php endif;?>
                                 </td>
                                 <td><?php if(($entradas - $salidas) > 0){?>
@@ -212,12 +212,9 @@
         var it = $(this).attr("it")
         var t = $(this).attr("t")
         var eti = $(this).attr("eti")
-        var tipo = ""
-        var i=0
-        if(it == 1){tipo = 'Primario'}
-        else if(it == 2){tipo = 'Secundario'}
-
+        var idc = $(this).attr("idc")
         $.confirm({
+            columnClass: 'col-md-6 col-md-offset-3',
             title:"Mover el componente",
             content:"Solo se pueden mover componentes del mismo tipo."+
             "<br/> "+
@@ -225,22 +222,21 @@
             "<font color='blue'>"+t + " <b>--> Etiqueta: " + eti + "</font></b>" +
             "<br/><br/>Componente Destino:"+
             
-            
-            "<br/><br/> <font color='#01890e'>Lineas</font> : <br/>"+
+            "<br/><br/> <font color='#01890e'>Lineas Dispobibles</font> : <br/>"+
             "<select class='compp'>"+
-            "<option>Seleccione una Linea</option>"+
-            <?php foreach ($info2 as $key):?> 
+            "<option value='0' tipp='0'>Seleccione una Linea</option>"+
+            <?php foreach ($infoL as $key):?> 
                 <?php if($key->ID_TIPO==2):?>
-                   <?php echo "'<option value="."+'+".$key->ID_COMP."+' +"." tip="."+'+".$key->ID_TIPO."+' +".">".$key->ALMACEN." -- ".$key->TIPO." -- ".$key->ETIQUETA."</option>'"?>+
+                   <?php echo "'<option value="."'+".$key->ID_COMP."+' "." tipp="."'+".$key->ID_TIPO."+' ".">".$key->ALMACEN." -- ".$key->TIPO." -- ".$key->ETIQUETA."</option>'"?>+
                 <?php endif; ?>
             <?php endforeach;?>
             "</select>" + 
-            "<br/><br/><font color='#fc5000 '>Tarimas</font>: <br/>"+
+            "<br/><br/><font color='#fc5000 '>Tarimas Disponibles</font>: <br/>"+
             "<select class='comps'>"+
-            "<option>Seleccione una Tarima</option>"+
-            <?php foreach ($info2 as $key):?> 
+            "<option value='0' tips='0'>Seleccione una Tarima</option>"+
+            <?php foreach ($infoT as $key):?> 
                 <?php if($key->ID_TIPO==1):?>
-                   <?php echo "'<option value="."+'+".$key->ID_COMP."+' +"." tip="."+'+".$key->ID_TIPO."+' +".">".$key->COMPP."--".$key->TIPO." -- ".$key->ETIQUETA."</option>'"?>+
+                   <?php echo "'<option value="."'+".$key->ID_COMP."+' "." tips="."'+".$key->ID_TIPO."+' ".">".$key->ALMACEN." -- ".$key->COMPP."--".$key->TIPO." -- ".$key->ETIQUETA."</option>'"?>+
                 <?php endif; ?>
             <?php endforeach;?>
             "</select>" + 
@@ -249,18 +245,38 @@
             ,
             buttons:{
                 Aceptar:function(){
+                    var compp = this.$content.find('.compp').val();
+                    var tcompp = $('option:selected', this.$content.find('.compp')).attr('tipp')
+                    var comps = this.$content.find('.comps').val();
+                    var tcomps = $('option:selected', this.$content.find('.comps')).attr('tips')
+                    if(compp == 0 && comps == 0){
+                        $.alert("Debe seleccionar un componente")
+                        return false
+                    }
+                    if(tcompp > 0 && tcomps > 0){
+                        $.alert("Solo puedes seleccionar una opción, recuerda que solo se mueven del miso tipo")
+                        return false
+                    }
+                    if(tcompp > 0 && it != tcompp){
+                        $.alert("No puedes mover Tarimas a Lineas, selecciona la Tarima Destino")
+                        return false
+                    }
+                    if(tcomps > 0 && it != tcomps){
+                        $.alert("No puedes mover Lineas a Tarimas, selecciona la Linea Destino")
+                        return false
+                    }
                     $.ajax({
                         url:'index.wms.php',
                         type:'post', 
                         dataType:'json', 
-                        data:{chgComp:1, idc, d, t},
+                        data:{reasig:idc, compp, comps, it},
                         success:function(data){
                             if(data.status == 'ok'){
-                                c.val(d)
+                                //c.val(d)
                             }
                         },
                         error:function(){
-                            c.val(o)
+                            //c.val(o)
                         }
                     });
                 },
