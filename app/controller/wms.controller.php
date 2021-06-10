@@ -119,6 +119,9 @@ class wms_controller {
                 return $info;
                 exit();
             }
+            $info2=$data->compLib($op=" WHERE STATUS = 'Activo'", '');
+            echo 'info2: '.count($info2).' info: '.count($info);
+            //die();
             $compP= $data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=2", $param='');
             $alm =  $data->almacenes($op= " WHERE STATUS = 'Activo'");
             $tc  =  $data->tipoComp('componente');

@@ -101,6 +101,10 @@ class wms extends database {
         }
     }
 
+    function compLib($op, $param){
+
+    }
+
     function compExcel($data){
         $usuario = $_SESSION['user']->NOMBRE;   
         $xls= new PHPExcel();

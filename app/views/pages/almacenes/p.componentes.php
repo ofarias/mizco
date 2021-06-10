@@ -129,7 +129,7 @@
                                     <input type="button" value="Asociar" class="btn-sm btn-info asocia" tipo="<?php echo $row->TIPO ?>" id="c_<?php echo $row->ID_COMP?>" idc="<?php echo $row->ID_COMP?>" et="<?php echo $row->ETIQUETA?>"><?php endif;?>
                                     <?php if(($entradas - $salidas) > 0):?>
                                         <br/><br/>
-                                    <input type="button" value="mover" title="Mover componente" class="btn-sm btn-success" >
+                                    <input type="button" it="<?php echo $row->ID_TIPO?>" value="mover" t="<?php echo $row->TIPO?>" eti="<?php echo $row->ETIQUETA?>" title="Mover componente" class="btn-sm btn-success mov" >
                                     <?php endif;?>
                                 </td>
                                 <td><?php if(($entradas - $salidas) > 0){?>
@@ -207,11 +207,46 @@
 <script type="text/javascript">
 
     var form = document.getElementById('formAdd')
-
+    
     $(".mov").click(function(){
+        var it = $(this).attr("it")
+        var t = $(this).attr("t")
+        var eti = $(this).attr("eti")
+        var tipo = ""
+        var i=0
+        if(it == 1){tipo = 'Primario'}
+        else if(it == 2){tipo = 'Secundario'}
+
         $.confirm({
             title:"Mover el componente",
-            content:"Se puede cambiar la linea completa o la tarima",
+            content:"Solo se pueden mover componentes del mismo tipo."+
+            "<br/> "+
+            "<br/> <b>Componente Origen <b>:"+
+            "<font color='blue'>"+t + " <b>--> Etiqueta: " + eti + "</font></b>" +
+            "<br/><br/>Componente Destino:"+
+            
+            
+            "<br/><br/> <font color='#01890e'>Lineas</font> : <br/>"+
+            "<select class='compp'>"+
+            "<option>Seleccione una Linea</option>"+
+            <?php foreach ($info2 as $key):?> 
+                <?php if($key->ID_TIPO==2):?>
+                   <?php echo "'<option value="."+'+".$key->ID_COMP."+' +"." tip="."+'+".$key->ID_TIPO."+' +".">".$key->ALMACEN." -- ".$key->TIPO." -- ".$key->ETIQUETA."</option>'"?>+
+                <?php endif; ?>
+            <?php endforeach;?>
+            "</select>" + 
+            "<br/><br/><font color='#fc5000 '>Tarimas</font>: <br/>"+
+            "<select class='comps'>"+
+            "<option>Seleccione una Tarima</option>"+
+            <?php foreach ($info2 as $key):?> 
+                <?php if($key->ID_TIPO==1):?>
+                   <?php echo "'<option value="."+'+".$key->ID_COMP."+' +"." tip="."+'+".$key->ID_TIPO."+' +".">".$key->COMPP."--".$key->TIPO." -- ".$key->ETIQUETA."</option>'"?>+
+                <?php endif; ?>
+            <?php endforeach;?>
+            "</select>" + 
+            "<br/><br/><label> Recuerda que solo se puede mover Tarimas a Tarimas y Lineas a Lineas.</label> "+
+            "<br/><br/> <label> Se tomara el valor del tipo de componente Original. </label" 
+            ,
             buttons:{
                 Aceptar:function(){
                     $.ajax({
@@ -230,10 +265,11 @@
                     });
                 },
                 Cancelar:function(){
-                    c.val(o) 
+                     
                 }
             }
         })
+       
     })
 
     $(".chgDesc").change(function(){
