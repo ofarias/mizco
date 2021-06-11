@@ -8,7 +8,7 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                Productos en Intelisis
+                Almacenes
             </div>
             <div class="panel-body">
                 <div class="table-responsive">                            
@@ -25,7 +25,8 @@
                                 <th>Lineas</th>
                                 <th>Pasillos</th>
                                 <th>Estado</th>
-                                <th>Guardar</th>
+                                <th>Mapa</th>
+                                
                             </tr>
                         </thead>
                         <tfoot>
@@ -50,6 +51,8 @@
                                 <td><?php echo $r->PASILLOS?></td>
                                 <td><?php echo $r->STATUS?></td>
                                 <td></td>
+                                <td><button class="mapa" al="<?php echo $r->ID?>">Mapa</button></td>
+                                
                             </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -67,5 +70,8 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
-  
+    $(".mapa").click(function(){
+        var a = $(this).attr('al')
+        window.open("index.wms.php?action=mapa&opc=''&param="+a, "_blank")
+    })
 </script>

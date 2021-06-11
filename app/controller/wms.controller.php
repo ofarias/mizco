@@ -1499,6 +1499,24 @@ class wms_controller {
             return $res;
         }
     }
+
+    function mapa($opc, $param){
+        if($_SESSION['user']){
+            $data = new wms;
+            $infoA1=$data->mapa($opc=' where alm = 1 ', $param);
+            $pagina = $this->load_template('Reportes');
+            $html = $this->load_page('app/views/pages/almacenes/p.mapa.php');
+            ob_start();
+            include 'app/views/pages/almacenes/p.mapa.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this->view_page($pagina); 
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+    }
 }
 ?>
 

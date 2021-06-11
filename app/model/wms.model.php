@@ -2077,28 +2077,20 @@ class wms extends database {
     }
 
     function reasig($idcomp, $compp, $comps, $t){
-        $data=array(); $data2=array();
-        if($t==1){ //// solo se cambia la tarima a otra tarima.
+        $data=array(); $data2=array();$sta='ok';$msg="Se ha reubcado el componente correctamente";
+        if($t==1){
             $this->reasigTarima($idcomp, $comps, 'Componente ', 'Tarima');
-        }else{/// se cambian todas las tarimas a la nueva linea.
-            /// obtenemos el contenido de la line Origen
+        }else{
             $this->query="SELECT * FROM FTC_ALMACEN_COMPP WHERE ID_COMP = $idcomp ";
             $res=$this->EjecutaQuerySimple();
             $rowO=ibase_fetch_object($res);
-            $need=$rowO->COMPS - $rowO->COMPS_DISP;
-            echo 'El componente'.$rowO->ID_COMP.'Esta linea tiene '.$rowO->COMPS.' componetes de los cuales estan ocupados '.$need.' y disponibles '.$rowO->COMPS_DISP;
-            /// revisamos la disponibilidad de la linea destino.
-            
+            $need=$rowO->COMPS - $rowO->COMPS_DISP; 
             $this->query="SELECT * FROM FTC_ALMACEN_COMPP WHERE ID_COMP = $compp";
             $res=$this->EjecutaQuerySimple();
             $rowD=ibase_fetch_object($res);
             $disp=$rowD->COMPS_DISP;
-            echo '<br/> El componente'.$rowD->ID_COMP.' Esta linea tiene tiene disponibles '.$disp.' tarimas de las cuales se necesitan '.$need;
             
             if($disp > $need){
-                echo '<br/> Se puede hacer el movimiento';
-                ///inicia el movimiento por Tarima a la nueva linea.
-                /// Traemos los componentes de la linea nueva que estan disponibles 
                 $this->query="SELECT * FROM FTC_ALMACEN_COMP WHERE COMPP = $idcomp and status = 1 ";
                 $res=$this->EjecutaQuerySimple();
                 while ($tsArray=ibase_fetch_object($res)) {
@@ -2111,16 +2103,15 @@ class wms extends database {
                     $this->reasigTarima($o->ID_COMP, $row3->ID_COMP,'Componente ', 'Linea');
                 }
             }else{
-                echo '<br/> Disponible es menor al requerido.';
+                $sta='No';$msg="No se pude por que el Disponible es menor al requerido, seleccione otro componente";
             }
-            die();
         }
+        return array("status"=>$sta, "msg"=>$msg, "idc"=>$idcomp);
     }
 
     function reasigTarima($idcompO, $idcompD, $t, $c){
         /// trar el ultimo movimiento de la tarima valida. 
         $this->query="SELECT * FROM FTC_ALMACEN_MOV_EXI WHERE TARIMA = $idcompO and disp = 'si'";
-        echo '<br/'.$this->query;
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -2132,9 +2123,39 @@ class wms extends database {
             $this->queryActualiza();
             $this->actStatus($tabla=3, $tipo='Reacomodo', $sub=$c, $ids=$mov->ID_AM, $obs=$t.' Origen: '.$idcompO.' Destino: '.$idcompD);
         }
-
         return;
     }
+
+    function mapa($opc, $param){
+        $data=array();$sec=array();$row=array();
+        //$this->query="SELECT * from ftc_almacen_compp $opc";
+        //$this->query="SELECT c.*, iif(char_length(c.etiqueta) = 5, substring(c.etiqueta from 1 for 1), '' ) as letra,  char_length(c.etiqueta) from ftc_almacen_comp c where c.almacen = 1 and c.status < 8 and c.tipo = 2";
+        $this->query="SELECT c.*,
+                        case char_length(c.etiqueta)
+                            when 5 then substring(c.etiqueta from 1 for 1)
+                            when 6 then substring(c.etiqueta from 1 for 1)
+                            when 7 then substring(c.etiqueta from 1 for 2)
+                            else ''
+                            end as letra,
+                        char_length(c.etiqueta)
+                        from
+                        ftc_almacen_comp c where c.almacen = $param and c.status < 8 and c.tipo = 2";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        $this->query="SELECT * FROM FTC_ALMACEN_COMPS ";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $sec[]=$tsArray;
+        }
+        $this->query="SELECT MAX(COMPS) as tarimas FROM FTC_ALMACEN_COMPP $opc";
+        $res=$this->EjecutaQuerySimple();
+        $row = ibase_fetch_object($res);
+        return array("datos"=>$data, "tarimas"=>$row->TARIMAS, "sec"=>$sec);
+    }
+
+
 }
 ?>
 

@@ -129,7 +129,7 @@
                                     <input type="button" value="Asociar" class="btn-sm btn-info asocia" tipo="<?php echo $row->TIPO ?>" id="c_<?php echo $row->ID_COMP?>" idc="<?php echo $row->ID_COMP?>" et="<?php echo $row->ETIQUETA?>"><?php endif;?>
                                     <?php if(($entradas - $salidas) > 0):?>
                                         <br/><br/>
-                                    <input type="button" it="<?php echo $row->ID_TIPO?>" value="mover" t="<?php echo $row->TIPO?>" eti="<?php echo $row->ETIQUETA?>" idc="<?php echo $row->ID_COMP?>" title="Mover componente" class="btn-sm btn-success mov" >
+                                    <input type="button" it="<?php echo $row->ID_TIPO?>" value="Reubicar" t="<?php echo $row->TIPO?>" eti="<?php echo $row->ETIQUETA?>" idc="<?php echo $row->ID_COMP?>" title="Mover componente" class="btn-sm btn-success mov <?php echo $row->ID_COMP?>" >
                                     <?php endif;?>
                                 </td>
                                 <td><?php if(($entradas - $salidas) > 0){?>
@@ -208,14 +208,17 @@
 
     var form = document.getElementById('formAdd')
     
+   
+
     $(".mov").click(function(){
+        var ln = $(this)
         var it = $(this).attr("it")
         var t = $(this).attr("t")
         var eti = $(this).attr("eti")
         var idc = $(this).attr("idc")
         $.confirm({
             columnClass: 'col-md-6 col-md-offset-3',
-            title:"Mover el componente",
+            title:"Reubicación el componente",
             content:"Solo se pueden mover componentes del mismo tipo."+
             "<br/> "+
             "<br/> <b>Componente Origen <b>:"+
@@ -240,7 +243,7 @@
                 <?php endif; ?>
             <?php endforeach;?>
             "</select>" + 
-            "<br/><br/><label> Recuerda que solo se puede mover Tarimas a Tarimas y Lineas a Lineas.</label> "+
+            "<br/><br/><label> Recuerda que solo se puede reubicar Tarimas a Tarimas y Lineas a Lineas.</label> "+
             "<br/><br/> <label> Se tomara el valor del tipo de componente Original. </label" 
             ,
             buttons:{
@@ -258,11 +261,11 @@
                         return false
                     }
                     if(tcompp > 0 && it != tcompp){
-                        $.alert("No puedes mover Tarimas a Lineas, selecciona la Tarima Destino")
+                        $.alert("No puedes reubicar Tarimas a Lineas, selecciona la Tarima Destino")
                         return false
                     }
                     if(tcomps > 0 && it != tcomps){
-                        $.alert("No puedes mover Lineas a Tarimas, selecciona la Linea Destino")
+                        $.alert("No puedes reubicar Lineas a Tarimas, selecciona la Linea Destino")
                         return false
                     }
                     $.ajax({
@@ -272,7 +275,8 @@
                         data:{reasig:idc, compp, comps, it},
                         success:function(data){
                             if(data.status == 'ok'){
-                                //c.val(d)
+                                ln.hide()
+                                $("."+idc).hide()
                             }
                         },
                         error:function(){

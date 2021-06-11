@@ -92,6 +92,9 @@ if (isset($_POST['usuario'])) {
             $param= isset($_GET['param'])? $_GET['param']:'';
             $controller_wms->detOrden($_GET['orden'], $_GET['t'], $param, 'i');
             break;
+        case 'mapa':
+            $controller_wms->mapa($_GET['opc'], $_GET['param']);
+            break;
         default:
             header('Location: index.php?action=login');
             break;
