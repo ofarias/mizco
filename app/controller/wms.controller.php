@@ -1535,6 +1535,14 @@ class wms_controller {
             return $res;
         }
     }
+
+    function prods($idc){
+        if($_SESSION['user']){
+            $data = new wms; 
+            $res=$data->prods($idc);
+            return $res;
+        }   
+    }
 }
 ?>
 

@@ -2234,6 +2234,16 @@ class wms extends database {
         $row=ibase_fetch_object($res);
         return array("status"=>'ok', "disp"=>$row->COMPS_DISP);
     }
+
+    function prods($idc){
+        $data=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE disponible > 0 and id_comps = $idc";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return array("datos"=>$data);
+    }
 }
 ?>
 

@@ -11,9 +11,10 @@
                         <div class="panel-heading">
                            <font size="5px"> Mapa del Almacen <?php echo $param?></font> 
                         </div>
-                        <br/>
-                            <br/><br/>
-                            <div class="panel-body">
+                           <div class="panel-body">
+                                <p><label>Para ver el contenido de la tarima colocar el cursor sobre la etiqueta.</label></p>
+                                <p><label>Para ingresar por Linea dar click en la primer columna.</label></p>
+                                <p><label>Para ingresar por Tarima dar click en la etiqueta.</label></p>
                             <div class="table-responsive">                            
                                 <table class="table table-striped table-bordered table-hover" >
                                     <thead>
@@ -61,8 +62,34 @@
     var alm = <?php echo "'".$param."'"?>;
     var titulo = ''; var tipo = ''; var tarDisp = 0;
     $(".info").mouseover(function(){
+        var contenido = ''
         var comp = $(this)
-        comp.prop('title', 'Productos')
+        var comps = $(this).attr('idc')
+        var dis = $(this).attr('dis')
+        if(dis == 'si'){
+            return false
+        }
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{prods:comps},
+            success:function(data){
+                for(const [key, value] of Object.entries(data.datos)){
+                    for(const [k, val ] of Object.entries(value)){
+                        if(k == 'INTELISIS'){var prod = val}
+                        if(k == 'DISPONIBLE'){var disp = val}
+                        if(k == 'CANT'){var cant = val}
+                        if(k == 'UNIDAD'){var uni = val}
+                        if(k == 'PIEZAS'){var pzas = val}
+                    }
+                    contenido += cant + ' ' + uni  + ' ' + prod + ', piezas ' + pzas + ' \n'
+                }
+                comp.prop('title', contenido)
+            },
+            error:function(){
+            }
+        })
     })
 
     $(document).ready(function(){
@@ -110,7 +137,7 @@
             disp = $(this).attr('dis')
         }
         if(tarDisp <= 0 || disp =='no'){
-            $.alert('No hay tarimas disponibles')
+            $.alert('No hay tarimas disponibles, favor de actualizar la pagina')
             return false 
         }
         //$.alert("Dio click en la tarima " + idc)
@@ -146,7 +173,7 @@
                             $.alert("Coloque un número valido")
                             return false
                         }
-                        if( ((parseFloat(cant) / parseFloat(ft)) > parseFloat(tarDisp)) ){
+                        if( t=='l' && ((parseFloat(cant) / parseFloat(ft)) >= parseFloat(tarDisp)) ){
                             this.$content.find('.ft').focus()
                             $.alert("Se necesitan mas tarimas des las diponibles cantidad: " + cant  + " ft "  + ft  + 'Disp ' + tarDisp)
                             return false
@@ -175,7 +202,6 @@
                             $.alert('Seleccione una cantidad valida')
                             return false
                         }
-
                     }
                 },
                 cancelar:{
@@ -188,7 +214,6 @@
             },
         });
     })
-
     $("body").on("click",".prod", function(e){
         e.preventDefault();
         //$.alert("cambio")

@@ -79,6 +79,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->ingMap($_POST['ingMap'], $_POST['prod'], $_POST['uni'], $_POST['cant'], $_POST['pzas'], $_POST['ft'], $_POST['t']);echo json_encode($res);exit();
 }elseif (isset($_POST['dispLin'])){
     $res=$controller_wms->dispLin($_POST['dispLin']);echo json_encode($res);exit();
+}elseif (isset($_POST['prods'])){
+    $res=$controller_wms->prods($_POST['prods']);echo json_encode($res);exit();
 }else{
     switch ($_GET['action']) {
         case 'login':
