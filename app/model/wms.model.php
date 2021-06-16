@@ -2055,14 +2055,15 @@ class wms extends database {
         }
         /// Validamos la cantidad y la sobrante la surtimos. 
         //echo 'Pendiente: '.$pen.' Disponible: '.$disp; 
+        
         if($pen > 0 and $disp > 0){/// Si hacen falta se asignan las pendientes
-            
             if($disp >= $pen){/// si la existencia disponible es igual o mayor a la necesaria, se aplica todo y se crea un movimiento de salida por el pendiente.
                 $surt= $pen;
             }elseif($disp < $pen){
                 $surt= $disp;
             }   
-            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, COMPP) VALUES (NULL, $comps, 0, $ordd, $usuario, current_timestamp, 'P', $surte, $surt, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $comps)) returning ID_MS";
+
+            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP) VALUES (NULL, $comps, 0, $ordd, $usuario, current_timestamp, 'P', $surte, $surt, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $comps)) returning ID_MS";
             $rs=$this->grabaBD();
             if($rs > 0){
                 $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = (PZAS_SUR + $surt) where id_ordd = $ordd";
@@ -2155,7 +2156,84 @@ class wms extends database {
         return array("datos"=>$data, "tarimas"=>$row->TARIMAS, "sec"=>$sec);
     }
 
+    function ingMap($comps, $prod, $uni, $cant, $pzas, $ft , $t){
+        $mov='nuevo';
+        $folio=$this->folioMov($mov);
+        if($t=='l'){
+            $cxt=$cant;
+            $this->query="SELECT * FROM FTC_ALMACEN_COMPS WHERE DISP='si' and COMPP=$comps";
+            $res=$this->EjecutaQuerySimple();
+            while($tsArray=ibase_fetch_object($res)){
+                $data[]=$tsArray;
+            }
+            $i=0;
+            foreach($data as $d){
+                $i++;
+                $cxt=$cxt - $ft;
+                if($cxt < 0){
+                    return $res;
+                }
+                if($cxt > $ft or $cxt == 0){
+                    $cant=$ft;
+                }else{
+                    $cant=$cxt;
+                }
+                $res=$this->ingMapTar($d->ID_COMP, $prod, $uni, $cant, $pzas, $folio);
+            }
+        }elseif($t=='t'){
+            $res=$this->ingMapTar($comps, $prod, $uni, $cant, $pzas, $folio);
+        }
+        $this->query="DELETE FROM FTC_ALMACEN_MOV WHERE MOV = $folio[0] and prod is null ";
+        $this->grabaBD();
+        return $res;
+    }
 
+    function ingMapTar($comps, $prod, $uni, $cant, $pzas, $folio){
+        $val = $this->dispComps($comps);
+        if($val == 'no'){
+            return array("status"=>'no', "msg"=>'No esta dispobible la tarima, favor de actualizar');            
+        }    
+        $usuario=$_SESSION['user']->ID;$sist='php';$prod = explode(":",$prod );$sta='ok';
+        $prod = $prod[0]; $id=$folio[1]; $mov=$folio[0];
+        $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, COLOR) VALUES (
+            null, 
+            '$sist', 
+            (SELECT ALMACEN FROM FTC_ALMACEN_COMP WHERE ID_COMP = $comps), 
+            'E', 
+            $usuario, 
+            current_timestamp, 
+            'F', 
+            0,
+            current_timestamp,
+            current_timestamp, 
+            $cant,
+            (SELECT ID_PINT FROM FTC_ALMACEN_PROD_INT where ID_INT ='$prod'), 
+            $uni, 
+            $cant * (SELECT FACTOR FROM FTC_ALMACEN_UNIDADES WHERE ID_UNI = $uni),
+            $mov, 
+            (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $comps), 
+            $comps, 
+            '') returning id_am";
+            $res=$this->grabaBD();
+            @$mov= ibase_fetch_object($res)->ID_AM;
+            if(@$mov > 0){$sta=='ok';}
+            $msg='Se ha inserado el movimiento';
+        return array('status'=>$sta, 'msg'=>$msg, "mov"=>$mov);
+    }
+
+    function dispComps($idc){
+        $this->query="SELECT * FROM FTC_ALMACEN_COMPS WHERE ID_comp = $idc";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($res);
+        return $row->DISP;
+    }
+
+    function dispLin($idc){
+        $this->query="SELECT COMPS_DISP FROM FTC_ALMACEN_COMPP WHERE ID_COMP = $idc";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($res);
+        return array("status"=>'ok', "disp"=>$row->COMPS_DISP);
+    }
 }
 ?>
 

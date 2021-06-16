@@ -1504,6 +1504,8 @@ class wms_controller {
         if($_SESSION['user']){
             $data = new wms;
             $infoA1=$data->mapa($opc=' where alm = 1 ', $param);
+            $uni = $data->unidades(" where status =1 order by factor");
+
             $pagina = $this->load_template('Reportes');
             $html = $this->load_page('app/views/pages/almacenes/p.mapa.php');
             ob_start();
@@ -1515,6 +1517,22 @@ class wms_controller {
             $e = "Favor de Iniciar Sesión";
             header('Location: index.php?action=login&e=' . urlencode($e));
             exit;
+        }
+    }
+
+    function ingMap($comps, $prod, $uni, $cant, $pzas, $ft, $t){
+        if($_SESSION['user']){
+            $data = new wms;
+            $res=$data->ingMap($comps, $prod, $uni, $cant, $pzas, $ft, $t);
+            return $res;
+        }   
+    }
+
+    function dispLin($idc){
+        if($_SESSION['user']){
+            $data = new wms; 
+            $res=$data->dispLin($idc);
+            return $res;
         }
     }
 }
