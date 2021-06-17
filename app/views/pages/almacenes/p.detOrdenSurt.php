@@ -28,16 +28,16 @@
                                 <table class="table table-striped table-bordered table-hover" id="dataTables-detOrd">
                                     <thead>
                                         <tr>
-                                            <th> Cedis</th>
-                                            <th> UPC</th>
-                                            <th> Modelo</th>
-                                            <th> Cantidad / <br/> Asignado</th>
-                                            <th> Cajas </th>
-                                            <th> Piezas por Caja</th>
-                                            <th> <b>Piezas Surtidas</b> <br/> <font color="blue">Pendientes</font> </th>
-                                            <th> Cajas Surtidas </th>
-                                            <th> Etiqueta </th>
-                                            <th> Estado <br/> Finalizar</th>
+                                            <!--<th style="width:10%"> Cedis</th>-->
+                                            <th > UPC</th>
+                                            <th > Modelo</th>
+                                            <th > Cantidad / <br/> Asignado</th>
+                                            <th > Cajas </th>
+                                            <th > Piezas por Caja</th>
+                                            <th > <b>Piezas Surtidas</b> <br/> <font color="blue">Pendientes</font> </th>
+                                            <th > Cajas Surtidas </th>
+                                            <th > Etiqueta </th>
+                                            <th > Estado <br/> Finalizar</th>
                                         </tr>
                                     </thead>
                                   <tbody>
@@ -49,7 +49,7 @@
                                         //$color = '';if(trim($kp->STATUS) == 'Eliminado'){ $color="style='background-color:#f33737'";}
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?>>
-                                            <td><?php echo $ord->CEDIS?></td>
+                                            <!--<td><?php echo $ord->CEDIS?></td>-->
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
                                             <td><?php echo $ord->PROD?>
                                             <br/> <font color="purple" > <?php echo $ord->PROD_SKU ?></font>

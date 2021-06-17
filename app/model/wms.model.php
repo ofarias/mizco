@@ -741,8 +741,11 @@ class wms extends database {
                 $this->diltex($xlsx, $hoja, $file, $ido);
             }
             else{
-                echo 'Lo siento no tengo el formato para el cliente: '.$hoja.' favor de revisar el nombre de la hoja';
-                return array("msg"=>"Lo siento no tengo el formato para el cliente: ".$hoja.' favor de revisar el nombre de la hoja');
+                $res=$this->intelisis($xlsx, $hoja, $file, $ido);
+                if(count($res)<=0 ){
+                    echo 'Lo siento no tengo el formato para el cliente: '.$hoja.' favor de revisar el nombre de la hoja';
+                    return array("msg"=>"Lo siento no tengo el formato para el cliente: ".$hoja.' favor de revisar el nombre de la hoja');
+                }
             }
         }else {
             echo "<h2>No se pudo leer el archvivo $file</h2>";
@@ -1567,6 +1570,44 @@ class wms extends database {
             return;
     }
 
+    function intelisis($xlsx, $hoja, $file, $ido){
+        $usuario=$_SESSION['user']->ID;$odns=array();
+        $ln=0;$piezas=0;
+        //if($hoja == 'Hoja1'){$hoja='Intelisis'}
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
+        $res=$this->grabaBD();
+        $res= ibase_fetch_object($res);
+        $idord=@$res->ID_ORD;
+        if(@$idord>0){
+            foreach ($xlsx->rows() as $key){
+                $col='A';$ln++;
+                        if($ln == 1){$orden=substr($key[1],12);}
+                        if($ln == 2){$clie=substr($key[1],6, strpos($key[1],",")-6 );}
+                        if($ln >= 6 and $ln<=count($xlsx->rows())-1 and ($key[0]!='' and $key[3] !='')){
+                            if(is_numeric($key[0])){$piezas += $key[0];}
+                            $upc = substr($key[4],1);
+                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $idord, '$key[3]', '', $key[0], 0, '', '', 0, 0, 1, '', '$orden','$upc','','', 1) returning ID_ORDD";
+                            $res=$this->grabaBD();
+                            $res=ibase_fetch_object($res);
+                            $res=$res->ID_ORDD;
+                            if($res <= 0){
+                                         
+                            } else{
+                                $odns[]=$res;
+                            }
+                        }else{
+                            //echo "no valida la linea ".$ln.'<br/>';
+                        }
+            }
+
+            $this->query="UPDATE FTC_ALMACEN_ORDEN SET CLIENTE = '$clie' where id_ord = $idord";
+            $this->queryActualiza();
+        }else{
+            echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
+        }
+        return $odns;
+    }    
+
     function datOrden($id_o){
         $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD = $id_o";
         $res=$this->EjecutaQuerySimple();
@@ -1594,7 +1635,53 @@ class wms extends database {
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
         }
+        if($t == 's'){
+            foreach($data as $d){
+                $res=$this->surteAuto($d);
+            }
+            //die();
+        }
         return $data;
+    }
+
+    function surteAuto($d){
+        $data = array();
+        $usuario = $_SESSION['user']->ID;
+        // obtenemos lo que necesitamos ASIG y el producto que necesitamos PROD:
+        $prod = $d->PROD;
+        $asig = $d->ASIG;
+        // buscamos todas las tarimas donde el producto esta Disponible, por fecha de ingreso
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE INTELISIS = '$prod' and disponible > 0 order by fecha_ingreso asc";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        //echo 'Se encontro: '.count($data);
+        
+        if(count($data)>0){/// si se encuentra el producto, entonces se inicia la asignacion y los movimientos de salida.
+            //echo 'entro:'.count($data);
+            //die();
+            foreach($data as $ms){
+            //print_r($ms);
+                $disp=$ms->DISPONIBLE; 
+                if($disp >= $asig){ ///si lo disponible es mayor a lo asignado, entonces descontamos todo lo necesario e igualamos a 0 lo necesario 
+                    $pzas = $asig;    
+                }else{/// cuando es mayor lo necesario a la asignacion.
+                    $pzas = $disp;    
+                }
+                $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP) VALUES (NULL, $ms->ID_COMPS, 0, $d->ID_ORDD, $usuario, current_timestamp, 'P', $ms->ID_AM, $asig, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $ms->ID_COMPS))";
+                $this->grabaBD();
+                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = $asig where id_ordd = $d->ID_ORDD";
+                $this->queryActualiza();
+                $asig=$asig-$pzas;
+                if($asig == 0){
+                    break;
+                }
+            }
+        }else{
+            echo 'No hay productos para surtir';
+        }
+        return;
     }
 
     function delComp($id, $t){
@@ -1701,12 +1788,11 @@ class wms extends database {
 
     function detLinOrd($ord, $prod){
         $data=array();
-        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE PROD = '$prod' and id_ord = $ord";
+        $this->query="SELECT ID_ORDD, ID_ORD, PROD, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD, CADENA, ASIG, ETIQUETA FROM FTC_ALMACEN_ORDEN_DET WHERE PROD = '$prod' and id_ord = $ord";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
         }
-        ///print_r($data);
         return array("status"=>'ok', "datos"=>$data);
     }
 
@@ -1860,12 +1946,11 @@ class wms extends database {
                 $this->grabaBD();
             }
         }
-
         if($c>1){
-            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET COLOR='Mixto', ASIG=$pzas where id_ordd = $ln";
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET COLOR='Mixto', ASIG=$pzas, status= 2 where id_ordd = $ln";
             $this->queryActualiza();
         }elseif($c==1){
-            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET COLOR='$color', ASIG=$pzas where id_ordd = $ln";
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET COLOR='$color', ASIG=$pzas, status= 2 where id_ordd = $ln";
             $this->queryActualiza();
         }
 
@@ -1984,7 +2069,7 @@ class wms extends database {
 
     function comPro($prod, $ordd){
         $data=array();
-        $this->query="SELECT first 4 m.*, (select
+        $this->query="SELECT first 2 m.*, (select
                 coalesce( sum(ms.piezas), 0) from ftc_almacen_mov_sal ms where ms.id_mov = m.id_am
                 and status= 'F' 
             ) as salidas, 

@@ -1023,6 +1023,7 @@ class wms_controller {
             $act = $data->actProdSku($id_o);
             $cabecera =$data->datOrden($id_o);
             $orden = $data->orden($id_o, $t, $param);
+            
             if($out=='i'){/// la salida es la impresion.
                 $this->impOrden($cabecera, $orden, $param);
             }

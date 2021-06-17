@@ -21,7 +21,7 @@
                                             <th> Clave <br><font color="purple">Clave SKU</font></th>
                                             <th> Producto </th>
                                             <th> Cajas </th>
-                                            <th> Pizas por Caja</th>
+                                            <th> Piezas por Caja</th>
                                             <th> Piezas Totales </th>
                                             <th> Color </th>
                                             <th> Cedis </th>
@@ -29,8 +29,8 @@
                                             <th> Cajas Surtidas </th>
                                             <th> Estado </th>
                                             <th> <font color='blue'>SKU</font> <br/><font color="green"> ITEM</font></th>
-                                            <th> Finalizar </th>
-                                            <th> Informar / Correo  </th>
+                                            <!--<th> Finalizar </th>
+                                            <th> Informar / Correo  </th>-->
                                         </tr>
                                     </thead>
                                   <tbody>
@@ -67,9 +67,9 @@
                                             <td><?php echo $ord->CAJAS_SUR?></td>
                                             <td><?php echo $ord->STATUS?></td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
-                                            <td>
+                                            <!--<td>
                                                 <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>" target="popup" onclick="window.open(this.href, this.target, 'width=800,height=600'); return false;"> Finalizar</a></td>
-                                            <td><a >Informar</a></td>
+                                            <td><a >Informar</a></td>-->
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>

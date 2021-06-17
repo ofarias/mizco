@@ -607,8 +607,14 @@
                             dataType:'json',
                             data:{asigCol:1, ln, col, nP:prodN},
                             success:function(data){
-                                alert(data.msg);
-                                location.reload(true)
+                                //alert(data.msg);
+                                //location.reload(true)
+                                if(data.status =='ok'){
+                                // actualizar el valor de los asignados
+                                // quitar el select 
+                                
+
+                                }
                             }
                         });
                     }
