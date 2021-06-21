@@ -26,9 +26,15 @@
                                     </thead>
                                   <tbody>
                                     <?php foreach ($infoA1['datos'] as $k): ?>         
-                                        <?php if(!empty($k->LETRA)):?>
+                                        <?php if(!empty($k->LETRA)): 
+                                            $colorL = '';
+                                            if($k->STATUS == '7'){
+                                                $colorL= "style=background-color:#00E1FE;";
+                                            }
+                                        ?>
                                             <tr>
-                                                <td class="exe compp" t="l" idc="<?php echo $k->ID_COMP?>" desc="<?php echo $k->ETIQUETA?>" tar=""><?php echo $k->ETIQUETA?></td>
+                                                <td class="odd gradeX exe compp" t="l" idc="<?php echo $k->ID_COMP?>" desc="<?php echo $k->ETIQUETA?>" tar="" <?php echo $colorL?>> <?php echo $k->ETIQUETA?></td>
+
                                                 <?php foreach ($infoA1['sec'] as $sec):?>
                                                     <?php if($sec->COMPP == $k->ID_COMP):
                                                         $color = '';
@@ -37,6 +43,7 @@
                                                         }else{
                                                             $color ="style='background-color:#FFE0CA';";
                                                         }
+                                                        if($sec->STATUS == 7){$color = "style='background-color:#00E1FE'";}
                                                     ?>
                                                         <td title="" class="odd gradeX info exe" t="t" idc="<?php echo $sec->ID_COMP?>" desc="<?php echo $sec->ETI?>" <?php echo $color ?> dis="<?php echo $sec->DISP?>"> <?php echo $sec->ETI.'('.$sec->EXIS.')'?> </td>
                                                     <?php endif;?>
@@ -125,6 +132,7 @@
         if(t == 'l'){
             tarDisp = $(this).attr('tar')
             titulo = 'Entrada al almacen por linea.'
+            tituloR = 'Reubicacion por linea'
             tipo = 'Linea'
             xtar = '<br/><br/>Cantidad por tarima <input type="text" size="5" class="ft">'+
                     '<br/><br/> Tarimas disponibles = ' + tarDisp;
@@ -132,14 +140,83 @@
         }else{
             tarDisp = 1
             titulo = 'Entrada al almacen por tarima.'
+            tituloR = 'Reubicacion por tarima'
             tipo = 'Tarima'
             xtar = '<input type="hidden" value="1" class="ft">'
             disp = $(this).attr('dis')
         }
         if(tarDisp <= 0 || disp =='no'){
-            $.alert('No hay tarimas disponibles, favor de actualizar la pagina')
-            return false 
-        }
+
+            $.ajax({
+                url:'',
+                type:'post',
+                dataType:'json',
+                data:{reuMap:idc, opc:1},
+                success:function(data){
+                    if(data.status == 'no'){
+                        $.alert("Existe un componente pendiente por copiar. ")
+                        return false
+                    }else{
+                        $.confirm({
+                            columnClass: 'col-md-8',
+                            title:tituloR,
+                            content:'Reubicacion de producto' +
+                            '<br/> Desea reubicar los productos de la tarima ' + tipo + ': '+ desc +
+                            '<br/> Almacen: ' + alm +
+                            '<br/> '+ tipo +':' + desc +
+                            '<br/> Origen: <input type="checkbox" value="'+idc+'" class="marca">'+
+                            '<br/> <b>Se marcara como origen y no se podra seleccionar otro origen hasta terminar la reubicacion</b>'
+                            ,
+                            buttons:{
+                                ingresar:{
+                                text:'Si',
+                                keys:['enter'],
+                                btnClass:'btn-green',
+                                    action:function(){
+                                        var marca = this.$content.find('.marca')
+                                        if(marca.prop('checked')){
+                                            $.ajax({
+                                                url:'index.wms.php',
+                                                type:'post',
+                                                dataType:'json',
+                                                data:{reuMap:idc, opc:0},
+                                                success:function(data){
+                                                    if(data.status=='ok'){
+                                                        $.alert('Se ingresa el producto' + prod)
+
+                                                        ///cambiar color a rojo y actualizar la cantidad
+                                                        //tar.()
+                                                    }else{
+                                                        $.alert(data.msg)
+                                                    }
+                                                }, 
+                                                error:function(){
+                                                    $.alert('Ocurrio un error, favor de actualizar, si persiste comunicarse con sistemas 55 50553392')
+                                                }
+                                            })
+                                        }else{
+                                            $.alert('Seleccione una cantidad valida')
+                                            return false
+                                        }
+                                    }
+                                },
+                                cancelar:{
+                                text:'No',
+                                keys:['esc'],
+                                btnClass:'btn-red',
+                                action:function(){
+                                }
+                                },
+                            },
+                        });
+                    }
+                }, 
+                error:function(){
+                }
+            })            
+            //$.alert('No hay tarimas disponibles, favor de actualizar la pagina')
+            //return false 
+        }else{
         //$.alert("Dio click en la tarima " + idc)
         $.confirm({
             columnClass: 'col-md-8',
@@ -156,9 +233,32 @@
             '</select>'+
             '<br/><br/>Cantidad: <input type="text" size="5" class="cant" >'+
              xtar +
-            '<br/><br/> Piezas totales: <label class="pzas"></label>'
+            '<br/><br/> Piezas totales: <label class="pzas"></label>' 
             ,
             buttons:{
+                pegar:{
+                text:'Pegar',
+                keys:['p, v'], 
+                btnClass:'btn-blue',
+                    action:function(){
+                        $.ajax({
+                            url:'index.wms.php',
+                            type:'post',
+                            dataType:'json',
+                            data:{reuMap:idc, opc:5},
+                            success:function(data){
+                                if(data.status == 'ok'){
+                                    $.alert(data.msg)
+                                    return false
+                                }
+                            }, 
+                            error:function(error){
+
+                            }
+                        })
+
+                    }    
+                },
                 ingresar:{
                 text:'Ingresar',
                 keys:['enter'],
@@ -213,7 +313,9 @@
                 },
             },
         });
+        }
     })
+    
     $("body").on("click",".prod", function(e){
         e.preventDefault();
         //$.alert("cambio")
@@ -232,6 +334,7 @@
         })
     });
 
+    
    // $(".tarimas:button").addClass( "marked" );
 
 </script>

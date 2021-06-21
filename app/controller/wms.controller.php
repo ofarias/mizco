@@ -1219,261 +1219,108 @@ class wms_controller {
         $pdf = new FPDF('L', 'mm', 'Letter');
         $pdf->AddPage();
         $pdf->Image('app/views/images/LOGOSELECT.jpg', 5, 5, 30, 28);
-        $pdf->SetFont('Arial', 'B', 10);
-        $pdf->SetFont('Arial', 'I',10);
-        $pdf->Ln(23);
-        $pdf->SetX(10);
-        $pdf->write(5, "Cliente :". $cabecera->CLIENTE."\n");
-        $pdf->write(5, "Cedis :". $cabecera->CEDIS."\n");
-        $pdf->write(5, "Archivo: ".$cabecera->ARCHIVO." Orden :". $cabecera->ID_ORD."\n");
-        $pdf->write(5, "Partidas :". count($orden)."\n");
+        $pdf->SetFont('Arial', 'BI', 8);
+        //$pdf->SetFont('Arial', 'I',8);
+        $pdf->Ln(5);
+        $pdf->SetX(40);
+        $pdf->write(5, "Cliente : ". $cabecera->CLIENTE."");
+        $pdf->SetX(150);
+        $pdf->write(5, "Archivo : ".$cabecera->ARCHIVO." Orden :". $cabecera->ID_ORD."\n");
+        $pdf->SetX(40);
+        $pdf->write(5, "Cedis : ". $param."");
+        $pdf->SetX(150);
+        $pdf->write(5, "Fecha Surtido : ". $cabecera->FECHA."\n");
+        $pdf->SetX(40);
+        $pdf->write(5, "Partidas : ". count($orden)."");
+        $pdf->SetX(150);
         $pdf->write(5, "Elaborado por :". $usuario. " el ".date("d-m-Y h:i:s")."\n");
 
         $pdf->Ln();
+        $pdf->write(5, "Pickin List ");
+        $pdf->Ln(8);
         $pdf->SetFont('Arial', 'B', 8);
 
-        $pdf->Cell(50, 6, 'Cedis','LRT');
-        $pdf->Cell(30, 6, 'UPC','LRT');
-        $pdf->Cell(25, 6, 'Modelo','LRT');
-        $pdf->Cell(40, 6, 'Cantidad / ','LRT',0,'C');
-        $pdf->Cell(20, 6, 'Cajas','LRT');
-        $pdf->Cell(20, 6, 'Piezas x','LRT',0,'C');
-        $pdf->Cell(20, 6, 'Piezas ','LRT',0,'C');
-        $pdf->Cell(20, 6, 'Cajas','LRT',0,'C');
-        $pdf->Cell(30, 6, 'Etiqueta','LRT');
+        //$pdf->Cell(50, 6, 'Cedis','LRT');
+        $pdf->Cell(40, 4, 'UPC','LRT');
+        $pdf->Cell(35, 4, 'Modelo','LRT');
+        $pdf->Cell(25, 4, 'Cantidad / ','LRT',0,'C');
+        $pdf->Cell(20, 4, 'Piezas x','LRT',0,'C');
+        $pdf->Cell(20, 4, 'Cajas','LRT');
+        $pdf->Cell(50, 4, 'Ubicacion ','LRT',0,'C');
+        $pdf->Cell(20, 4, 'Cajas','LRT',0,'C');
+        $pdf->Cell(40, 4, 'Etiqueta','LRT');
         $pdf->Ln();
-        $pdf->Cell(50, 6, '','LRB');
-        $pdf->Cell(30, 6, '','LRB');
-        $pdf->Cell(25, 6, '','LRB');
+        //$pdf->Cell(50, 6, '','LRB');
+        $pdf->Cell(40, 4, '','LRB');
+        $pdf->Cell(35, 4, '','LRB');
         $pdf->SetTextColor(30,117,0);
-        $pdf->Cell(40, 6, 'Asigando','LRB',0,'C');
+        $pdf->Cell(25, 4, 'Asigando','LRB',0,'C');
         $pdf->SetTextColor(0,0,0);
-        $pdf->Cell(20, 6, '','LRB');
-        $pdf->Cell(20, 6, 'Caja ','LRB',0,'C');
-        $pdf->Cell(20, 6, 'Surtidas','LRB',0,'C');
-        $pdf->Cell(20, 6, 'Surtidas','LRB',0,'C');
-        $pdf->Cell(30, 6, '','LRB');
+        $pdf->Cell(20, 4, 'Caja ','LRB',0,'C');
+        $pdf->Cell(20, 4, '','LRB');
+        $pdf->Cell(55, 4, '','LRB',0,'C');
+        $pdf->Cell(20, 4, 'Surtidas','LRB',0,'C');
+        $pdf->Cell(40, 4, '','LRB');
         $pdf->Ln();
-
+       
         foreach ($orden as $ord) {
-            $componentes=array();$pos= array();
+            $componentes=array();$pos= array();$ubicacion='';$ubi=array();
             $componentes=$data->comPro($ord->PROD, $ord->ID_ORDD);
             $pos = $data->posiciones($ord->ID_ORDD);
             $surt= count($pos); $cmpt=count($componentes['datos']);
-
-            $pdf->Cell(50, 6, $ord->CEDIS, 'LRT');
-            $pdf->Cell(30, 6, $ord->UPC, 'LRT');
-            $pdf->Cell(25, 6, $ord->PROD, 'LRT');
-            $pdf->Cell(40, 6, number_format($ord->PZAS,0), 'LRT',0,'R');
-            $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRT',0,'R');
-            $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRT',0,'R');
-            $pdf->Cell(20, 6, number_format($ord->PZAS_SUR,0), 'LRT',0,'R');
-            $pdf->Cell(20, 6, number_format($ord->CAJAS_SUR,0), 'LRT',0,'R');
-            $pdf->Cell(30, 6, $ord->ETIQUETA , 'LRT');
-            $pdf->Ln();
-            $pdf->Cell(50, 6, '', 'LR');
-            $pdf->Cell(30, 6, '', 'LR');
-            $pdf->Cell(25, 6, '', 'LR');
-            $pdf->SetTextColor(50,117,0);
-            $pdf->Cell(40, 6, number_format($ord->ASIG,0), 'LRB',0,'R');
-            $pdf->SetTextColor(0,0,0);
-            $pdf->Cell(20, 6, '', 'LR',0,'R');
-            $pdf->Cell(20, 6, '', 'LR',0,'R');
-            $pdf->Cell(20, 6, '', 'LRB',0,'R');
-            $pdf->Cell(20, 6, '', 'LR',0,'R');
-            $pdf->Cell(30, 6, '', 'LR');
-            $pdf->Ln();
-            //print_r($componentes);
-
-            if (count($componentes['datos'])>0 or $surt > 0){
-                $ctrlS=0;$ctrlP=0;
-                if($cmpt > $surt){
-                    foreach($componentes['datos'] as $comp){
-                        $ctrlS++;$ctrlP++;$ctrlPoL=0;$ctrlPoT=0;$ctrlPoC=0;
-                        $pdf->Cell(50, 4, '', 'LR');
-                        $pdf->Cell(30, 4, '', 'LR');
-                        $pdf->Cell(25, 4, '', 'LR');
-                        $pdf->Cell(40, 4, 'Linea: '.$comp->PRIMARIO, 'LR',0,'L');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        if ($surt >0) {
-                            foreach($pos as $po){
-                                $ctrlPoL++;
-                                if($ctrlP==$ctrlPoL){
-                                    $pdf->Cell(20, 4, 'Linea: '.$po->LINEA, 'LR',0,'R');
-                                }elseif($ctrlPoL > $surt){                                    
-                                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                                }
-                            }
-                        }else{
-                            $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        }
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(30, 4, '', 'LR');
-                         $pdf->Ln();
-                        
-                        $pdf->Cell(50, 4, '', 'LR');
-                        $pdf->Cell(30, 4, '', 'LR');
-                        $pdf->Cell(25, 4, '', 'LR');
-                        $pdf->Cell(40, 4, 'Tarima: '.$comp->SECUNDARIO, 'LR',0,'L');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        if($surt > 0 ){
-                            foreach($pos as $po){
-                                $ctrlPoT++;
-                                if($ctrlP==$ctrlPoT){
-                                    $pdf->Cell(20, 4, 'Tarima: '.$po->TARIMA, 'LR',0,'R');
-                                }elseif($ctrlPoL > $surt){
-                                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                                }
-                            }
-                        }else{
-                            $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        }
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(30, 4, '', 'LR');
-                        $pdf->Ln();
-
-                        $pdf->Cell(50, 4, '', 'LR');
-                        $pdf->Cell(30, 4, '', 'LR');
-                        $pdf->Cell(25, 4, '', 'LR');
-                        $pdf->Cell(40, 4, 'Cantidad: '.number_format($comp->PIEZAS_A,0), 'LRB',0,'L');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        if($surt > 0 ){
-                            foreach($pos as $po){
-                                $ctrlPoC++;
-                                if($ctrlP==$ctrlPoC){
-                                    $pdf->Cell(20, 4, 'Cantidad: '.$po->PIEZAS, 'LRB',0,'R');
-                                }elseif($ctrlPoL > $surt){
-                                    $pdf->Cell(20, 4, '', 'LRB',0,'R');
-                                }
-                            }
-                        }else{
-                            $pdf->Cell(20, 4, '', 'LRB',0,'R');
-                        }
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(30, 4, '', 'LR');
-                        $pdf->Ln();
-                    }
-                }else{
-                    foreach($pos as $po){
-                        $ctrlS++;$ctrlP++;$ctrlPoL=0;$ctrlPoT=0;$ctrlPoC=0;
-                        $pdf->Cell(50, 4, '', 'LR');
-                        $pdf->Cell(30, 4, '', 'LR');
-                        $pdf->Cell(25, 4, '', 'LR');
-                        foreach($componentes['datos'] as $comp){
-                            $ctrlPoL++;
-                            if($ctrlS==$ctrlPoL){
-                                $pdf->Cell(40, 4, 'Linea: '.$comp->PRIMARIO, 'LR',0,'R');
-                            }else{
-                                $pdf->Cell(40, 4, '', 'LR',0,'R');
-                            }
-                        }
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(20, 4, 'Linea: '.$po->LINEA, 'LR',0,'L');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(30, 4, '', 'LR');
-                        $pdf->Ln();
-                        
-                        $pdf->Cell(50, 4, '', 'LR');
-                        $pdf->Cell(30, 4, '', 'LR');
-                        $pdf->Cell(25, 4, '', 'LR');
-                        foreach($componentes['datos'] as $comp){
-                            $ctrlPoL++;
-                            if($ctrlS==$ctrlPoL){
-                                $pdf->Cell(40, 4, 'Linea: '.$comp->SECUNDARIO, 'LR',0,'R');
-                            }else{
-                                $pdf->Cell(40, 4, '', 'LR',0,'R');
-                            }
-                        }
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(20, 4, 'Tarima: '.$po->TARIMA, 'LR',0,'L');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(30, 4, '', 'LR');
-                        $pdf->Ln();
-
-                        $pdf->Cell(50, 4, '', 'LR');
-                        $pdf->Cell(30, 4, '', 'LR');
-                        $pdf->Cell(25, 4, '', 'LR');
-                        foreach($componentes['datos'] as $comp){
-                            $ctrlPoL++;
-                            if($ctrlS==$ctrlPoL){
-                                $pdf->Cell(40, 4, 'Cantidad: '.$comp->PIEZAS_A, 'LR',0,'R');
-                            }else{
-                                $pdf->Cell(40, 4, '', 'LR',0,'R');
-                            }
-                        }
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        
-                        $pdf->Cell(20, 4, 'Cantidad: '.number_format($comp->PIEZAS_A,0), 'LRB',0,'L');
-                        $pdf->Cell(20, 4, '', 'LR',0,'R');
-                        $pdf->Cell(30, 4, '', 'LR');
-                        $pdf->Ln();
-                    }
-                } 
-            }else{
-                    $pdf->Cell(50, 4, '', 'LR');
-                    $pdf->Cell(30, 4, '', 'LR');
-                    $pdf->Cell(25, 4, '', 'LR');
-                    $pdf->Cell(40, 4, 'Sin existencias', 'LR',0,'L');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(30, 4, '', 'LR');
-                    $pdf->Ln();
+            //$pdf->Cell(50, 6, $ord->CEDIS, 'LRT');
+            $m = count($pos>1)? 'LRTB':'LR';
+            $pdf->Cell(40, 6, $ord->UPC, 'LRTB');
+            $pdf->Cell(35, 6, $ord->PROD, 'LRTB');
+            $pdf->Cell(25, 6, number_format($ord->PZAS,0).' / '.number_format($ord->ASIG,0), 'LRTB',0,'R');
+            $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
+            $pdf->Cell(20, 6, number_format($ord->CAJAS,0), $m,0,'R');
+            $i=0;
+            foreach($pos as $pst){
+                $i++;
+                $ubicacion = ' Lin:   '.$pst->LINEA.'   Tar: '.$pst->TARIMA.'   Cant:   '.number_format($pst->PIEZAS,0)."\n";
+                if($i >=1){
+                    $ubi[] = ($ubicacion);
+                }
             }
-            /*
-            if (count($pos)>0){  
-                foreach($pos as $po){
-                    $pdf->Cell(50, 4, '', 'LR');
-                    $pdf->Cell(30, 4, '', 'LR');
-                    $pdf->Cell(25, 4, '', 'LR');
-                    $pdf->Cell(40, 4, '', 'LR',0,'L');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, 'Linea: '.$po->LINEA, 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(30, 4, '', 'LR');
-                    $pdf->Ln();
-                    $pdf->Cell(50, 4, '', 'LR');
-                    $pdf->Cell(30, 4, '', 'LR');
-                    $pdf->Cell(25, 4, '', 'LR');
-                    $pdf->Cell(40, 4, '', 'LR',0,'L');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, 'Tarima: '.$po->TARIMA, 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(30, 4, '', 'LR');
-                    $pdf->Ln();
-                    $pdf->Cell(50, 4, '', 'LR');
-                    $pdf->Cell(30, 4, '', 'LR');
-                    $pdf->Cell(25, 4, '', 'LR');
-                    $pdf->Cell(40, 4, '', 'LRB',0,'L');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, 'Cantidad: '.$po->PIEZAS, 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(30, 4, '', 'LR');
+            $pdf->Cell(55, 6, $ubicacion, $m,0,'R');
+            $pdf->Cell(20, 6, number_format($ord->CAJAS_SUR,0), $m,0,'R');
+            $pdf->Cell(40, 6, $ord->ETIQUETA , 'LRTB');
+            $pdf->Ln();
+            if($i >= 2){
+                for ($l=1; $l <count($ubi) ; $l++) { 
+                    $pdf->Cell(40, 4,"",'L',0,'R');
+                    $pdf->Cell(35, 4,"",'',0,'R');
+                    $pdf->Cell(25, 4,"",'',0,'R');
+                    $pdf->Cell(20, 4,"",'',0,'R');
+                    $pdf->Cell(20, 4,"",'',0,'R');
+                    $pdf->Cell(55, 4,$ubi[$l],'',0,'R');
+                    $pdf->Cell(20, 4,"",'',0,'R');
+                    $pdf->Cell(40, 4,"",'R',0,'R');
                     $pdf->Ln();
                 }
-            }else{
-                    $pdf->Cell(50, 4, '', 'LR');
-                    $pdf->Cell(30, 4, '', 'LR');
-                    $pdf->Cell(25, 4, '', 'LR');
-                    $pdf->Cell(40, 4, 'Sin existencias', 'LR',0,'L');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(20, 4, '', 'LR',0,'R');
-                    $pdf->Cell(30, 4, '', 'LR');
-                    $pdf->Ln();
-            }*/
+                //die();
+            }
+            //$pdf->Cell(50, 6, '', 'LR');
+            //$pdf->Cell(30, 4, '', 'LR');
+            //$pdf->Cell(25, 4, '', 'LR');
+            //$pdf->SetTextColor(50,117,0);
+            //$pdf->Cell(15, 4, number_format($ord->ASIG,0), 'LRB',0,'R');
+            //$pdf->SetTextColor(0,0,0);
+            //$pdf->Cell(20, 4, '', 'LR',0,'R');
+            //$pdf->Cell(20, 4, '', 'LR',0,'R');
+            //$pdf->Cell(40, 4, '', 'LRB',0,'R');
+            //$pdf->Cell(20, 4, '', 'LR',0,'R');
+            //$pdf->Cell(30, 4, '', 'LR');
+            //$pdf->Ln();
+            //print_r($componentes);
+            //if (count($componentes['datos'])>0 or $surt > 0){
+            //    $ctrlS=0;$ctrlP=0;
+            //    if($cmpt > $surt){
+            //    }
+            //}
         }
+        //die;
         $pdf->SetFont('Arial', 'I',10);
         $pdf->Ln(10);
         //$pdf->SetX(140);
@@ -1543,6 +1390,14 @@ class wms_controller {
             $res=$data->prods($idc);
             return $res;
         }   
+    }
+
+    function reuMap($idc, $opc){
+        if($_SESSION['user']){
+            $data = new wms; 
+            $res=$data->reuMap($idc, $opc);
+            return $res;
+        }
     }
 }
 ?>

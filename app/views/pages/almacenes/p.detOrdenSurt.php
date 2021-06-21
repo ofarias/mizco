@@ -35,7 +35,7 @@
                                             <th > Cajas </th>
                                             <th > Piezas por Caja</th>
                                             <th > <b>Piezas Surtidas</b> <br/> <font color="blue">Pendientes</font> </th>
-                                            <th > Cajas Surtidas </th>
+                                            <!--<th > Cajas Surtidas </th>-->
                                             <th > Etiqueta </th>
                                             <th > Estado <br/> Finalizar</th>
                                         </tr>
@@ -55,13 +55,18 @@
                                             <br/> <font color="purple" > <?php echo $ord->PROD_SKU ?></font>
                                             </td>
                                             <td><?php echo $ord->PZAS.' / '.$ord->ASIG?><br/>
-                                                <label class="comp" mod="<?php echo $ord->PROD?>" ln="<?php echo $ln?>" ordd="<?php echo $ord->ID_ORDD?>" pnd="<?php echo ($ord->ASIG-$ord->PZAS_SUR)?>" srt="<?php echo ($ord->PZAS_SUR)?>"/>
-                                                </td>
+                                                
+                                                <label id="ocu_<?php echo $ln?>" ln="<?php echo $ln?>" class="ocultar" hidden="true"><font color ="blue">+/-</font><br/><br/></label>
+
+                                                <label class="comp verComp vc<?php echo $ln?>" mod="<?php echo $ord->PROD?>" ln="<?php echo $ln?>" ordd="<?php echo $ord->ID_ORDD?>" pnd="<?php echo ($ord->ASIG-$ord->PZAS_SUR)?>" srt="<?php echo ($ord->PZAS_SUR)?>"> <font color="red">+ / -</font></label>
+
+
+                                            </td>
                                             <td><?php echo $ord->CAJAS?></td>
                                             <td><?php echo $ord->UNIDAD?></td>
                                             <!--<td><?php echo $ord->COLOR?></td>-->
                                             <td align="center">
-                                                
+
                                                     <text id="act_<?php echo $ord->ID_ORDD?>">
                                                         <b><?php echo $ord->PZAS_SUR ?></b> / 
                                                         <font color="blue"><?php echo ($ord->ASIG-$ord->PZAS_SUR)?></font>
@@ -69,7 +74,7 @@
 
                                                 <p id="surt_<?php echo $ln?>"></p> 
                                             </td>
-                                            <td align="center"><input type="text" size="10" class="surtir" ><br/><?php echo $ord->CAJAS_SUR?></td>
+                                            <!--<td align="center"><input type="text" size="10" class="surtir" ><br/><?php echo $ord->CAJAS_SUR?></td>-->
                                             <td><input type="text" size="10" class="Etiqueta" ></td>
                                             <td><?php echo $ord->STATUS?>
                                             <br/>
@@ -106,10 +111,142 @@
     })
     
     $(document).ready(function(){
-        revisa()
+        //revisa()
+        revisaSurt()
     })
 
-    function revisa(){    
+    $(".verComp").click(function(){
+        var mod = $(this).attr("mod")
+        var ln = $(this).attr("ln")
+        var ordd = $(this).attr('ordd')
+        var comp = $(this)
+        var pos = document.getElementById("surt_"+ln)
+        var pnd = $(this).attr('pnd')
+        pos.innerHTML=''
+        comp.empty()
+        revisaComp(mod, ln, ordd, comp, pos, pnd)   
+    })
+
+    $(".ocultar").click(function(){
+        var ln = $(this).attr('ln')
+        var comp = $(this).attr('comp')
+        var info = $(".vc"+ln)//.prop('hidden', true)
+        $(this).prop("hidden", true)
+        info.empty()
+        info.append('<font color="red">+ / -</font>')
+
+    })
+
+    function revisaComp(mod, ln, ordd, comp, pos, pnd){
+        $('#ocu_'+ln).prop('hidden', false);
+        //$('.ocultar').append("<br/>")
+        $.ajax({
+        url:'index.wms.php',
+        type:'post',
+        dataType:'json',
+        data:{comPro:mod, ordd},
+        success:function(data){
+            if(data.status== 'ok'){
+                //comp.append('<label class="ocultar"><font color ="blue">+/-</font></label>')
+                for(const [key, value] of Object.entries(data.datos)){
+                    for(const[k, val] of Object.entries(value)){
+                        if(k == 'COMPP'){var compp=val}
+                        if(k == 'COMPS'){var comps=val}
+                        if(k == 'ID_COMPS'){var id_comp=val} 
+                        if(k == 'PIEZAS_A'){var pzas= val}
+                        if(k == 'PRIMARIO'){var prim= val}
+                        if(k == 'SECUNDARIO'){var secu= val}
+                        if(k == 'ID_AM'){var mov= val}
+                    }
+                    comp.prop('id', ln+'_'+id_comp)
+                    comp.prop('title', compp + '_:_' + comps)
+                    comp.append('<br/><text class="Lit "><b>Linea: </b>' +prim+'</text>')
+                    comp.append('<br/><text class="Lit "><b>Tarima: </b>' +secu+ '</text>')
+                    comp.append('<br/><text class="Lit "><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'" pnd="'+pnd+'" ><font color="red">'+pzas+'</font></a></text>')
+                            //comp.append('<hr size=20 color="red"/>')
+                    }
+                    if(data.posiciones.length > 0){
+                        for(const [key, value] of Object.entries(data.posiciones)){
+                            for(const [k,val] of Object.entries(value)){
+                                if(k=='LINEA'){var s_lin=val}
+                                if(k=='TARIMA'){var s_tar=val}
+                                if (k=='PIEZAS'){ var s_cant=val}    
+                            }
+                            pos.innerHTML+="<b>Lin: </b> " + s_lin
+                            pos.innerHTML+="<b> Tar: </b> " + s_tar
+                            pos.innerHTML+="<b> Pzas: </b> <font color='green'>" + s_cant +"</font><br/>"
+                        }
+
+                    }
+                }else{
+                    comp.text('Sin existencia')
+                }
+            }, 
+            error:function(){
+                comp.text("No se pudo leer la informacion, revise con soporte tecnico al 55-5055-3392")
+            }
+        })
+    }
+
+    function revisaSurt(){
+         $(".comp").each(function(){
+            var mod = $(this).attr("mod")
+            var ln = $(this).attr("ln")
+            var ordd = $(this).attr('ordd')
+            var comp = $(this)
+            var pos = document.getElementById("surt_"+ln)
+            var pnd = $(this).attr('pnd')
+            pos.innerHTML=''
+            $("p").remove(".Lit")
+            $.ajax({
+                url:'index.wms.php',
+                type:'post',
+                dataType:'json',
+                data:{comPro:mod, ordd},
+                success:function(data){
+                    if(data.status== 'ok'){
+                        //for(const [key, value] of Object.entries(data.datos)){
+                        //    for(const[k, val] of Object.entries(value)){
+                        //        if(k == 'COMPP'){var compp=val}
+                        //        if(k == 'COMPS'){var comps=val}
+                        //        if(k == 'ID_COMPS'){var id_comp=val} 
+                        //        if(k == 'PIEZAS_A'){var pzas= val}
+                        //        if(k == 'PRIMARIO'){var prim= val}
+                        //        if(k == 'SECUNDARIO'){var secu= val}
+                        //        if(k == 'ID_AM'){var mov= val}
+                        //    }
+                        //    comp.prop('id', ln+'_'+id_comp)
+                        //    comp.prop('title', compp + '_:_' + comps)
+                        //    comp.append('<br/><text class="Lit hidden"><b>Linea: </b>' +prim+'</text>')
+                        //    comp.append('<br/><text class="Lit hidden"><b>Tarima: </b>' +secu+ '</text>')
+                        //    comp.append('<br/><text class="Lit hidden"><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'" pnd="'+pnd+'" ><font color="red">'+pzas+'</font></a></text>')
+                            //comp.append('<hr size=20 color="red"/>')
+                        //}
+                        if(data.posiciones.length > 0){
+                            for(const [key, value] of Object.entries(data.posiciones)){
+                                for(const [k,val] of Object.entries(value)){
+                                    if(k=='LINEA'){var s_lin=val}
+                                    if(k=='TARIMA'){var s_tar=val}
+                                    if (k=='PIEZAS'){ var s_cant=val}    
+                                }
+                                pos.innerHTML+="<b>Lin: </b> " + s_lin
+                                pos.innerHTML+="<b> Tar: </b> " + s_tar
+                                pos.innerHTML+="<b> Pzas: </b> <font color='green'>" + s_cant +"</font><br/>"
+                            }
+                        }
+                    }else{
+                        comp.text('Sin existencia')
+                    }
+                }, 
+                error:function(){
+                    comp.text("No se pudo leer la informacion, revise con soporte tecnico al 55-5055-3392")
+                }
+            })
+        })
+    }
+
+
+    function revisa(algo){    
         $(".comp").each(function(){
             var mod = $(this).attr("mod")
             var ln = $(this).attr("ln")
@@ -140,9 +277,9 @@
                             }
                             comp.prop('id', ln+'_'+id_comp)
                             comp.prop('title', compp + '_:_' + comps)
-                            comp.append('<p class="Lit"><b>Linea: </b>' +prim+'</p>')
-                            comp.append('<p class="Lit"><b>Tarima: </b>' +secu+ '</p>')
-                            comp.append('<p class="Lit"><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'" pnd="'+pnd+'" ><font color="red">'+pzas+'</font></a></p>')
+                            comp.append('<br/><text class="Lit hidden"><b>Linea: </b>' +prim+'</text>')
+                            comp.append('<br/><text class="Lit hidden"><b>Tarima: </b>' +secu+ '</text>')
+                            comp.append('<br/><text class="Lit hidden"><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'" pnd="'+pnd+'" ><font color="red">'+pzas+'</font></a></text>')
                             //comp.append('<hr size=20 color="red"/>')
                         }
                         
@@ -153,9 +290,9 @@
                                     if(k=='TARIMA'){var s_tar=val}
                                     if (k=='PIEZAS'){ var s_cant=val}    
                                 }
-                                pos.innerHTML+="<p><b>Linea: </b> " + s_lin
-                                pos.innerHTML+="<p><b>Tarima: </b> " + s_tar
-                                pos.innerHTML+="<p><b>Piezas: </b> <font color='green'>" + s_cant +"</font>"
+                                pos.innerHTML+="<br/><b>Linea: </b> " + s_lin
+                                pos.innerHTML+="<br/><b>Tarima: </b> " + s_tar
+                                pos.innerHTML+="<br/><b>Piezas: </b> <font color='green'>" + s_cant +"</font>"
                             }
                         }
                     }else{
@@ -171,6 +308,7 @@
 
     $("body").on("click", ".surte", function(e){
         e.preventDefault();
+        return false
         var ordd = $(this).attr('ordd');
         var comps = $(this).attr('comps');
         var mov = $(this).attr('mov')

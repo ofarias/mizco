@@ -1650,6 +1650,10 @@ class wms extends database {
         // obtenemos lo que necesitamos ASIG y el producto que necesitamos PROD:
         $prod = $d->PROD;
         $asig = $d->ASIG;
+        $surt = $d->PZAS_SUR;
+        if( ($asig-$surt) <= 0 ){
+            return;
+        }
         // buscamos todas las tarimas donde el producto esta Disponible, por fecha de ingreso
         $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE INTELISIS = '$prod' and disponible > 0 order by fecha_ingreso asc";
         $res=$this->EjecutaQuerySimple();
@@ -1671,7 +1675,7 @@ class wms extends database {
                 }
                 $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP) VALUES (NULL, $ms->ID_COMPS, 0, $d->ID_ORDD, $usuario, current_timestamp, 'P', $ms->ID_AM, $asig, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $ms->ID_COMPS))";
                 $this->grabaBD();
-                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = $asig where id_ordd = $d->ID_ORDD";
+                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = (PZAS_SUR + $asig) where id_ordd = $d->ID_ORDD";
                 $this->queryActualiza();
                 $asig=$asig-$pzas;
                 if($asig == 0){
@@ -1679,7 +1683,7 @@ class wms extends database {
                 }
             }
         }else{
-            echo 'No hay productos para surtir';
+            //echo 'No hay productos para surtir';
         }
         return;
     }
@@ -2111,7 +2115,8 @@ class wms extends database {
 
     function posiciones($ordd){
         $data=array();
-        $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and status= 'P ' or status = 'F'";
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and status= 'P' or status = 'F'";
+        //echo '<br/>'.$this->query;
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -2163,10 +2168,12 @@ class wms extends database {
     }
 
     function reasig($idcomp, $compp, $comps, $t){
-        $data=array(); $data2=array();$sta='ok';$msg="Se ha reubcado el componente correctamente";
+        $data=array(); $data2=array();$sta='ok';$msg="Se ha reubicado el componente correctamente";
         if($t==1){
             $this->reasigTarima($idcomp, $comps, 'Componente ', 'Tarima');
         }else{
+            //echo 'idcomp original '.$idcomp.' componente destino '.$compp.' componente secundario '.$comps.' t = '.$t;
+            //die();
             $this->query="SELECT * FROM FTC_ALMACEN_COMPP WHERE ID_COMP = $idcomp ";
             $res=$this->EjecutaQuerySimple();
             $rowO=ibase_fetch_object($res);
@@ -2176,7 +2183,7 @@ class wms extends database {
             $rowD=ibase_fetch_object($res);
             $disp=$rowD->COMPS_DISP;
             
-            if($disp > $need){
+            if($disp >= $need){
                 $this->query="SELECT * FROM FTC_ALMACEN_COMP WHERE COMPP = $idcomp and status = 1 ";
                 $res=$this->EjecutaQuerySimple();
                 while ($tsArray=ibase_fetch_object($res)) {
@@ -2197,17 +2204,20 @@ class wms extends database {
 
     function reasigTarima($idcompO, $idcompD, $t, $c){
         /// trar el ultimo movimiento de la tarima valida. 
+        $data = array();
         $this->query="SELECT * FROM FTC_ALMACEN_MOV_EXI WHERE TARIMA = $idcompO and disp = 'si'";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
         }
-        foreach($data as $mov){
-            $this->query="UPDATE FTC_ALMACEN_MOV SET COMPS = $idcompD, COMPP = (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP= $idcompD) where id_am = $mov->ID_AM";
-            $this->queryActualiza();
-            $this->query="UPDATE FTC_ALMACEN_MOV_SAL SET ID_COMPS = $idcompD, ID_COMPP = (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP= $idcompD) where id_mov = $mov->ID_AM ";
-            $this->queryActualiza();
-            $this->actStatus($tabla=3, $tipo='Reacomodo', $sub=$c, $ids=$mov->ID_AM, $obs=$t.' Origen: '.$idcompO.' Destino: '.$idcompD);
+        if(count($data)> 0){
+            foreach($data as $mov){
+                $this->query="UPDATE FTC_ALMACEN_MOV SET COMPS = $idcompD, COMPP = (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP= $idcompD) where id_am = $mov->ID_AM";
+                $this->queryActualiza();
+                $this->query="UPDATE FTC_ALMACEN_MOV_SAL SET ID_COMPS = $idcompD, ID_COMPP = (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP= $idcompD) where id_mov = $mov->ID_AM ";
+                $this->queryActualiza();
+                $this->actStatus($tabla=3, $tipo='Reacomodo', $sub=$c, $ids=$mov->ID_AM, $obs=$t.' Origen: '.$idcompO.' Destino: '.$idcompD);
+            }
         }
         return;
     }
@@ -2328,6 +2338,47 @@ class wms extends database {
             $data[]=$tsArray;
         }
         return array("datos"=>$data);
+    }
+
+    function reuMap($idc, $opc){
+        $data= array();
+        $this->query="SELECT * FROM FTC_ALMACEN_COMP where status = 7";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        if(count($data) >0){
+            if($opc == 5){
+                foreach($data as $d){}
+                /// hacemos la reubicacion de la tarima, el destino es el componente idc y el origen es el de $data->ID_COMP
+                /// debemos comprobar si el origen es tarima o linea esto lo tenemos en el valor $d->TIPO;
+                    // si es de tipo 1 (Tarima), se ejecuta la funcion reasignaTarima()
+                    if($d->TIPO == 1){
+                        $this->reasigTarima($idcompO=$d->ID_COMP, $idcompD=$idc, $t='Reubicacion', $c='Tarima');
+                        echo 'Revisamos la asignacion de los datos'.$d->ID_COMP;
+                    }elseif($d->TIPO == 2){
+                        $this->reasig($idcomp=$d->ID_COMP, $compp=$idc, $comps=0, $t='l');   
+                        echo 'Revisamos la asignacion de los datos'.$d->ID_COMP;
+                    }
+                    // si es de tipo 2 (Linea) se ejecuta la funcion reasig($idcomp, $compp, $comps, $t),
+                $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = 1 WHERE ID_COMP = $d->ID_COMP";
+                $this->EjecutaQuerySimple();    
+                return array("status"=>'ok', "msg"=>'Se ha cambiado correctamente el componente, actualice con F5 para ver el resultado');
+            }
+            return array("status"=>'no', "msg"=>'Existe un componente pendiente de copiar', "comp"=>$data);
+        }else{
+            if($opc == 0){ 
+                $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = 7 WHERE ID_COMP = $idc";
+                $res=$this->queryActualiza();
+                //echo 'Valor de la actualizacion: '.$res;
+                //die;
+                if($res == 1){
+                    return array("status"=>'ok', "msg"=>'Se selecciono el origen, ahora debe seleccionar el destino.');
+                }
+            }else{
+                return array("status"=>'ok', "msg"=>"Seleccione primero el componente origen");
+            }
+        }
     }
 }
 ?>
