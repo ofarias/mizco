@@ -5,6 +5,9 @@
         border: 3px red solid;
         }
 </style>-->
+<?php $a=0;  foreach ($infoA1['datos'] as $ka){ if($ka->STATUS == '7'){$a++;}}
+            foreach ($infoA1['sec'] as $sa){if($sa->STATUS == '7'){$a++;}}           
+?>         
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
@@ -15,6 +18,9 @@
                                 <p><label>Para ver el contenido de la tarima colocar el cursor sobre la etiqueta.</label></p>
                                 <p><label>Para ingresar por Linea dar click en la primer columna.</label></p>
                                 <p><label>Para ingresar por Tarima dar click en la etiqueta.</label></p>
+                                <?php if($a > 0):?>
+                                    <p><label>Cancelar Reubicación: </label>&nbsp;&nbsp;<input type="button" value="cancelar" class="canReu"></p>
+                                <?php endif;?>
                             <div class="table-responsive">                            
                                 <table class="table table-striped table-bordered table-hover" >
                                     <thead>
@@ -33,7 +39,7 @@
                                             }
                                         ?>
                                             <tr>
-                                                <td class="odd gradeX exe compp" t="l" idc="<?php echo $k->ID_COMP?>" desc="<?php echo $k->ETIQUETA?>" tar="" <?php echo $colorL?>> <?php echo $k->ETIQUETA?></td>
+                                                <td class="odd gradeX exe compp" t="l" idc="<?php echo $k->ID_COMP?>" desc="<?php echo $k->ETIQUETA?>" tar="" <?php echo $colorL?> id="<?php echo $k->ID_COMP?>"> <?php echo $k->ETIQUETA?></td>
 
                                                 <?php foreach ($infoA1['sec'] as $sec):?>
                                                     <?php if($sec->COMPP == $k->ID_COMP):
@@ -45,7 +51,7 @@
                                                         }
                                                         if($sec->STATUS == 7){$color = "style='background-color:#00E1FE'";}
                                                     ?>
-                                                        <td title="" class="odd gradeX info exe" t="t" idc="<?php echo $sec->ID_COMP?>" desc="<?php echo $sec->ETI?>" <?php echo $color ?> dis="<?php echo $sec->DISP?>"> <?php echo $sec->ETI.'('.$sec->EXIS.')'?> </td>
+                                                        <td title="" class="odd gradeX info exe" t="t" idc="<?php echo $sec->ID_COMP?>" desc="<?php echo $sec->ETI?>" <?php echo $color ?> dis="<?php echo $sec->DISP?>" id="<?php echo $sec->ID_COMP?>"> <?php echo $sec->ETI.'('.$sec->EXIS.')'?> </td>
                                                     <?php endif;?>
                                                 <?php endforeach;?>
                                             </tr>               
@@ -101,6 +107,28 @@
 
     $(document).ready(function(){
         disp()
+    })
+
+    $(".canReu").click(function(){
+        var idc='a'
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{reuMap:idc, opc:9},
+            success:function(data){
+                if(data.status=='c'){
+                    $.alert(data.msg)
+                    if(data.tipo == 1){
+                        $("#"+data.idc).css("background-color", "#FFE0CA")
+                    }else{
+                        $("#"+data.idc).css("background-color", "")
+                    }
+                }
+            },
+            error:function(error){
+            }
+        })
     })
 
     function disp(){
@@ -181,9 +209,8 @@
                                                 data:{reuMap:idc, opc:0},
                                                 success:function(data){
                                                     if(data.status=='ok'){
-                                                        $.alert('Se ingresa el producto' + prod)
-
-                                                        ///cambiar color a rojo y actualizar la cantidad
+                                                        tar.css("background-color","#00E1FE")
+                                                        //cambiar color a rojo y actualizar la cantidad
                                                         //tar.()
                                                     }else{
                                                         $.alert(data.msg)

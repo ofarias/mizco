@@ -2381,6 +2381,11 @@ class wms extends database {
                 $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = 1 WHERE ID_COMP = $d->ID_COMP";
                 $this->EjecutaQuerySimple();    
                 return array("status"=>'ok', "msg"=>'Se ha cambiado correctamente el componente, actualice con F5 para ver el resultado');
+            }elseif($opc == 9){
+                foreach($data as $d){}
+                $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS= 1 WHERE ID_COMP= $d->ID_COMP";
+                $this->queryActualiza();
+                return array("status"=>'c', "msg"=>'Se ha cancelado la reubicacion', "idc"=>$d->ID_COMP, "tipo"=>$d->TIPO);
             }
             return array("status"=>'no', "msg"=>'Existe un componente pendiente de copiar', "comp"=>$data);
         }else{
