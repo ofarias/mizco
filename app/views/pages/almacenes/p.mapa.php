@@ -146,7 +146,6 @@
             disp = $(this).attr('dis')
         }
         if(tarDisp <= 0 || disp =='no'){
-
             $.ajax({
                 url:'',
                 type:'post',

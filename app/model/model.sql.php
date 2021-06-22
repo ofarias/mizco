@@ -105,4 +105,26 @@ class intelisis extends sqlbase {
         return array("status"=>'ok', "info"=>$info1, "errors"=>$errors, "te"=>$te);
     }
 
+    function prodInt(){
+    	$data = array();
+        $this->query="SELECT * FROM Art where tipo = 'Lote' and (Estatus = 'Alta' or Estatus = 'Alta')";
+        $res=$this->EjecutaQuerySimple();
+        while($tsarray = sqlsrv_fetch_array($res)){
+        	$data[]=$tsarray;
+        }
+        //$datos=$this->datosArticulo();
+        return $data;
+    }
+
+    function datosArticulo(){
+    	$data=array();
+    	echo 'Entra al SP';
+    	$this->query="EXEC MIZCOInformacionIntelisis";
+    	$res=$this->EjecutaQuerySimple();
+    	while($tsarray=ibase_fetch_object($res)){
+    		$data[]=$tsarray;
+    	}
+    	print_r($data);
+    	die();
+    }
 }

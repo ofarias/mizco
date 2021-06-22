@@ -7,6 +7,7 @@ require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
 require_once ('app/model/database.php');
 require_once('app/model/wms.model.php');
+require_once 'app/model/model.sql.php';
 require_once('app/Classes/PHPExcel.php');
 
 class wms_controller {
@@ -45,7 +46,7 @@ class wms_controller {
         ob_start();
         if (isset($_SESSION['user'])){
             if(substr($opc,0,1) == 'p'){
-                $this->wms_prod($op='');die();
+                $this->wms_prod($op=substr($opc,1,1));die();
             }elseif(substr($opc,0,1) =='c'){
                 $this->wms_comp($op='', $param=substr($opc,1));die();
             }elseif(substr($opc,0,1) == 'a'){
@@ -80,12 +81,16 @@ class wms_controller {
     }
 
     function wms_prod($op){
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])) {
             $data = new wms;
+            $dataInt = new intelisis;
             $pagina = $this->load_template('Productos');
             $html = $this->load_page('app/views/pages/almacenes/p.productos.php');
             ob_start();
+            if($op == 'a'){
+                $intelisis = $dataInt->prodInt();
+                $refresh = $data->refresh($intelisis);
+            }
             $info = $data->productos($op);
             include 'app/views/pages/almacenes/p.productos.php';
             $table = ob_get_clean();

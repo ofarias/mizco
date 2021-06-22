@@ -126,6 +126,8 @@ abstract class sqlbase {
         return sqlsrv_fetch_object($result); //cambio de fetch_assoc por fetch_row
     }
 
+
+    
 }
 
 ?>

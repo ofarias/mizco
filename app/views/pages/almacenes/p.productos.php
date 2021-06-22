@@ -8,7 +8,7 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                Productos en Intelisis
+                Productos en Intelisis <input type="button" value="Actualizar" class="btn-sm btn-primary actProdInt">
             </div>
             <div class="panel-body">
                 <div class="table-responsive">                            
@@ -73,6 +73,11 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(".actProdInt").click(function(){
+        $.alert('Actualiza producto en intelisis')
+        window.open("index.wms.php?action=wms_menu&opc=pa", '_self')
+    })
 
     $(".marca").change(function(){
         var val = $(this).val()

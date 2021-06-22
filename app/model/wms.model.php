@@ -17,6 +17,23 @@ class wms extends database {
         return $data;
     }
 
+    function refresh($intelisis){
+        $i=0; $n=0;
+        foreach($intelisis as $int){
+            $data = array(); $i++;
+            $this->query="SELECT * FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$int[0]'";
+            $res=$this->EjecutaQuerySimple();
+            while($tsarray=ibase_fetch_object($res)){$data[]=$tsarray;}
+            if(count($data)==0){
+                $n++;
+                $this->query="INSERT INTO FTC_ALMACEN_PROD_INT (ID_PINT, ID_INT, DESC, PZS_ORIG, LARGO, ANCHO, ALTO, PZS_PALET_O, UNIDAD_ORIG, TIPO_INT, STATUS) VALUES (null, '$int[0]','$int[2]', null, null, null, null, null, null, '$int[24]', 'Alta')";
+                $this->grabaBD();
+            }
+        }
+        echo '<b>Se detectan '.$i.', analizan '.$i.' ingresa '.$n.'</b>';
+        return;
+    }
+
     function actProd($cve, $lg, $an, $al, $p, $ou){
         $lg = ($lg=='')? 0:$lg; $an = ($an=='')? 0:$an; $al = ($al=='')? 0:$al; $p = ($p=='')? 0:$p; $ou = ($ou=='')? 0:$ou; 
         $this->query="UPDATE FTC_ALMACEN_PROD_INT SET largo= $lg, ancho =$an, alto=$al, pzs_palet_o = $p, unidad_orig = $ou where ID_PINT = $cve";

@@ -1,0 +1,141 @@
+
+  DECLARE
+  @Articulo      varchar(20),
+	@SKU           varchar(100),
+	@ArticuloA     varchar(20) = '',
+	@SKUS          varchar(max),
+	@Descripcion   varchar(255),
+	@CodigoBarras  varchar(50),
+	@Existencia    varchar(max),
+	@Existencias   varchar(max),
+	@Unidad        varchar(max),
+	@Unidades      varchar(max)
+  
+  SELECT @ArticuloA Articulo, @Descripcion Descripcion, @CodigoBarras CodigoBarras, @SKUS SKUS, @Existencias Existencias, @Unidades UnidadesEntrada, @Unidades UnidadesSalida INTO #MIZCOInformacionIntelisis
+  DELETE #MIZCOInformacionIntelisis
+  
+  DECLARE crAtriculos CURSOR FOR
+   SELECT a.Articulo, a.Descripcion1, (SELECT TOP 1 c.Codigo FROM CB c WHERE TipoCuenta = 'Articulos' AND c.Cuenta = a.Articulo) CodigoBarras
+	 FROM Art a
+	 WHERE a.Articulo IN(ISNULL(@ArticuloF, a.Articulo))
+	--WHERE a.Articulo IN ('AUX-SP', 'BANNER')
+	--WHERE a.Articulo IN ('BT1004')
+	--WHERE a.Articulo IN ('AUX-SP')
+	ORDER BY a.Articulo
+
+  OPEN crAtriculos
+  FETCH NEXT FROM crAtriculos INTO @Articulo, @Descripcion, @CodigoBarras
+  WHILE @@FETCH_STATUS <> -1 
+  BEGIN
+    IF @@FETCH_STATUS <> -2 
+    BEGIN
+	
+	  DECLARE crSKUS CURSOR FOR
+	   SELECT UPPER(d.Articulo), RTRIM(LTRIM(d.Lista)) + ':' + ISNULL(d.DESACodigoBarras, '') + ';' SKU
+		 FROM ListaPreciosD d
+		 WHERE Articulo = @Articulo
+		ORDER BY d.Articulo
+
+	  OPEN crSKUS
+	  FETCH NEXT FROM crSKUS INTO @Articulo, @SKU
+	  WHILE @@FETCH_STATUS <> -1 
+	  BEGIN
+		IF @@FETCH_STATUS <> -2 
+		BEGIN
+
+		  IF @ArticuloA <> @Articulo
+		  BEGIN	    
+			SELECT @SKUS = @SKU
+		  END
+		  ELSE
+		  BEGIN
+			SELECT @SKUS = ISNULL(@SKUS, '') + @SKU	  
+		  END
+
+		  SELECT @ArticuloA = @Articulo	  
+	  
+		END
+		FETCH NEXT FROM crSKUS INTO @Articulo, @SKU
+	  END  -- While
+	  CLOSE crSKUS
+	  DEALLOCATE crSKUS
+	  
+	  SELECT @ExistenciaS = ''
+
+	  DECLARE crExistencia CURSOR FOR
+	   SELECT Articulo, ISNULL(RTRIM(LTRIM(Almacen)) + ':1, Existencias: ' + CONVERT(VARCHAR,CONVERT(money,ISNULL(Disponible,0))) + ', Reservado: ' + CONVERT(VARCHAR,CONVERT(money,ISNULL(Reservado,0)))  + ', Remisionado:' + CONVERT(VARCHAR,CONVERT(money,ISNULL((SELECT ISNULL(Remisionado, 0) FROM ArtRemisionado r WHERE r.Empresa = d.Empresa AND r.Almacen = d.Almacen AND r.Articulo = d.Articulo), 0))) + ';', '')
+		 FROM ArtDisponibleReservado d
+		WHERE ISNULL(Empresa, 'MIZCO') = 'MIZCO'
+		  AND Articulo = @Articulo
+		ORDER BY Articulo
+
+	  OPEN crExistencia
+	  FETCH NEXT FROM crExistencia INTO @Articulo, @Existencia
+	  WHILE @@FETCH_STATUS <> -1 
+	  BEGIN
+		IF @@FETCH_STATUS <> -2 
+		BEGIN
+
+		  IF @ArticuloA <> @Articulo
+		  BEGIN	    
+			SELECT @Existencias = @Existencia
+		  END
+		  ELSE
+		  BEGIN
+			SELECT @Existencias = ISNULL(@Existencias, '') + @Existencia	  
+		  END
+
+		  SELECT @ArticuloA = @Articulo--, @ExistenciaS = ''
+	  
+		END
+		FETCH NEXT FROM crExistencia INTO @Articulo, @Existencia
+	  END  -- While
+	  CLOSE crExistencia
+	  DEALLOCATE crExistencia
+	  
+	  DECLARE crUnidad CURSOR FOR
+	   SELECT Articulo, RTRIM(LTRIM(Unidad)) + ':' + CONVERT(VARCHAR,CONVERT(money,Factor)) + ';' Unidad
+		 FROM ArtUnidad
+		WHERE Articulo = @Articulo
+		ORDER BY Articulo
+
+	  OPEN crUnidad
+	  FETCH NEXT FROM crUnidad INTO @Articulo, @Unidad
+	  WHILE @@FETCH_STATUS <> -1 
+	  BEGIN
+		IF @@FETCH_STATUS <> -2 
+		BEGIN
+
+		  IF @ArticuloA <> @Articulo
+		  BEGIN	    
+			SELECT @Unidades = @Unidad
+		  END
+		  ELSE
+		  BEGIN
+			SELECT @Unidades = ISNULL(@Unidades, '') + @Unidad	  
+		  END
+
+		  SELECT @ArticuloA = @Articulo	  
+	  
+		END
+		FETCH NEXT FROM crUnidad INTO @Articulo, @Unidad
+	  END  -- While
+	  CLOSE crUnidad
+	  DEALLOCATE crUnidad	  
+
+	  INSERT #MIZCOInformacionIntelisis
+	  SELECT @ArticuloA Articulo, @Descripcion Descripcion, @CodigoBarras CodigoBarras, @SKUS SKUS, @Existencias Existencias, @Unidades Unidades, @Unidades Unidades
+	  SELECT @Unidades = ''
+	  
+    END
+    FETCH NEXT FROM crAtriculos INTO @Articulo, @Descripcion, @CodigoBarras
+  END  -- While
+  CLOSE crAtriculos
+  DEALLOCATE crAtriculos
+
+  SELECT * FROM #MIZCOInformacionIntelisis ORDER BY Articulo
+  DROP TABLE #MIZCOInformacionIntelisis
+
+--EXEC MIZCOInformacionIntelisis 'AUX-SP'
+--EXEC MIZCOInformacionIntelisis
+END
