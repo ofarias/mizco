@@ -1403,6 +1403,14 @@ class wms_controller {
             return $res;
         }
     }
+
+    function usoComp($idc, $opc){
+        if($_SESSION['user']){
+            $data = new wms; 
+            $res=$data->usoComp($idc, $opc);
+            return $res;
+        }
+    }
 }
 ?>
 

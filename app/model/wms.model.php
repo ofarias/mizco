@@ -477,7 +477,6 @@ class wms extends database {
         }else{
             $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, COLOR) VALUES (null, '$sist', $alm, '$tipo', $usuario, current_timestamp, 'P', 0, current_time, $cant, $prod, $uni, $pza, $mov, $compP, $compS, '$col')";
             $res=$this->grabaBD();
-
             if($res == 1){
                 $msg='Se ha inserado el movimiento';
             }
@@ -2372,17 +2371,19 @@ class wms extends database {
         if(count($data) >0){
             if($opc == 5){
                 foreach($data as $d){}
-                /// hacemos la reubicacion de la tarima, el destino es el componente idc y el origen es el de $data->ID_COMP
-                /// debemos comprobar si el origen es tarima o linea esto lo tenemos en el valor $d->TIPO;
-                    // si es de tipo 1 (Tarima), se ejecuta la funcion reasignaTarima()
-                    if($d->TIPO == 1){
-                        $this->reasigTarima($idcompO=$d->ID_COMP, $idcompD=$idc, $t='Reubicacion', $c='Tarima');
-                        echo 'Revisamos la asignacion de los datos'.$d->ID_COMP;
-                    }elseif($d->TIPO == 2){
-                        $this->reasig($idcomp=$d->ID_COMP, $compp=$idc, $comps=0, $t='l');   
-                        echo 'Revisamos la asignacion de los datos'.$d->ID_COMP;
+                    $this->query="SELECT * FROM FTC_ALMACEN_COMP WHERE ID_COMP= $idc";
+                    $res=$this->EjecutaQuerySimple();
+                    while($tsArray=ibase_fetch_object($res)){
+                        $comp[]=$tsArray;
                     }
-                    // si es de tipo 2 (Linea) se ejecuta la funcion reasig($idcomp, $compp, $comps, $t),
+                    foreach($comp as $cmp){}
+                    if($d->TIPO == 1 and $cmp->TIPO == 1){
+                        $this->reasigTarima($idcompO=$d->ID_COMP, $idcompD=$idc, $t='Reubicacion', $c='Tarima');
+                    }elseif($d->TIPO == 2 and $cmp->TIPO == 2){
+                        $this->reasig($idcomp=$d->ID_COMP, $compp=$idc, $comps=0, $t='l');   
+                    }else{
+                        return array("status"=>'ok',"msg"=>'Solo se permite la reubicación del mismo tipo');
+                    }
                 $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = 1 WHERE ID_COMP = $d->ID_COMP";
                 $this->EjecutaQuerySimple();    
                 return array("status"=>'ok', "msg"=>'Se ha cambiado correctamente el componente, actualice con F5 para ver el resultado');
@@ -2397,14 +2398,53 @@ class wms extends database {
             if($opc == 0){ 
                 $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = 7 WHERE ID_COMP = $idc";
                 $res=$this->queryActualiza();
-                //echo 'Valor de la actualizacion: '.$res;
-                //die;
                 if($res == 1){
                     return array("status"=>'ok', "msg"=>'Se selecciono el origen, ahora debe seleccionar el destino.');
                 }
             }else{
                 return array("status"=>'ok', "msg"=>"Seleccione primero el componente origen");
             }
+        }
+    }
+
+    function usoComp($idc, $opc){
+        $this->query="SELECT * FROM FTC_ALMACEN_COMP WHERE ID_COMP = $idc";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($res);
+        if($row->TIPO == 1){
+            $tabla = 'FTC_ALMACEN_COMPS';
+        }elseif($row->TIPO == 2){
+            $tabla = 'FTC_ALMACEN_COMPP';
+        }
+        $this->query="SELECT * FROM $tabla WHERE ID_COMP =$idc";
+        $res=$this->EjecutaQuerySimple();
+        $row2=ibase_fetch_object($res);
+        if($row2->DISP=='si'){
+            switch ($opc) {
+                case 'D':
+                    $sta = 4;
+                    break;
+                case 'R':
+                    $sta = 5;
+                    break;
+                case 'E':
+                    $sta = 6;
+                    break;
+                case 'I':
+                    $sta = 7;
+                    break;
+                case 'P':
+                    $sta = 1;
+                    break;                    
+                default:
+                    $sta =0;
+                    break;
+            }
+            $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = 5 WHERE ID_COMP = $idc or COMPP=$idc";
+            $this->queryActualiza();
+            return array("status"=>'ok', "msg"=>'Se ha actualizado el componente');
+        }else{
+            return array("status"=>'ok', "msg"=>'El componente no esta disponible, favor de actualizar la pantalla con F5');
         }
     }
 }

@@ -83,6 +83,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->prods($_POST['prods']);echo json_encode($res);exit();
 }elseif(isset($_POST['reuMap'])){
     $res=$controller_wms->reuMap($_POST['reuMap'], $_POST['opc']);echo json_encode($res);exit();
+}elseif(isset($_POST['usoComp'])){
+    $res=$controller_wms->usoComp($_POST['usoComp'], $_POST['opc']);echo json_encode($res);exit();
 }else{
     switch ($_GET['action']) {
         case 'login':

@@ -18,9 +18,8 @@
                                 <p><label>Para ver el contenido de la tarima colocar el cursor sobre la etiqueta.</label></p>
                                 <p><label>Para ingresar por Linea dar click en la primer columna.</label></p>
                                 <p><label>Para ingresar por Tarima dar click en la etiqueta.</label></p>
-                                <?php if($a > 0):?>
-                                    <p><label>Cancelar Reubicación: </label>&nbsp;&nbsp;<input type="button" value="cancelar" class="canReu"></p>
-                                <?php endif;?>
+                                <p id="can" class="<?php echo ($a>0)? '':'hidden'?>" ><label >Cancelar Reubicación: </label>&nbsp;&nbsp;<input type="button" value="cancelar" class="canReu"></p>
+                                
                             <div class="table-responsive">                            
                                 <table class="table table-striped table-bordered table-hover" >
                                     <thead>
@@ -36,6 +35,8 @@
                                             $colorL = '';
                                             if($k->STATUS == '7'){
                                                 $colorL= "style=background-color:#00E1FE;";
+                                            }elseif($k->STATUS >= 3 and $k->STATUS <= 6){
+                                                $colorL= "style=background-color:#A69A74;";
                                             }
                                         ?>
                                             <tr>
@@ -49,7 +50,7 @@
                                                         }else{
                                                             $color ="style='background-color:#FFE0CA';";
                                                         }
-                                                        if($sec->STATUS == 7){$color = "style='background-color:#00E1FE'";}
+                                                        if($sec->STATUS == 7){$color = "style='background-color:#00E1FE'";}elseif($sec->STATUS >= 3 and $sec->STATUS<=6){$color= "style=background-color:#A69A74;";}
                                                     ?>
                                                         <td title="" class="odd gradeX info exe" t="t" idc="<?php echo $sec->ID_COMP?>" desc="<?php echo $sec->ETI?>" <?php echo $color ?> dis="<?php echo $sec->DISP?>" id="<?php echo $sec->ID_COMP?>"> <?php echo $sec->ETI.'('.$sec->EXIS.')'?> </td>
                                                     <?php endif;?>
@@ -122,8 +123,10 @@
                     $.alert(data.msg)
                     if(data.tipo == 1){
                         $("#"+data.idc).css("background-color", "#FFE0CA")
+                        document.getElementById("can").classList.add('hidden')
                     }else{
                         $("#"+data.idc).css("background-color", "")
+                        document.getElementById("can").classList.add('hidden')
                     }
                 }
             },
@@ -152,6 +155,90 @@
             })
         })
     }
+
+    $(".exe").mousedown(function(e){
+        if(e.which == 3){
+            var tar =$(this)
+            var idc = $(this).attr('idc')
+            var desc = $(this).attr('desc')
+            var t = $(this).attr('t')
+            if(t == 'l'){
+                tarDisp = $(this).attr('tar')
+                titulo = 'Cambio de uso del componente'
+                tituloR = 'Cambio de uso de la tarima '
+                tipo = 'Linea'
+                xtar = '<br/><br/>Cantidad por tarima <input type="text" size="5" class="ft">'+
+                        '<br/><br/> Tarimas disponibles = ' + tarDisp;
+                disp = 'si'
+            }else{
+                tarDisp = 1
+                titulo = 'Entrada al almacen por tarima.'
+                tituloR = 'Cambio de uso de la tarima '
+                tipo = 'Tarima'
+                xtar = '<input type="hidden" value="1" class="ft">'
+                disp = $(this).attr('dis')
+            }
+            if(disp == 'si'){
+                $.confirm({
+                    columnClass: 'col-md-8',
+                    title:tituloR,
+                    content:'Cambio de Uso' +
+                    '<br/> Cambiar el uso de' + tipo + ': '+ desc +
+                    '<br/> '+ tipo +':' + desc +
+                    '<br/><br/><select class="uso" >'+
+                        '<option value="">Seleccione un Uso</value>'+
+                        '<option value="D">Devoluciones</value>'+
+                        '<option value="R">Mercancia a Reparar</value>'+
+                        '<option value="E">Empaque</value>'+
+                        '<option value="I">Inventario de Tarimas</value>'+
+                        '<option value="P">Productos (Se marca como disponible)</value>'+
+                    '</select>'+
+                    '<br/><br/> <b>Al cambiar el uso, no se contempla como disponible en el almacen</b>'
+                    ,
+                    buttons:{
+                        si:{
+                        text:'Si',
+                        keys:['enter'],
+                        btnClass:'btn-green',
+                            action:function(){
+                                var uso = this.$content.find('.uso').val()
+                                if(uso == ''){
+                                    $.alert("Seleccione un valor, por favor.")
+                                    return false
+                                }
+                                $.ajax({
+                                    url:'index.wms.php',
+                                    type:'post',
+                                    dataType:'json',
+                                    data:{usoComp:idc, opc:uso},
+                                    success:function(data){
+                                        if(data.status=='ok'){
+                                            tar.css("background-color","#A69A74")
+                                            //document.getElementById("can").classList.remove('hidden')
+                                        }else{
+                                            $.alert(data.msg)
+                                        }
+                                    }, 
+                                    error:function(){
+                                        $.alert('Ocurrio un error, favor de actualizar, si persiste comunicarse con sistemas 55 50553392')
+                                    }
+                                })
+                            }
+                        },
+                        cancelar:{
+                        text:'No',
+                        keys:['esc'],
+                        btnClass:'btn-red',
+                        action:function(){
+                        }
+                        },
+                    },
+                });
+            }else{
+                $.alert("Para cambiar el uso el componente debe estar vacio.")
+            }
+        }
+    })
 
     $(".exe").click(function(){
         var tar =$(this)
@@ -211,8 +298,7 @@
                                                 success:function(data){
                                                     if(data.status=='ok'){
                                                         tar.css("background-color","#00E1FE")
-                                                        //cambiar color a rojo y actualizar la cantidad
-                                                        //tar.()
+                                                        document.getElementById("can").classList.remove('hidden')
                                                     }else{
                                                         $.alert(data.msg)
                                                     }
@@ -241,10 +327,7 @@
                 error:function(){
                 }
             })            
-            //$.alert('No hay tarimas disponibles, favor de actualizar la pagina')
-            //return false 
         }else{
-        //$.alert("Dio click en la tarima " + idc)
         $.confirm({
             columnClass: 'col-md-8',
             title:titulo,
@@ -268,22 +351,21 @@
                 keys:['p, v'], 
                 btnClass:'btn-blue',
                     action:function(){
-                        $.ajax({
-                            url:'index.wms.php',
-                            type:'post',
-                            dataType:'json',
-                            data:{reuMap:idc, opc:5},
-                            success:function(data){
-                                if(data.status == 'ok'){
-                                    $.alert(data.msg)
-                                    return false
+                            $.ajax({
+                                url:'index.wms.php',
+                                type:'post',
+                                dataType:'json',
+                                data:{reuMap:idc, opc:5},
+                                success:function(data){
+                                    if(data.status == 'ok'){
+                                        $.alert(data.msg)
+                                        return false
+                                    }
+                                }, 
+                                error:function(error){
+
                                 }
-                            }, 
-                            error:function(error){
-
-                            }
-                        })
-
+                            })
                     }    
                 },
                 ingresar:{
@@ -314,7 +396,6 @@
                                 success:function(data){
                                     if(data.status=='ok'){
                                         $.alert('Se ingresa el producto' + prod)
-
                                         ///cambiar color a rojo y actualizar la cantidad
                                         //tar.()
                                     }else{
@@ -345,7 +426,6 @@
     
     $("body").on("click",".prod", function(e){
         e.preventDefault();
-        //$.alert("cambio")
         $(".chgProd").autocomplete({
             source: "index.wms.php?producto=1",
             minLength: 2,
