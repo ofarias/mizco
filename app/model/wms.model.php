@@ -690,8 +690,12 @@ class wms extends database {
     }
 
     function ordenes($op){
-        $data=array();
-        $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD >0 $op";
+        $data=array();$param='';
+        if($_SESSION['user']->NUMERO_LETRAS==9){
+            $param = " and id_status = 3 ";
+        }
+
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD >0 $op $param";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -1665,8 +1669,8 @@ class wms extends database {
         $usuario = $_SESSION['user']->ID;
         // obtenemos lo que necesitamos ASIG y el producto que necesitamos PROD:
         $prod = $d->PROD;
-        $asig = $d->ASIG;
         $surt = $d->PZAS_SUR;
+        $asig = $d->ASIG - $surt;
         if( ($asig-$surt) <= 0 ){
             return;
         }
@@ -1677,7 +1681,6 @@ class wms extends database {
             $data[]=$tsArray;
         }
         //echo 'Se encontro: '.count($data);
-        
         if(count($data)>0){/// si se encuentra el producto, entonces se inicia la asignacion y los movimientos de salida.
             //echo 'entro:'.count($data);
             //die();
@@ -1689,9 +1692,9 @@ class wms extends database {
                 }else{/// cuando es mayor lo necesario a la asignacion.
                     $pzas = $disp;    
                 }
-                $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP) VALUES (NULL, $ms->ID_COMPS, 0, $d->ID_ORDD, $usuario, current_timestamp, 'P', $ms->ID_AM, $asig, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $ms->ID_COMPS))";
+                $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP) VALUES (NULL, $ms->ID_COMPS, 0, $d->ID_ORDD, $usuario, current_timestamp, 'P', $ms->ID_AM, $pzas, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $ms->ID_COMPS))";
                 $this->grabaBD();
-                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = (PZAS_SUR + $asig) where id_ordd = $d->ID_ORDD";
+                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = (PZAS_SUR + $pzas) where id_ordd = $d->ID_ORDD";
                 $this->queryActualiza();
                 $asig=$asig-$pzas;
                 if($asig == 0){
@@ -2446,6 +2449,23 @@ class wms extends database {
         }else{
             return array("status"=>'ok', "msg"=>'El componente no esta disponible, favor de actualizar la pantalla con F5');
         }
+    }
+
+    function asiSurt($ido, $cedis, $nombre){
+        $usuario=$_SESSION['user']->ID;
+        $this->query="INSERT INTO FTC_ALMACEN_ASI_SURT (id_surt, nombre, fecha, usuario, id_ord, cedis, cliente) VALUES (null, '$nombre', current_timestamp, $usuario, $ido, '$cedis', (SELECT CLIENTE FROM FTC_ALMACEN_ORDEN WHERE ID_ORD =$ido ))";
+        $this->grabaBD();
+        return array("status"=>'ok', "msg"=>'Se ha insertado correctamente');
+    }
+
+    function perSurt($ido, $t, $cedis){
+        $data=array();
+        $this->query="SELECT first 1 NOMBRE FROM FTC_ALMACEN_ASI_SURT WHERE ID_ORD = $ido and cedis ='$cedis' order by fecha desc";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
     }
 }
 ?>
