@@ -35,7 +35,7 @@
                                             <th > Cajas </th>
                                             <th > Piezas por Caja</th>
                                             <th > <b>Piezas Surtidas</b> <br/> <font color="blue">Pendientes</font> </th>
-                                            <!--<th > Cajas Surtidas </th>-->
+                                            <th > Piezas x Caja </th>
                                             <th > Etiqueta </th>
                                             <th > Estado <br/> Finalizar</th>
                                         </tr>
@@ -74,7 +74,7 @@
 
                                                 <p id="surt_<?php echo $ln?>"></p> 
                                             </td>
-                                            <!--<td align="center"><input type="text" size="10" class="surtir" ><br/><?php echo $ord->CAJAS_SUR?></td>-->
+                                            <td align="center"><input type="text" size="10" class="surtir" ><br/><?php echo $ord->CAJAS_SUR?></td>
                                             <td><input type="text" size="10" class="Etiqueta" ></td>
                                             <td><?php echo $ord->STATUS?>
                                             <br/>

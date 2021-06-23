@@ -1356,9 +1356,8 @@ class wms_controller {
     function mapa($opc, $param){
         if($_SESSION['user']){
             $data = new wms;
-            $infoA1=$data->mapa($opc=' where alm = 1 ', $param);
+            $infoA1=$data->mapa($opc=' where alm =  '.$param, $param);
             $uni = $data->unidades(" where status =1 order by factor");
-
             $pagina = $this->load_template('Reportes');
             $html = $this->load_page('app/views/pages/almacenes/p.mapa.php');
             ob_start();

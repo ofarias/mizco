@@ -2245,6 +2245,9 @@ class wms extends database {
         //$this->query="SELECT c.*, iif(char_length(c.etiqueta) = 5, substring(c.etiqueta from 1 for 1), '' ) as letra,  char_length(c.etiqueta) from ftc_almacen_comp c where c.almacen = 1 and c.status < 8 and c.tipo = 2";
         $this->query="SELECT c.*,
                         case char_length(c.etiqueta)
+                            --when 2 then substring(c.etiqueta from 1 for 1)
+                            when 3 then substring(c.etiqueta from 1 for 1)
+                            when 4 then substring(c.etiqueta from 1 for 1)
                             when 5 then substring(c.etiqueta from 1 for 1)
                             when 6 then substring(c.etiqueta from 1 for 1)
                             when 7 then substring(c.etiqueta from 1 for 2)
@@ -2253,11 +2256,13 @@ class wms extends database {
                         char_length(c.etiqueta)
                         from
                         ftc_almacen_comp c where c.almacen = $param and c.status < 8 and c.tipo = 2";
+        //echo $this->query;
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
         }
-        $this->query="SELECT * FROM FTC_ALMACEN_COMPS ";
+
+        $this->query="SELECT * FROM FTC_ALMACEN_COMPS $opc";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $sec[]=$tsArray;

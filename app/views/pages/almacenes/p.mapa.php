@@ -54,6 +54,7 @@
                                                         <td title="" class="odd gradeX info exe" t="t" idc="<?php echo $sec->ID_COMP?>" desc="<?php echo $sec->ETI?>" <?php echo $color ?> dis="<?php echo $sec->DISP?>" id="<?php echo $sec->ID_COMP?>"> <?php echo $sec->ETI.'('.$sec->EXIS.')'?> </td>
                                                     <?php endif;?>
                                                 <?php endforeach;?>
+
                                             </tr>               
                                         <?php endif;?>
                                     <?php endforeach ?>
@@ -257,7 +258,7 @@
                '<option value="<?php echo $u->ID_UNI?>" factor="<?php echo $u->FACTOR?>"><?php echo $u->FACTOR."-->".$u->DESC?></option>'+
             <?php endforeach;?>
             '</select>'+
-            '<br/><br/>Cantidad: <input type="text" size="5" class="cant" >'+
+            '<br/><br/>Cantidad (Cajas): <input type="text" size="5" class="cant" >'+
              xtar +
             '<br/><br/> Piezas totales: <label class="pzas"></label>' 
             ,
@@ -299,7 +300,7 @@
                             $.alert("Coloque un número valido")
                             return false
                         }
-                        if( t=='l' && ((parseFloat(cant) / parseFloat(ft)) >= parseFloat(tarDisp)) ){
+                        if( t=='l' && ((parseFloat(cant) / parseFloat(ft)) > parseFloat(tarDisp)) ){
                             this.$content.find('.ft').focus()
                             $.alert("Se necesitan mas tarimas des las diponibles cantidad: " + cant  + " ft "  + ft  + 'Disp ' + tarDisp)
                             return false
