@@ -1028,7 +1028,7 @@ class wms_controller {
             $act = $data->actProdSku($id_o);
             $cabecera =$data->datOrden($id_o);
             $orden = $data->orden($id_o, $t, $param);
-            
+            $persona = $data->perSurt($id_o, $t, $param);
             if($out=='i'){/// la salida es la impresion.
                 $this->impOrden($cabecera, $orden, $param);
             }
@@ -1251,7 +1251,7 @@ class wms_controller {
         $pdf->Cell(25, 4, 'Cantidad / ','LRT',0,'C');
         $pdf->Cell(20, 4, 'Piezas x','LRT',0,'C');
         $pdf->Cell(20, 4, 'Cajas','LRT');
-        $pdf->Cell(50, 4, 'Ubicacion ','LRT',0,'C');
+        $pdf->Cell(55, 4, 'Ubicacion ','LRT',0,'C');
         $pdf->Cell(20, 4, 'Cajas','LRT',0,'C');
         $pdf->Cell(40, 4, 'Etiqueta','LRT');
         $pdf->Ln();
@@ -1331,6 +1331,12 @@ class wms_controller {
         //$pdf->SetX(140);
         $pdf->Write(6,"_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- FIN DEL REPORTE _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-");
         $pdf->Ln();
+        $pdf->Ln();
+        $encargado='';
+        $persona = $data->perSurt($cabecera->ID_ORD, $t='', $param);
+        if(count($pesona)>0){foreach($persona as $pers){$encargado=$pers->NOMBRE;}}
+        $pdf->Write(6,"Asignado a: ".$encargado);
+
         $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
         ob_end_clean();
         //print_r($cabecera);
@@ -1408,6 +1414,14 @@ class wms_controller {
         if($_SESSION['user']){
             $data = new wms; 
             $res=$data->usoComp($idc, $opc);
+            return $res;
+        }
+    }
+
+    function asiSurt($ord, $cedis, $nombre){
+        if($_SESSION['user']){
+            $data = new wms;
+            $res=$data->asiSurt($ord, $cedis, $nombre);
             return $res;
         }
     }

@@ -4,6 +4,11 @@
         width: 5em;
     }
 </style>
+<?php $pers=''; if(count($persona)>0){
+        foreach ($persona as $per) {
+            $pers=$per->NOMBRE; 
+        }
+}?>
 <div class="row">
     <div class="col-lg-12">
         <div>Detalles del Archivo: <label><?php echo $cabecera->ARCHIVO?> </label><br/>Para el Cliente: <label><?php echo $cabecera->CLIENTE?></label>  <?php echo !empty($cabecera->ORDEN)? '<br/>Incluye las ordenes:<label>'.$cabecera->ORDEN.'</label>':''?></label>
@@ -17,7 +22,8 @@
                 <?php endif;?>
                 <a class="fCedis" c="">TODOS </a>
             </p>
-    <input type="button" name="" value="Imprimir" class="btn-sm btn-primary imp" p="<?php echo $param?>">
+            <p><input type="text" placeholder="Persona Asignada" class="asignar" size="80" cedis="<?php echo (isset($param)? $param:'todos')?>" value="<?php echo $pers?>"></p>
+            <input type="button" name="" value="Imprimir" class="btn-sm btn-primary imp" p="<?php echo $param?>">
         </div>
             <br/>
             <div class="row">
@@ -45,6 +51,9 @@
                                         $color=''; $ln++;
                                         if(empty($ord->DESCR)){
                                             $color = "style='background-color: #FFF7C6;'";
+                                        }
+                                        if($ord->ASIG == 0){
+                                            $color = "style='background-color: #f3e5ff;'";
                                         }
                                         //$color = '';if(trim($kp->STATUS) == 'Eliminado'){ $color="style='background-color:#f33737'";}
                                         ?>
@@ -98,6 +107,23 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
     var ord = <?php echo $id_o?>;
+
+    $(".asignar").change(function(){
+        var nombre = $(this).val()
+        var cedis = $(this).attr('cedis')
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{asiSurt:ord, cedis, nombre},
+            success:function(data){
+
+            },
+            error:function(error){
+
+            }
+        })
+    })  
 
     $(".imp").click(function(){
         var param = $(this).attr('p')
