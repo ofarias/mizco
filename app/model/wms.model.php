@@ -421,7 +421,7 @@ class wms extends database {
                 if($key=='p' and $value != ''){
                     $pro = explode(":", $value);
                     //print_r($pro);
-                    $p .= " and  id_PROD CONTAINING(".trim($pro[2]).") ";$i++;
+                    $p .= " and  PROD CONTAINING('".trim($pro[0])."') ";$i++;
                 }
                 if($key=='e' and $value != 'none'){
                     $p .= " and id_status = '".$value."' ";$i++;
@@ -485,8 +485,9 @@ class wms extends database {
     }
 
     function canMov($mov, $mot, $t){
-        $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = upper('$t') and piezas=0, cant=0 WHERE MOV = $mov ";
+        $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = upper('$t'), piezas=0, cant=0 WHERE MOV = $mov and (select sum(salidas) from ftc_almacen_mov_det where mov = $mov) = 0";
         $this->queryActualiza();
+        $this->actStatus($tabla=4, $tipo='Eliminar', $sub='Movimiento', $ids=$mov, $obs=$mot);
         return array("msg"=>'Se ha cancelado el movimiento');
     }
 
@@ -535,10 +536,11 @@ class wms extends database {
     function delMov($idMov, $tp){
         $status = $tp=='del'? 'B':'F';
         if($tp=='del'){
-            $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status', cant=0, piezas=0 where id_AM = $idMov and status= 'P'";
+            $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status', cant=0, piezas=0 where id_AM = $idMov and status='P'";
             $res=$this->queryActualiza();
             if($res == 1){
                 $msg = 'Se ha dado de baja la linea';
+                $this->actStatus($tabla=4, $tipo='Cancelar', $sub='Movimiento', $ids=$idMov, $obs='Cancelar Documento');
             }else{
                 $msg= 'El movimiento parece estar Finalizado y no permite la edicion de lineas.';
             }    
@@ -2043,10 +2045,8 @@ class wms extends database {
     function actStatus($tabla, $tipo, $sub, $ids, $obs){
         $usuario=$_SESSION['user']->ID;
         $ids=explode(",", substr($ids, 1));
-        //echo '<p>Entro a la actualizacion:</p>';
         for ($i=0; $i < count($ids) ; $i++) { 
             $this->query="INSERT INTO FTC_ALMACEN_LOG (id_log, usuario, tipo, SUBTIPO, tabla, fecha, status, id, obs) VALUES (null, $usuario, '$tipo', '$sub', $tabla, current_timestamp, 0, $ids[$i], '$obs')";
-            //echo '<p>Consulta'.$this->query.'<p/>';
             $this->queryActualiza();
         }
         return;
