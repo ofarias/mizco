@@ -548,12 +548,28 @@ class wms extends database {
             $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status', HORA_F = current_timestamp  where MOV = (select mov from FTC_ALMACEN_MOV where id_AM = $idMov) and status='P'";
             $res= $this->queryActualiza();
             if($res>=1){
+                $this->creaSalida($idMov);
                 $msg='Se ha finalizado el Momiemiento, ya puede imprimir el QR';
             }else{
                 $msg='Surgio un inconveniente favor de actulizar';
             }
         }
         return array("msg"=>$msg);
+    }
+
+    function creaSalida($idMov){
+        $data=arary();
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV WHERE MOV=(SELECT MOV FROM FTC_ALMACEN_MOV WHERE ID_AM = $idMov) and status ='F' and tipo='s'";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        foreach ($data as $key){
+            $this->query="SELECT * FROM FTC_ALMACEN_MOV WHERE ID_AM = $key->ID_AM";
+            $this->EjecutaQuerySimple();
+            
+            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP) VALUES () ";
+        }
     }
 
     function asocia($cs, $cp, $t, $e) {
