@@ -1225,7 +1225,7 @@ class wms_controller {
         $pdf->AddPage();
         $pdf->Image('app/views/images/LOGOSELECT.jpg', 5, 5, 30, 28);
         $pdf->SetFont('Arial', 'BI', 8);
-        //$pdf->SetFont('Arial', 'I',8);
+        
         $pdf->Ln(5);
         $pdf->SetX(40);
         $pdf->write(5, "Cliente : ". $cabecera->CLIENTE."");
@@ -1234,7 +1234,7 @@ class wms_controller {
         $pdf->SetX(40);
         $pdf->write(5, "Cedis : ". $param."");
         $pdf->SetX(150);
-        $pdf->write(5, "Fecha Surtido : ". $cabecera->FECHA."\n");
+        $pdf->write(5, "Fecha Surtido : ". $cabecera->FECHA_CARGA."\n");
         $pdf->SetX(40);
         $pdf->write(5, "Partidas : ". count($orden)."");
         $pdf->SetX(150);
@@ -1245,7 +1245,6 @@ class wms_controller {
         $pdf->Ln(8);
         $pdf->SetFont('Arial', 'B', 8);
 
-        //$pdf->Cell(50, 6, 'Cedis','LRT');
         $pdf->Cell(40, 4, 'UPC','LRT');
         $pdf->Cell(35, 4, 'Modelo','LRT');
         $pdf->Cell(25, 4, 'Cantidad / ','LRT',0,'C');
@@ -1255,7 +1254,7 @@ class wms_controller {
         $pdf->Cell(20, 4, 'Cajas','LRT',0,'C');
         $pdf->Cell(40, 4, 'Etiqueta','LRT');
         $pdf->Ln();
-        //$pdf->Cell(50, 6, '','LRB');
+        
         $pdf->Cell(40, 4, '','LRB');
         $pdf->Cell(35, 4, '','LRB');
         $pdf->SetTextColor(30,117,0);
@@ -1271,75 +1270,59 @@ class wms_controller {
         foreach ($orden as $ord) {
             $componentes=array();$pos= array();$ubicacion='';$ubi=array();
             $componentes=$data->comPro($ord->PROD, $ord->ID_ORDD);
-            $pos = $data->posiciones($ord->ID_ORDD);
-            $surt= count($pos); $cmpt=count($componentes['datos']);
+            $pos = $data->posImp($ord->ID_ORDD);
+            
+            $surt= count($pos);$cmpt=count($componentes['datos']);
             //$pdf->Cell(50, 6, $ord->CEDIS, 'LRT');
-            $m = count($pos>1)? 'LRTB':'LR';
+            $m = (count($pos)>1)? 'LRT':'LRTB';
             $pdf->Cell(40, 6, $ord->UPC, 'LRTB');
             $pdf->Cell(35, 6, $ord->PROD, 'LRTB');
             $pdf->Cell(25, 6, number_format($ord->PZAS,0).' / '.number_format($ord->ASIG,0), 'LRTB',0,'R');
             $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
-            $pdf->Cell(20, 6, number_format($ord->CAJAS,0), $m,0,'R');
+            $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
             $i=0;
+
             foreach($pos as $pst){
                 $i++;
-                $ubicacion = ' Lin:   '.$pst->LINEA.'   Tar: '.$pst->TARIMA.'   Cant:   '.number_format($pst->PIEZAS,0)."\n";
+                if($pst->COMPONENTES > 1){
+                    $ubicacion = ' Lin:  '.$pst->LINEA.'  Cant:  '.number_format($pst->PIEZAS,0)."\n";
+                }else{
+                    $ubicacion = ' Lin:  '.$pst->LINEA.'  Tar: '.$pst->TARIMA.'  Cant:  '.number_format($pst->PIEZAS,0)."\n";
+                }
                 if($i >=1){
                     $ubi[] = ($ubicacion);
                 }
             }
             $pdf->Cell(55, 6, $ubicacion, $m,0,'R');
-            $pdf->Cell(20, 6, number_format($ord->CAJAS_SUR,0), $m,0,'R');
+            $pdf->Cell(20, 6, number_format($ord->CAJAS_SUR,0), 'LRTB',0,'R');
             $pdf->Cell(40, 6, $ord->ETIQUETA , 'LRTB');
             $pdf->Ln();
             if($i >= 2){
-                for ($l=1; $l <count($ubi) ; $l++) { 
-                    $pdf->Cell(40, 4,"",'L',0,'R');
-                    $pdf->Cell(35, 4,"",'',0,'R');
-                    $pdf->Cell(25, 4,"",'',0,'R');
-                    $pdf->Cell(20, 4,"",'',0,'R');
-                    $pdf->Cell(20, 4,"",'',0,'R');
-                    $pdf->Cell(55, 4,$ubi[$l],'',0,'R');
-                    $pdf->Cell(20, 4,"",'',0,'R');
-                    $pdf->Cell(40, 4,"",'R',0,'R');
+                for($l=0; $l < count($ubi)-1 ; $l++) { 
+                    $pdf->Cell(40, 4,"",'LB',0,'R');
+                    $pdf->Cell(35, 4,"",'B',0,'R');
+                    $pdf->Cell(25, 4,"",'B',0,'R');
+                    $pdf->Cell(20, 4,"",'B',0,'R');
+                    $pdf->Cell(20, 4,"",'B',0,'R');
+                    $pdf->Cell(55, 4,$ubi[$l],'B',0,'R');
+                    $pdf->Cell(20, 4,"",'B',0,'R');
+                    $pdf->Cell(40, 4,"",'RB',0,'R');
                     $pdf->Ln();
                 }
-                //die();
             }
-            //$pdf->Cell(50, 6, '', 'LR');
-            //$pdf->Cell(30, 4, '', 'LR');
-            //$pdf->Cell(25, 4, '', 'LR');
-            //$pdf->SetTextColor(50,117,0);
-            //$pdf->Cell(15, 4, number_format($ord->ASIG,0), 'LRB',0,'R');
-            //$pdf->SetTextColor(0,0,0);
-            //$pdf->Cell(20, 4, '', 'LR',0,'R');
-            //$pdf->Cell(20, 4, '', 'LR',0,'R');
-            //$pdf->Cell(40, 4, '', 'LRB',0,'R');
-            //$pdf->Cell(20, 4, '', 'LR',0,'R');
-            //$pdf->Cell(30, 4, '', 'LR');
-            //$pdf->Ln();
-            //print_r($componentes);
-            //if (count($componentes['datos'])>0 or $surt > 0){
-            //    $ctrlS=0;$ctrlP=0;
-            //    if($cmpt > $surt){
-            //    }
-            //}
         }
         //die;
         $pdf->SetFont('Arial', 'I',10);
         $pdf->Ln(10);
-        //$pdf->SetX(140);
         $pdf->Write(6,"_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- FIN DEL REPORTE _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-");
         $pdf->Ln();
         $pdf->Ln();
         $encargado='';
         $persona = $data->perSurt($cabecera->ID_ORD, $t='', $param);
-        if(count($pesona)>0){foreach($persona as $pers){$encargado=$pers->NOMBRE;}}
+        if(count($persona)>0){foreach($persona as $pers){$encargado=$pers->NOMBRE;}}
         $pdf->Write(6,"Asignado a: ".$encargado);
-
         $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
         ob_end_clean();
-        //print_r($cabecera);
         $pdf->Output($ruta.'Picking list'.$cabecera->ID_ORD.'_'.$param.'.pdf', 'i');
     }
 
@@ -1424,6 +1407,14 @@ class wms_controller {
             $res=$data->asiSurt($ord, $cedis, $nombre);
             return $res;
         }
+    }
+
+    function finSurt($ord, $cedis){
+        if($_SESSION['user']){
+            $data = new wms;
+            $res=$data->finSurt($ord, $cedis);
+            return $res;
+        }    
     }
 }
 ?>

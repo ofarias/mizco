@@ -6,7 +6,7 @@
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                     <meta name="description" content="Modulo para controlar los almacenes">
                         <meta name="author" content="Oscar Farias Ayala">
-                            <title>Importadora Mizco SA de CV <?php echo $algo;?></title>
+                            <title>Importadora Mizco SA de CV </title>
                             <!--Jquery UI-->
                             <!-- Bootstrap Core CSS -->
                             <link href="app/views/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />

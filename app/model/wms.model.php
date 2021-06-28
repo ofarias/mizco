@@ -711,6 +711,10 @@ class wms extends database {
         $data=array();$param='';
         if($_SESSION['user']->NUMERO_LETRAS==9){
             $param = " and id_status = 3 ";
+        }elseif($_SESSION['user']->NUMERO_LETRAS== 1){
+            $param = " and id_status <= 1 ";
+        }elseif($_SESSION['user']->NUMERO_LETRAS== 2){
+            $param = " and (id_status = 2) ";
         }
 
         $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD >0 $op $param";
@@ -2159,6 +2163,17 @@ class wms extends database {
         return $data;
     }
 
+    function posImp($ordd){
+        $data=array();
+        $this->query="SELECT LINEA, SUM(PIEZAS) as piezas, MAX(TARIMA) as tarima, COUNT(*) AS COMPONENTES FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and (status= 'P' or status = 'F') group by LINEA";
+        //echo '<br/>'.$this->query;
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
     function surte($surte, $ordd, $comps){
         $usuario=$_SESSION['user']->ID;
         $row = array(); $disp=0;$sta='no'; $msg="No hay producto Disponible, intente otro componente";
@@ -2482,6 +2497,34 @@ class wms extends database {
             $data[]=$tsArray;
         }
         return $data;
+    }
+
+    function finSurt($ord, $cedis){
+        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET set status = 7 WHERE ID_ORD = $ord and cedis = '$cedis'";
+        $this->queryActualiza();
+        $this->finSurtOrd($ord);
+        return array("msg"=>'Se ha Finalizado la orden del cedis '.$cedis);
+    }
+
+    function finSurtOrd($ord){
+        $data=array();
+        $this->query="SELECT STATUS FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $ord";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        $ordenes = count($data);
+        $fin=0;
+        foreach($data as $d){
+            if($d->STATUS = 7){
+                $fin++;
+            }
+        }
+        if($fin == $ordenes){
+            $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 5 WHERE ID_ORD = $ord";
+            $this->queryActualiza();
+        }
+        return;
     }
 }
 ?>

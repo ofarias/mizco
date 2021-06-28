@@ -87,6 +87,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->usoComp($_POST['usoComp'], $_POST['opc']);echo json_encode($res);exit();
 }elseif(isset($_POST['asiSurt'])){
     $res=$controller_wms->asiSurt($_POST['asiSurt'], $_POST['cedis'], $_POST['nombre']);echo json_encode($res);exit();
+}elseif(isset($_POST['finSurt'])){
+    $res=$controller_wms->finSurt($_POST['finSurt'], $_POST['cedis']);echo json_encode($res);exit();
 }else{
     switch ($_GET['action']) {
         case 'login':

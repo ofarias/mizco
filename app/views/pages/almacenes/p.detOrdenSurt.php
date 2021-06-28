@@ -23,7 +23,9 @@
                 <a class="fCedis" c="">TODOS </a>
             </p>
             <p><input type="text" placeholder="Persona Asignada" class="asignar" size="80" cedis="<?php echo (isset($param)? $param:'todos')?>" value="<?php echo $pers?>"></p>
-            <input type="button" name="" value="Imprimir" class="btn-sm btn-primary imp" p="<?php echo $param?>">
+            <?php echo (!empty(@$param))? '<b>Cedis: '.$param.'</b><br/>':''?>
+            <input type="button" name="" value="Imprimir" class="btn-sm btn-primary imp" p="<?php echo $param?>"> &nbsp;&nbsp;&nbsp;
+            <input type="button" value="Finalizar" cedis="<?php echo (!empty(@$param))? $param:''?>" class="finSurt" >
         </div>
             <br/>
             <div class="row">
@@ -35,6 +37,7 @@
                                     <thead>
                                         <tr>
                                             <!--<th style="width:10%"> Cedis</th>-->
+                                            <th width="3"> Ln </th>
                                             <th > UPC</th>
                                             <th > Modelo</th>
                                             <th > Cantidad / <br/> Asignado</th>
@@ -43,7 +46,7 @@
                                             <th > <b>Piezas Surtidas</b> <br/> <font color="blue">Pendientes</font> </th>
                                             <th > Piezas x Caja </th>
                                             <th > Etiqueta </th>
-                                            <th > Estado <br/> Finalizar</th>
+                                            <!--<th > Estado <br/> Finalizar</th>-->
                                         </tr>
                                     </thead>
                                   <tbody>
@@ -59,6 +62,7 @@
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?>>
                                             <!--<td><?php echo $ord->CEDIS?></td>-->
+                                            <td><?php echo $ln?></td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
                                             <td><?php echo $ord->PROD?>
                                             <br/> <font color="purple" > <?php echo $ord->PROD_SKU ?></font>
@@ -85,10 +89,9 @@
                                             </td>
                                             <td align="center"><input type="text" size="10" class="surtir" ><br/><?php echo $ord->CAJAS_SUR?></td>
                                             <td><input type="text" size="10" class="Etiqueta" ></td>
-                                            <td><?php echo $ord->STATUS?>
-                                            <br/>
-                                                <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>" target="popup" onclick="window.open(this.href, this.target, 'width=800,height=600'); return false;"> Finalizar</a>
-                                            <br/><a >Informar</a></td>
+                                            <!--<td><?php echo $ord->STATUS?><br/
+                                                <a class="finSurt" > Finalizar</a>
+                                            <br/><a >Informar</a></td>-->
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>
@@ -107,6 +110,22 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
     var ord = <?php echo $id_o?>;
+
+    $(".finSurt").click(function(){
+        var cedis = $(this).attr('cedis')
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{finSurt:ord, cedis},
+            success:function(data){
+                $.alert(data.msg)
+            },
+            error:function(error){
+
+            }
+        })
+    })
 
     $(".asignar").change(function(){
         var nombre = $(this).val()
