@@ -82,7 +82,6 @@
                                         <?php foreach($compA as $c2):?>
                                             <option value="<?php echo $c2->ID_COMP?>"><?php echo $c2->ETIQUETA.' -> '.$c2->ALMACEN.' --> '.$c2->TIPO?></option>
                                         <?php endforeach;?>
-                                        
                                     </select>
                              </label>
                             <br/><br/>
@@ -97,7 +96,7 @@
                                 &nbsp;&nbsp;&nbsp;&nbsp;<a class="btn-sm btn-primary" href="index.wms.php?action=wms_menu&opc=newMov" target="_self">Limpiar</a>
                             <?php }?>
                            <div class="panel-body">
-                            <div class="table-responsive">                            
+                            <div class="table-responsive detalle">                            
                                 <table class="table table-striped table-bordered table-hover" id="dataTables">
                                     <thead>
                                         <tr>
@@ -157,8 +156,8 @@
 </div>
 <?php if(count($partidas)>0){?>
 <div class="row">
-                <div class="col-lg-12">
-                    <div class="panel panel-default">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
             <div class="panel-body">
                             <div class="table-responsive">                            
                                 <table class="table table-striped table-bordered table-hover" id="dataTables">
@@ -218,6 +217,19 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">  
+
+    $(".compS").change(function(){
+        var tipo = $(".tip").val()
+        var det = $(".detalle")
+        var a = $(".alm").val()
+        var cp = $(".compP").val()
+        var cs = $(this).val()
+        if(tipo == 's'){
+            det.addClass("hidden")
+            //$.alert("es salida a"+a+":compp:"+cp+":comps:"+cs)
+            window.open("index.wms.php?action=wms_menu&opc=newMovv2:t:s:a:"+a+":compp:"+cp+":comps:"+cs, "_self")
+        }
+    })
 
     $("#prod").autocomplete({
         source: "index.wms.php?producto=1",

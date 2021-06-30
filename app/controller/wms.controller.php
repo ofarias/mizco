@@ -219,9 +219,13 @@ class wms_controller {
                 $partidas=$data->movimiento($mov);
                 $compA = $data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=1 and id_compp = (select max(compp) from ftc_almacen_mov amov where amov.mov =".$mov." ) ", $param='');
             }
-
-            if (substr($ver,0,2)=="v2"){/// se trae solo la relacion de componente primario con componente secundario. Array ( [0] => v2 [1] => t [2] => e [3] => a [4] => 1 [5] => compp [6] => 1 ) 
+            if (substr($ver,0,2)=="v2"){/// se trae solo la relacion de componente primario con componente secundario. Array ( [0] => v2 [1] => t [2] => e [3] => a [4] => 1 [5] => compp [6] => 1 )
                 $p=explode(":", $ver); $ver=$p[0];$t=$p[2];$al=$p[4];$c=$p[6];
+                //echo 'tamaño de p:'. count($p);
+                if($t=='s'){
+                    $this->wms_newMovSalMan($p);
+                    exit();
+                }
                 $fa=' and ID_ALM = '.$al;
                 if(!empty($c)){
                     $a= ' and ID_compP = '.$c.$fa;
@@ -250,6 +254,27 @@ class wms_controller {
         }   
     }    
 
+    function wms_newMovSalMan($p){
+        print_r($p);
+        $partidas =array();
+        $mov='';$ver=$p[0];$t=$p[2];$al=$p[4];$cp=@$p[6];$cs=@$p[8];$prod=@$p[10].':'.@$p[11].':'.@$p[12];$pr=@$p[10];$fol=@$p[14]; $ser=@$p[15];
+        $data=new wms;
+        $pagina = $this->load_templateL('Componentes');
+        $html = $this->load_page('app/views/pages/almacenes/p.newMovSal.php');
+        ob_start();
+        $comp=$data->movs($al, $cp, $cs, $pr);
+        if($cp!='' and $cp !='a'){
+            $partidas=$data->compSal($cp, $pr);
+        }
+        if($fol != 'x'){
+            $movimiento = $data->movSal($fol);
+        }
+        include 'app/views/pages/almacenes/p.newMovSal.php';
+        $table = ob_get_clean();
+        $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+        $this->view_page($pagina);
+    }
+
     function addMov($tipo, $alm, $compP, $compS, $prod, $uni, $cant, $col, $mov, $pza){
         if($_SESSION['user']){
             $data = new wms;
@@ -257,6 +282,22 @@ class wms_controller {
             return $exec;
         }
     }
+
+    function exeSal($datos, $fol){
+        if($_SESSION['user']){
+            $data = new wms;
+            $exec=$data->exeSal($datos, $fol);
+            return $exec;
+        }
+    }
+
+    function finSal($fol){
+        if($_SESSION['user']){
+            $data = new wms;
+            $exec=$data->finSal($fol);
+                return $exec;
+        }
+    }    
 
     function cpLin($base, $cs){
         if($_SESSION['user']){

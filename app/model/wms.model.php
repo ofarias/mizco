@@ -90,7 +90,6 @@ class wms extends database {
             }
             if($i > 0){$p=' Where id_comp > 0 '.$p;}
         }
-
         //$this->query="SELECT $f c.*,   
         //    (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 1 ) AS entradasS, 
         //    (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 1) AS salidasS, 
@@ -102,6 +101,7 @@ class wms extends database {
         (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 1 ) AS entradasS, 
         (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP 
          FROM FTC_ALMACEN_COMPONENTES c $op $p order by id_comp desc";
+        //echo $this->query;
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -118,6 +118,75 @@ class wms extends database {
         }
     }
 
+    function movs($al, $cp, $cs, $prod){
+        $data=array();
+        if(!empty($al) and $cp=='a'){
+           $consulta="SELECT md.id_compp, (select (etiqueta) from FTC_ALMACEN_COMPONENTES where id_comp =md.id_compp ) as etiqueta from FTC_ALMACEN_MOV_DET md WHERE md.almacen =".$al." and md.disponible > 0  and intelisis =  '$prod' group by md.id_compp"; 
+        }elseif(!empty($al) and $cp!='a'){
+            $consulta="SELECT md.id_compp, (select (etiqueta) from FTC_ALMACEN_COMPONENTES where id_comp =md.id_compp ) as etiqueta from FTC_ALMACEN_MOV_DET md WHERE md.almacen =".$al." and md.disponible > 0   group by md.id_compp";
+        }
+        $this->query =$consulta;
+        //echo $this->query;
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function movSal($fol){
+        $data=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE FOLIO = $fol";
+        $rs=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($rs)){
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function finSal($fol){
+        $this->query="UPDATE FTC_ALMACEN_MOV_SAL SET STATUS='F' WHERE FOLIO = $fol";
+        $this->queryActualiza();
+        return array("sta"=>'ok');
+    }
+
+    function compSal($cp, $pr){
+        $data=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE id_compp = $cp and disponible >0 and INTELISIS = '$pr'";
+        $rs=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($rs)){
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function exeSal($datos, $fol){
+        $usuario = $_SESSION['user']->ID;
+        $ser='A';
+        $datos=explode(",", $datos);
+        if($fol=='x'){
+            $rs=$this->calculaFolio($fol, $ser);
+            $fol= $rs;
+        }
+        for ($i=0; $i < count($datos)-1; $i++) {
+            $info=explode(":",$datos[$i]);
+            $cant = $info[3];
+            $cs=$info[5];
+            $cp=$info[7];
+            $mov=$info[9];
+            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP, FOLIO, SERIE) VALUES (NULL, $cs, 0, null, $usuario, current_timestamp, 'P', '$mov', $cant, 1, $cp, $fol, '$ser' )";
+            $this->grabaBD();
+        }
+        return array("folio"=>$fol);
+    }
+
+    function calculaFolio($fol, $ser){
+        $this->query="SELECT coalesce(MAX(folio),0) + 1 as folio from ftc_almacen_mov_sal where serie='$ser'";
+        $rs=$this->EjecutaQuerySimple();
+        $row = ibase_fetch_row($rs);
+        return $folio=$row[0];
+    }
+    
     function compLib($op, $param){
         $data = array();
         $this->query="SELECT * FROM FTC_ALMACEN_COMPONENTES $op ";
