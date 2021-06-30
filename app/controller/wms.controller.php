@@ -255,8 +255,7 @@ class wms_controller {
     }    
 
     function wms_newMovSalMan($p){
-        print_r($p);
-        $partidas =array();
+        $partidas =array();$movimiento=array();
         $mov='';$ver=$p[0];$t=$p[2];$al=$p[4];$cp=@$p[6];$cs=@$p[8];$prod=@$p[10].':'.@$p[11].':'.@$p[12];$pr=@$p[10];$fol=@$p[14]; $ser=@$p[15];
         $data=new wms;
         $pagina = $this->load_templateL('Componentes');
@@ -266,7 +265,7 @@ class wms_controller {
         if($cp!='' and $cp !='a'){
             $partidas=$data->compSal($cp, $pr);
         }
-        if($fol != 'x'){
+        if($fol != 'x' and !empty($fol)){
             $movimiento = $data->movSal($fol);
         }
         include 'app/views/pages/almacenes/p.newMovSal.php';
