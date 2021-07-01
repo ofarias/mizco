@@ -47,15 +47,15 @@
                                         </tr>
                                     </thead>
                                   <tbody>
-                                    <?php foreach ($ordenes as $ord): 
-                                        $color='';
+                                    <?php $ln=0; foreach ($ordenes as $ord): 
+                                        $color='';$ln++;
                                         if($ord->ID_STATUS == 3){
                                             $color="style='background-color:#ddf8ff'";
                                         }elseif($ord->ID_STATUS == 8){
                                             $color="style='background-color:#ffb7b2'";
                                         }
                                         ?>
-                                       <tr class="odd gradeX color" <?php echo $color?>>
+                                       <tr class="odd gradeX color" <?php echo $color?> id="lin_<?php echo $ln?>">
                                             <th><input type="checkbox" name="sel" value="<?php echo $ord->ARCHIVO?>" ids="<?php echo $ord->ID_ORD?>"></th>
                                             <td><?php echo $ord->CLIENTE?><br/>
                                                 <?php if($ord->LOGS > 0 or $ord->LOGS_DET > 0){?>
@@ -81,7 +81,7 @@
                                             <td><?php echo $ord->PRIORIDAD?></td>
                                             <td><a class="envio"> Enviar Correo</a>
                                                 <br/>
-                                                <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=d" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;"> Detalles</a>
+                                                <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=d" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;" class="marca" lin="<?php echo $ln?>"> Detalles</a>
                                                 <br/>
                                                 <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=p" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;">Productos de la Orden</a>
                                                 <br/>
@@ -107,6 +107,11 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(".marca").click(function(){
+        var lin = $(this).attr("lin")
+        document.getElementById("lin_"+lin).style.background='#DCF0F9';
+    })
 
     $(".remp").click(function(){
         var m = $(this).attr('logs')

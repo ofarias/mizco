@@ -34,8 +34,8 @@
                                         </tr>
                                     </thead>
                                   <tbody>
-                                    <?php foreach ($orden as $ord): 
-                                        $color='';
+                                    <?php $ln=0; foreach ($orden as $ord): 
+                                        $color='';$ln++;
                                         if(empty($ord->DESCR)){
                                             $color = "style='background-color: #FFF7C6;'";
                                         }
@@ -44,17 +44,23 @@
                                        <tr class="odd gradeX color" <?php echo $color?>>
                                             <td><input type="checkbox" name="selector" value="<?php echo $ord->ID_ORDD?>"></td>
                                             <td><?php echo $ord->ORDEN?></td>
-                                            <td><?php echo htmlspecialchars($ord->PROD)?>
+                                            <td><text id="new_<?php echo htmlspecialchars($ord->PROD)?>"><?php echo htmlspecialchars($ord->PROD)?></text>
                                             <a title="Actualizar" class="actProd"  prod="<?php echo htmlspecialchars($ord->PROD)?>" prodn="<?php echo $ord->PROD_SKU?>"><br/>
                                                 <font color="purple" > <?php echo $ord->PROD_SKU ?></font> </a>
                                                 <?php if($ord->PZAS <> $ord->ASIG){?>
                                                 <br/>
-                                                <input type="text" id="rem_<?php echo htmlspecialchars($ord->PROD)?>" class="chgProd" placeholder="Remplazar" prod="<?php echo htmlspecialchars($ord->PROD)?>">
+                                                <input type="text" id="rem_<?php echo htmlspecialchars($ord->PROD)?>" class="chgProd hidden" placeholder="Remplazar" prod="<?php echo htmlspecialchars($ord->PROD)?>">
                                                 <br/>
                                                 <a title="Reemplazar el producto" class="reemp" p="<?php echo htmlspecialchars($ord->PROD)?>">Remplazar</a>
                                                 <?php }?>
                                             </td>
-                                            <td><?php echo $ord->DESCR?></td>
+                                            <td id="det_<?php echo $ln?>"><b><text id="newD_<?php echo htmlspecialchars($ord->PROD)?>"><?php echo $ord->DESCR?></text></b>
+                                                <label class="det" 
+                                                    prod="<?php echo htmlspecialchars($ord->PROD)?>" 
+                                                    ln="<?php echo $ln?>" 
+                                                    id="det+_<?php echo $ln?>">+</label>
+                                                <label class="detm hidden" ln="<?php echo $ln?>" id="det-_<?php echo $ln?>">-</label>
+                                            </td>
                                             <td><?php echo $ord->CAJAS?></td>
                                             <td><?php echo $ord->UNIDAD?></td>
                                             <td><?php echo $ord->PZAS?></td>
@@ -100,6 +106,29 @@
 
     $("#close").click(function(){
         window.close()
+    })
+
+    $(".actProd").click(function(){
+        var prod = $(this).attr('prod')
+        var prodn = $(this).attr('prodn')
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{actProOrd:1, prod, oc:ord, prodn},
+            success:function(data){
+                //$.alert('Se ha actualizado')
+                if(data.status == 'ok'){
+                    document.getElementById("new_"+prod).innerHTML= data.prod
+                    document.getElementById("newD_"+prod).innerHTML= data.desc
+
+                    //Cambiar el codigo y traer el nuevo nombre
+                }
+            },
+            error:function(){
+
+            }
+        })
     })
     
     $(".chgProd").autocomplete({
