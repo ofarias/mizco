@@ -6,7 +6,9 @@
 </style>
 <div class="row">
     <div class="col-lg-12">
-        <div>Detalles del Archivo: </div>
+        <div>Detalles del Archivo: <label><?php echo $cabecera->ARCHIVO?> </label><br/>Para el Cliente: <label><?php echo $cabecera->CLIENTE?></label>  <?php echo !empty($cabecera->ORDEN)? '<br/>Incluye las ordenes:<label>'.$cabecera->ORDEN.'</label>':''?></label></div>
+            <a class="btn-sm btn-success fin">Finalizar</a>&nbsp;&nbsp;&nbsp; <a class="btn-sm btn-danger hidden" id="close">Cerrar</a>
+            <br/>
             <br/>
             <div class="row">
                 <div class="col-lg-12">
@@ -29,8 +31,6 @@
                                             <th> Cajas Surtidas </th>
                                             <th> Estado </th>
                                             <th> <font color='blue'>SKU</font> <br/><font color="green"> ITEM</font></th>
-                                            <!--<th> Finalizar </th>
-                                            <th> Informar / Correo  </th>-->
                                         </tr>
                                     </thead>
                                   <tbody>
@@ -45,17 +45,14 @@
                                             <td><input type="checkbox" name="selector" value="<?php echo $ord->ID_ORDD?>"></td>
                                             <td><?php echo $ord->ORDEN?></td>
                                             <td><?php echo htmlspecialchars($ord->PROD)?>
-                                            
                                             <a title="Actualizar" class="actProd"  prod="<?php echo htmlspecialchars($ord->PROD)?>" prodn="<?php echo $ord->PROD_SKU?>"><br/>
                                                 <font color="purple" > <?php echo $ord->PROD_SKU ?></font> </a>
                                                 <?php if($ord->PZAS <> $ord->ASIG){?>
                                                 <br/>
                                                 <input type="text" id="rem_<?php echo htmlspecialchars($ord->PROD)?>" class="chgProd" placeholder="Remplazar" prod="<?php echo htmlspecialchars($ord->PROD)?>">
                                                 <br/>
-
                                                 <a title="Reemplazar el producto" class="reemp" p="<?php echo htmlspecialchars($ord->PROD)?>">Remplazar</a>
                                                 <?php }?>
-
                                             </td>
                                             <td><?php echo $ord->DESCR?></td>
                                             <td><?php echo $ord->CAJAS?></td>
@@ -67,9 +64,6 @@
                                             <td><?php echo $ord->CAJAS_SUR?></td>
                                             <td><?php echo $ord->STATUS?></td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
-                                            <!--<td>
-                                                <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>" target="popup" onclick="window.open(this.href, this.target, 'width=800,height=600'); return false;"> Finalizar</a></td>
-                                            <td><a >Informar</a></td>-->
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>
@@ -79,7 +73,6 @@
             </div>
         </div>
     </div>
-
 </div>
 
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
@@ -89,6 +82,25 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
     var ord = <?php echo $id_o?>;
+    
+    $(".fin").click(function(){
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{aOC:ord},
+            success:function(data){
+                alert(data.msg)
+                $("#close").removeClass("hidden")
+            },  
+            erroe:function(error){
+            }
+        })
+    })
+
+    $("#close").click(function(){
+        window.close()
+    })
     
     $(".chgProd").autocomplete({
         source: "index.wms.php?producto=1",

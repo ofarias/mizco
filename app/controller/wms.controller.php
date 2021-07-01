@@ -188,7 +188,9 @@ class wms_controller {
             $pagina = $this->load_template('Componentes');
             $html = $this->load_page('app/views/pages/almacenes/p.movimientos.php');
             ob_start();
+            
             $info=$data->movimientos($op=" ", $param);
+
             $alm=$data->almacenes($op=" WHERE STATUS = 'Activo'");
             $comp=$data->componentes($op=" WHERE STATUS = 'Activo'", $param='');
             $usuarios=$data->usuarios($op = " WHERE STATUS = ''");
@@ -1081,6 +1083,14 @@ class wms_controller {
             $e = "Favor de Iniciar Sesión";
             header('Location: index.php?action=login&e=' . urlencode($e));
             exit;
+        }
+    }
+
+    function aOC($ord){
+        if($_SESSION['user']){
+            $data = new wms;
+            $exec=$data->aOC($ord);
+            return $exec;
         }
     }
 

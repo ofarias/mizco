@@ -479,10 +479,10 @@ class wms extends database {
         //echo 'valor de param: '.$param;
         if(@$param != ''){
             $param=json_decode($param);
-            //print_r( $param);
             foreach ($param as $key => $value) {
                 if($key=='t' and $value != 'none'){
                     $p .= " and ID_TIPO = '".$value."' ";$i++;
+                    $tipo = $value;
                 }
                 if($key=='a' and $value != 'none'){
                     $p .= ' and ID_ALMACEN = '.$value.' ';$i++;
@@ -514,14 +514,38 @@ class wms extends database {
             }
             if($i > 0){$p=' Where id_am > 0 '.$p;}
         }
-        $this->query="SELECT first 50 mov, max(SIST_ORIGEN) AS SIST_ORIGEN, (select max(nombre) from FTC_ALMACEN a where a.id =  MAX(AM.ID_ALMACEN)) AS ALMACEN, MAX(TIPO) AS TIPO, MAX(FECHA) AS FECHA, MAX(STATUS) AS STATUS, MIN(HORA_I) AS HORA_I, MAX(HORA_F) AS HORA_F, SUM(CANT) AS CANT, SUM(PIEZAS) AS PIEZAS  , MAX(usuario) as usuario, cast( list(DISTINCT prod) as varchar (1000)) as prod, (SELECT MAX(ETIQUETA) FROM FTC_ALMACEN_COMPONENTES AC WHERE AC.ID_COMP = max(AM.ID_compp) ) as componente 
-        FROM FTC_ALMACEN_MOVIMIENTO AM $op $p  group by mov order by mov desc";
-        //echo 'Consulta de movimientos con filtro: '.$this->query;
+        
+        if(@$tipo=='s'){
+            die("el tipo es salida");
+            $this->query="SELECT  FROM FTC_ALMACEN_MOV_SALIDA ";
+        }else{
+            $this->query="SELECT first 50 mov, 
+                max(SIST_ORIGEN) AS SIST_ORIGEN, 
+                (select max(nombre) from FTC_ALMACEN a where a.id =  MAX(AM.ID_ALMACEN)) AS ALMACEN, 
+                MAX(TIPO) AS TIPO, 
+                MAX(FECHA) AS FECHA, 
+                MAX(STATUS) AS STATUS, 
+                MIN(HORA_I) AS HORA_I, 
+                MAX(HORA_F) AS HORA_F, 
+                SUM(CANT) AS CANT, 
+                SUM(PIEZAS) AS PIEZAS  , 
+                MAX(usuario) as usuario, 
+                cast( list(DISTINCT prod) as varchar (1000)) as prod, 
+                (SELECT MAX(ETIQUETA) FROM FTC_ALMACEN_COMPONENTES AC WHERE AC.ID_COMP = max(AM.ID_compp) ) as componente 
+            FROM FTC_ALMACEN_MOVIMIENTO AM $op $p  group by mov order by mov desc";
+            //echo 'Consulta de movimientos con filtro: '.$this->query;
+        }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
         }
         return $data;
+    }
+
+    function aOC($ord){
+        $this->query="UPDATE FTC_ALMACEN_ORDEN SET status= 2 where id_ord = $ord";
+        $this->EjecutaQuerySimple();
+        return array("sta"=>'ok', "msg"=>'Se ha liberado la orden para Asignacion');
     }
 
     function unidades($op){

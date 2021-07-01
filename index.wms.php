@@ -93,6 +93,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->exeSal($_POST['exeSal'], $_POST['fol']);echo json_encode($res);exit();
 }elseif(isset($_POST['finSal'])){
     $res=$controller_wms->finSal($_POST['finSal']);echo json_encode($res);exit();
+}elseif(isset($_POST['aOC'])){
+    $res=$controller_wms->aOC($_POST['aOC']);echo json_encode($res);exit();
 }else{
     switch ($_GET['action']) {
         case 'login':
