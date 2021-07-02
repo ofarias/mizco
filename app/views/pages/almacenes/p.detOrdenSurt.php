@@ -33,10 +33,9 @@
                     <div class="panel panel-default">
             <div class="panel-body">
                             <div class="table-responsive">                            
-                                <table class="table table-striped table-bordered table-hover" id="dataTables-detOrd">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-ordSurt">
                                     <thead>
                                         <tr>
-                                            <!--<th style="width:10%"> Cedis</th>-->
                                             <th width="3"> Ln </th>
                                             <th > UPC</th>
                                             <th > Modelo</th>
@@ -46,7 +45,6 @@
                                             <th > <b>Piezas Surtidas</b> <br/> <font color="blue">Pendientes</font> </th>
                                             <th > Piezas x Caja </th>
                                             <th > Etiqueta </th>
-                                            <!--<th > Estado <br/> Finalizar</th>-->
                                         </tr>
                                     </thead>
                                   <tbody>
@@ -61,7 +59,6 @@
                                         //$color = '';if(trim($kp->STATUS) == 'Eliminado'){ $color="style='background-color:#f33737'";}
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?>>
-                                            <!--<td><?php echo $ord->CEDIS?></td>-->
                                             <td><?php echo $ln?></td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
                                             <td><?php echo $ord->PROD?>
@@ -77,21 +74,15 @@
                                             </td>
                                             <td><?php echo $ord->CAJAS?></td>
                                             <td><?php echo $ord->UNIDAD?></td>
-                                            <!--<td><?php echo $ord->COLOR?></td>-->
                                             <td align="center">
-
                                                     <text id="act_<?php echo $ord->ID_ORDD?>">
                                                         <b><?php echo $ord->PZAS_SUR ?></b> / 
                                                         <font color="blue"><?php echo ($ord->ASIG-$ord->PZAS_SUR)?></font>
                                                     </text>
-
-                                                <p id="surt_<?php echo $ln?>"></p> 
+                                                <p class="ordd" id="surt_<?php echo $ln?>" ordd="<?php echo $ord->ID_ORDD?>" ln="<?php echo $ln?>" mod="<?php echo $ord->PROD?>"></p> 
                                             </td>
                                             <td align="center"><input type="text" size="10" class="surtir" ><br/><?php echo $ord->CAJAS_SUR?></td>
                                             <td><input type="text" size="10" class="Etiqueta" ></td>
-                                            <!--<td><?php echo $ord->STATUS?><br/
-                                                <a class="finSurt" > Finalizar</a>
-                                            <br/><a >Informar</a></td>-->
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>
@@ -102,7 +93,6 @@
         </div>
     </div>
 </div>
-
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
@@ -155,11 +145,8 @@
         window.open("index.wms.php?action=detOrden&orden="+ord+"&t=s&param="+cedi, '_self')
     })
     
-    $(document).ready(function(){
-        //revisa()
-        revisaSurt()
-    })
-
+    
+/*
     $(".verComp").click(function(){
         var mod = $(this).attr("mod")
         var ln = $(this).attr("ln")
@@ -172,19 +159,8 @@
         revisaComp(mod, ln, ordd, comp, pos, pnd)   
     })
 
-    $(".ocultar").click(function(){
-        var ln = $(this).attr('ln')
-        var comp = $(this).attr('comp')
-        var info = $(".vc"+ln)//.prop('hidden', true)
-        $(this).prop("hidden", true)
-        info.empty()
-        info.append('<font color="red">+ / -</font>')
-
-    })
-
     function revisaComp(mod, ln, ordd, comp, pos, pnd){
         $('#ocu_'+ln).prop('hidden', false);
-        //$('.ocultar').append("<br/>")
         $.ajax({
         url:'index.wms.php',
         type:'post',
@@ -192,7 +168,6 @@
         data:{comPro:mod, ordd},
         success:function(data){
             if(data.status== 'ok'){
-                //comp.append('<label class="ocultar"><font color ="blue">+/-</font></label>')
                 for(const [key, value] of Object.entries(data.datos)){
                     for(const[k, val] of Object.entries(value)){
                         if(k == 'COMPP'){var compp=val}
@@ -208,7 +183,6 @@
                     comp.append('<br/><text class="Lit "><b>Linea: </b>' +prim+'</text>')
                     comp.append('<br/><text class="Lit "><b>Tarima: </b>' +secu+ '</text>')
                     comp.append('<br/><text class="Lit "><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'" pnd="'+pnd+'" ><font color="red">'+pzas+'</font></a></text>')
-                            //comp.append('<hr size=20 color="red"/>')
                     }
                     if(data.posiciones.length > 0){
                         for(const [key, value] of Object.entries(data.posiciones)){
@@ -221,7 +195,6 @@
                             pos.innerHTML+="<b> Tar: </b> " + s_tar
                             pos.innerHTML+="<b> Pzas: </b> <font color='green'>" + s_cant +"</font><br/>"
                         }
-
                     }
                 }else{
                     comp.text('Sin existencia')
@@ -232,17 +205,21 @@
             }
         })
     }
+*/
+
+    $(document).ready(function(){
+        //revisa()
+        revisaSurt()
+    })
 
     function revisaSurt(){
-         $(".comp").each(function(){
+         $(".ordd").each(function(){
             var mod = $(this).attr("mod")
             var ln = $(this).attr("ln")
             var ordd = $(this).attr('ordd')
             var comp = $(this)
             var pos = document.getElementById("surt_"+ln)
-            var pnd = $(this).attr('pnd')
             pos.innerHTML=''
-            $("p").remove(".Lit")
             $.ajax({
                 url:'index.wms.php',
                 type:'post',
@@ -250,23 +227,6 @@
                 data:{comPro:mod, ordd},
                 success:function(data){
                     if(data.status== 'ok'){
-                        //for(const [key, value] of Object.entries(data.datos)){
-                        //    for(const[k, val] of Object.entries(value)){
-                        //        if(k == 'COMPP'){var compp=val}
-                        //        if(k == 'COMPS'){var comps=val}
-                        //        if(k == 'ID_COMPS'){var id_comp=val} 
-                        //        if(k == 'PIEZAS_A'){var pzas= val}
-                        //        if(k == 'PRIMARIO'){var prim= val}
-                        //        if(k == 'SECUNDARIO'){var secu= val}
-                        //        if(k == 'ID_AM'){var mov= val}
-                        //    }
-                        //    comp.prop('id', ln+'_'+id_comp)
-                        //    comp.prop('title', compp + '_:_' + comps)
-                        //    comp.append('<br/><text class="Lit hidden"><b>Linea: </b>' +prim+'</text>')
-                        //    comp.append('<br/><text class="Lit hidden"><b>Tarima: </b>' +secu+ '</text>')
-                        //    comp.append('<br/><text class="Lit hidden"><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'" pnd="'+pnd+'" ><font color="red">'+pzas+'</font></a></text>')
-                            //comp.append('<hr size=20 color="red"/>')
-                        //}
                         if(data.posiciones.length > 0){
                             for(const [key, value] of Object.entries(data.posiciones)){
                                 for(const [k,val] of Object.entries(value)){
@@ -289,8 +249,7 @@
             })
         })
     }
-
-
+/*
     function revisa(algo){    
         $(".comp").each(function(){
             var mod = $(this).attr("mod")
@@ -300,7 +259,6 @@
             var pos = document.getElementById("surt_"+ln)
             var pnd = $(this).attr('pnd')
             pos.innerHTML=''
-            //comp.remove('p')
             $("p").remove(".Lit")
             $.ajax({
                 url:'index.wms.php',
@@ -318,16 +276,13 @@
                                 if(k == 'PRIMARIO'){var prim= val}
                                 if(k == 'SECUNDARIO'){var secu= val}
                                 if(k == 'ID_AM'){var mov= val}
-
                             }
                             comp.prop('id', ln+'_'+id_comp)
                             comp.prop('title', compp + '_:_' + comps)
                             comp.append('<br/><text class="Lit hidden"><b>Linea: </b>' +prim+'</text>')
                             comp.append('<br/><text class="Lit hidden"><b>Tarima: </b>' +secu+ '</text>')
                             comp.append('<br/><text class="Lit hidden"><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'" pnd="'+pnd+'" ><font color="red">'+pzas+'</font></a></text>')
-                            //comp.append('<hr size=20 color="red"/>')
                         }
-                        
                         if(data.posiciones.length > 0){
                             for(const [key, value] of Object.entries(data.posiciones)){
                                 for(const [k,val] of Object.entries(value)){
@@ -350,7 +305,7 @@
             })
         })
     }
-
+*/
     $("body").on("click", ".surte", function(e){
         e.preventDefault();
         return false
@@ -381,80 +336,14 @@
         }
     })
 
+    $(".ocultar").click(function(){
+        var ln = $(this).attr('ln')
+        var comp = $(this).attr('comp')
+        var info = $(".vc"+ln)//.prop('hidden', true)
+        $(this).prop("hidden", true)
+        info.empty()
+        info.append('<font color="red">+ / -</font>')
 
-    $(".chgProd").autocomplete({
-        source: "index.wms.php?producto=1",
-        minLength: 2,
-        select: function(event, ui){
-        }
-    })
-
-    $(".report").click(function(){
-        var t = $(this).val()
-        var out = $("#"+t).val()
-        $.ajax({
-            url:'index.wms.php',
-            type:'post',
-            dataType:'json',
-            data:{report:1, t, out},
-            success:function(data){
-                if(data.status == 'ok'){
-                    if(out == 'x'){
-                        $.alert('Descarga del archivo de Excel')
-                        window.open( data.completa , 'download')
-                    }
-                    if(out == 'p'){
-                        $.alert('Abrir la pagina en una ventana nueva')
-                        window.open(data.completa, '_blank')
-                    }
-                    if(out == 'b'){
-                        $.alert('Descargar el archivo en excel y Abrir la pagina en una ventana nueva')   
-                        window.open( data.completa , 'download')
-                    }
-                }
-            },
-            error:function(){
-                    $.alert('Ocurrio un error')   
-            }
-        })
-    })
-
-    $(".reemp").click(function(){
-        var p = $(this).attr('p')
-        document.getElementById("rem_"+p).classList.remove('hidden')
-    })
-
-    $(".chgProd").change(function(){
-        var nP = $(this).val()
-        var p = $(this).attr('prod')
-        nP = nP.split(":")
-        $.confirm({
-            title: 'Cambio de producto',
-            content: 'Desea Cambiar el producto ' + p+ ' por el producto '+ nP[0] ,
-            buttons:{
-                Si: function(){
-                    $.ajax({
-                        url:'index.wms.php',
-                        type:'post',
-                        dataType:'json',
-                        data:{chgProd:1, p, nP:nP[0], oc:ord, t:'p'}, 
-                        success:function(data){
-                            $.alert(data.msg)
-                            /// cambiar valor en el Prod...
-                            setTimeout(function(){
-                                location.reload(true)
-                            })
-                        },
-                        error:function(){
-                            /// regresar al valor inicial
-                        }
-                    },10000 )
-                },
-                No:function(){
-                   return;
-                }
-            }
-        });
     })
     
 </script>

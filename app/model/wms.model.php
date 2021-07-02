@@ -1770,19 +1770,57 @@ class wms extends database {
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
         }
+
         if($t == 's'){
-            foreach($data as $d){
-                $res=$this->surteAuto($d);
+            $i=0;$s=0;
+            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD=$id_o and (ASIG - PZAS_SUR)>0 ";
+            $rs=$this->EjecutaQuerySimple();
+            while($tsArray=ibase_fetch_object($rs)){
+                $pnd[]=$tsArray;
             }
-            //die();
+            foreach($pnd as $d){
+                //$res=$this->surteAuto($d);
+                $st = array();
+                $usuario = $_SESSION['user']->ID;
+                $prod = $d->PROD;
+                $surt = $d->PZAS_SUR;
+                $asig = $d->ASIG - $surt;
+                if(($asig-$surt) <= 0 ){
+                    $s++;
+                }else{
+                    $i++;
+                    $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE INTELISIS = '$prod' and disponible > 0 order by fecha_ingreso asc";
+                    $res=$this->EjecutaQuerySimple();
+                    while($tsArray=ibase_fetch_object($res)){
+                        $st[]=$tsArray;
+                    }
+                    if(count($st)>0){
+                        foreach($st as $ms){
+                            $disp=$ms->DISPONIBLE; 
+                            if($disp >= $asig){ 
+                                $pzas = $asig;    
+                            }else{
+                                $pzas = $disp;    
+                            }
+                            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP) VALUES (NULL, $ms->ID_COMPS, 0, $d->ID_ORDD, $usuario, current_timestamp, 'P', $ms->ID_AM, $pzas, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $ms->ID_COMPS))";
+                            $this->grabaBD();
+                            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = (PZAS_SUR + $pzas) where id_ordd = $d->ID_ORDD";
+                            $this->queryActualiza();
+                            $asig=$asig-$pzas;
+                            if($asig == 0){
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
         return $data;
     }
 
-    function surteAuto($d){
+    function surteAuto($d){/// se degraga y se incluye en el codigo de las ordenes para mayor velocidad.
         $data = array();
         $usuario = $_SESSION['user']->ID;
-        // obtenemos lo que necesitamos ASIG y el producto que necesitamos PROD:
         $prod = $d->PROD;
         $surt = $d->PZAS_SUR;
         $asig = $d->ASIG - $surt;
@@ -2241,14 +2279,20 @@ class wms extends database {
             $data[]=$tsArray;
         }
         $sta= count($data)>0? 'ok':'no';
-        $pos= $this->posiciones($ordd);
+
+        $pos=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and (status= 'P' or status = 'F')";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $pos[]=$tsArray;
+        }
+        //$pos= $this->posiciones($ordd);
         return array("status"=>$sta,"datos"=>$data, "posiciones"=>$pos);
     }
 
     function posiciones($ordd){
         $data=array();
-        $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and status= 'P' or status = 'F'";
-        //echo '<br/>'.$this->query;
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and (status= 'P' or status = 'F')";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -2259,7 +2303,6 @@ class wms extends database {
     function posImp($ordd){
         $data=array();
         $this->query="SELECT LINEA, SUM(PIEZAS) as piezas, MAX(TARIMA) as tarima, COUNT(*) AS COMPONENTES FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and (status= 'P' or status = 'F') group by LINEA";
-        //echo '<br/>'.$this->query;
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
