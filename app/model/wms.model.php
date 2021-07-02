@@ -2102,7 +2102,7 @@ class wms extends database {
             //$campos = " sum(pzas) as piezas, sum(asig) as asignado ";
             $param2 = " WHERE ID_ORD = $ord ";
             /// cambiamos el status de la orden a Asignado. 
-            $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 3 WHERE STATUS = 1 AND ID_ORD = $ord";
+            $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 3 WHERE STATUS = 2 AND ID_ORD = $ord";
             $this->queryActualiza();
             $tabla = 1; $tipo='Orden';
         }elseif($t=='l'){
