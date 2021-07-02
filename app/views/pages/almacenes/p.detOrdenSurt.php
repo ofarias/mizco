@@ -145,8 +145,6 @@
         window.open("index.wms.php?action=detOrden&orden="+ord+"&t=s&param="+cedi, '_self')
     })
     
-    
-/*
     $(".verComp").click(function(){
         var mod = $(this).attr("mod")
         var ln = $(this).attr("ln")
@@ -205,7 +203,6 @@
             }
         })
     }
-*/
 
     $(document).ready(function(){
         //revisa()
@@ -249,6 +246,8 @@
             })
         })
     }
+
+    
 /*
     function revisa(algo){    
         $(".comp").each(function(){
