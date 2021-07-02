@@ -1818,7 +1818,7 @@ class wms extends database {
         return $data;
     }
 
-    function surteAuto($d){/// se degraga y se incluye en el codigo de las ordenes para mayor velocidad.
+    function surteAuto($d){/// se degraga y se incluye en el codigo de las ordenes para mayor velocidad 
         $data = array();
         $usuario = $_SESSION['user']->ID;
         $prod = $d->PROD;
