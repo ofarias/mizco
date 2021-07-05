@@ -81,8 +81,8 @@
                                                     </text>
                                                 <p class="ordd" id="surt_<?php echo $ln?>" ordd="<?php echo $ord->ID_ORDD?>" ln="<?php echo $ln?>" mod="<?php echo $ord->PROD?>"></p> 
                                             </td>
-                                            <td align="center"><input type="text" size="10" class="surtir" ><br/><?php echo $ord->CAJAS_SUR?></td>
-                                            <td><input type="text" size="10" class="Etiqueta" ></td>
+                                            <td align="center"><input type="text" size="10" class="factor" ordd="<?php echo $ord->ID_ORDD?>" t="u"><br/><text id="<?php echo $ord->ID_ORDD?>"><?php echo $ord->UNIDAD?></text></td>
+                                            <td><input type="text" size="10" class="factor" t="e" ordd="<?php echo $ord->ID_ORDD?>" placeholder="<?php echo $ord->ETIQUETA?>"></td>
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>
@@ -100,6 +100,25 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
     var ord = <?php echo $id_o?>;
+
+    $(".factor").change(function(){
+        var ordd= $(this).attr('ordd')
+        var uni = $(this).val()
+        var txt = $("#"+ordd)
+        var t = $(this).attr("t")
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{facOrdd:ordd, uni, t},
+            success:function (data) {
+                txt.html(uni)
+            }, 
+            error:function(error){
+
+            }
+        })
+    })
 
     $(".finSurt").click(function(){
         var cedis = $(this).attr('cedis')
@@ -247,7 +266,7 @@
         })
     }
 
-    
+
 /*
     function revisa(algo){    
         $(".comp").each(function(){

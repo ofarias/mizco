@@ -95,7 +95,10 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->finSal($_POST['finSal']);echo json_encode($res);exit();
 }elseif(isset($_POST['aOC'])){
     $res=$controller_wms->aOC($_POST['aOC']);echo json_encode($res);exit();
-}else{
+}elseif(isset($_POST['facOrdd'])){
+    $res=$controller_wms->facOrdd($_POST['facOrdd'], $_POST['uni'], $_POST['t']);echo json_encode($res);exit();
+}
+else{
     switch ($_GET['action']) {
         case 'login':
             $controller->Login();

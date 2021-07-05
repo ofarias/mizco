@@ -1275,14 +1275,20 @@ class wms_controller {
         $pdf->AddPage();
         $pdf->Image('app/views/images/LOGOSELECT.jpg', 5, 5, 30, 28);
         $pdf->SetFont('Arial', 'BI', 8);
-        
+            
+        if($param == ''){
+            $cedis = substr(utf8_decode($cabecera->CEDIS),0,100);
+        }elseif(!empty($param)){
+            $cedis = $param;
+        }
+
         $pdf->Ln(5);
         $pdf->SetX(40);
         $pdf->write(5, "Cliente : ". $cabecera->CLIENTE."");
         $pdf->SetX(150);
         $pdf->write(5, "Archivo : ".$cabecera->ARCHIVO." Orden :". $cabecera->ID_ORD."\n");
         $pdf->SetX(40);
-        $pdf->write(5, "Cedis : ". $param."");
+        $pdf->write(5, "Cedis : ". $cedis."");
         $pdf->SetX(150);
         $pdf->write(5, "Fecha Surtido : ". $cabecera->FECHA_CARGA."\n");
         $pdf->SetX(40);
@@ -1295,25 +1301,25 @@ class wms_controller {
         $pdf->Ln(8);
         $pdf->SetFont('Arial', 'B', 8);
 
-        $pdf->Cell(40, 4, 'UPC','LRT');
-        $pdf->Cell(35, 4, 'Modelo','LRT');
+        $pdf->Cell(35, 4, 'UPC','LRT');
+        $pdf->Cell(25, 4, 'Modelo','LRT');
         $pdf->Cell(25, 4, 'Cantidad / ','LRT',0,'C');
         $pdf->Cell(20, 4, 'Piezas x','LRT',0,'C');
-        $pdf->Cell(20, 4, 'Cajas','LRT');
+        $pdf->Cell(25, 4, 'Cajas','LRT');
+        $pdf->Cell(20, 4, 'Total','LRT',0,'C');
         $pdf->Cell(55, 4, 'Ubicacion ','LRT',0,'C');
-        $pdf->Cell(20, 4, 'Cajas','LRT',0,'C');
         $pdf->Cell(40, 4, 'Etiqueta','LRT');
         $pdf->Ln();
         
-        $pdf->Cell(40, 4, '','LRB');
         $pdf->Cell(35, 4, '','LRB');
+        $pdf->Cell(25, 4, '','LRB');
         $pdf->SetTextColor(30,117,0);
         $pdf->Cell(25, 4, 'Asigando','LRB',0,'C');
         $pdf->SetTextColor(0,0,0);
         $pdf->Cell(20, 4, 'Caja ','LRB',0,'C');
-        $pdf->Cell(20, 4, '','LRB');
-        $pdf->Cell(55, 4, '','LRB',0,'C');
-        $pdf->Cell(20, 4, 'Surtidas','LRB',0,'C');
+        $pdf->Cell(25, 4, '','LRB');
+        $pdf->Cell(20, 4, '','LRB',0,'C');
+        $pdf->Cell(55, 4, 'Cantidad en Piezas','LRB',0,'C');
         $pdf->Cell(40, 4, '','LRB');
         $pdf->Ln();
        
@@ -1321,17 +1327,26 @@ class wms_controller {
             $componentes=array();$pos= array();$ubicacion='';$ubi=array();
             $componentes=$data->comPro($ord->PROD, $ord->ID_ORDD);
             $pos = $data->posImp($ord->ID_ORDD);
-            
             $surt= count($pos);$cmpt=count($componentes['datos']);
             //$pdf->Cell(50, 6, $ord->CEDIS, 'LRT');
             $m = (count($pos)>1)? 'LRT':'LRTB';
-            $pdf->Cell(40, 6, $ord->UPC, 'LRTB');
-            $pdf->Cell(35, 6, $ord->PROD, 'LRTB');
+            $pdf->Cell(35, 6, $ord->UPC, 'LRTB');
+            $pdf->Cell(25, 6, $ord->PROD, 'LRTB');
             $pdf->Cell(25, 6, number_format($ord->PZAS,0).' / '.number_format($ord->ASIG,0), 'LRTB',0,'R');
-            $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
-            $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
-            $i=0;
+            $pdf->Cell(20, 6, number_format($ord->UNIDAD,0), 'LRTB',0,'R');
 
+            $uni = $ord->UNIDAD;
+            $asig = $ord->ASIG;
+            $residuo = fmod($asig,$uni);
+            $resi = '';
+            $total = bcdiv($asig,$uni,0);
+            if($residuo > 0 ){
+                $resi= " + 1C/".$residuo." ";
+                $total +=1;
+            }
+            $pdf->Cell(25, 6, number_format($ord->CAJAS,0)."C/".$ord->UNIDAD.$resi , 'LRTB',0,'R');
+
+            $i=0;
             foreach($pos as $pst){
                 $i++;
                 if($pst->COMPONENTES > 1){
@@ -1343,19 +1358,19 @@ class wms_controller {
                     $ubi[] = ($ubicacion);
                 }
             }
+            $pdf->Cell(20, 6, number_format($total,0)." C", 'LRTB',0,'R');
             $pdf->Cell(55, 6, $ubicacion, $m,0,'R');
-            $pdf->Cell(20, 6, number_format($ord->CAJAS_SUR,0), 'LRTB',0,'R');
             $pdf->Cell(40, 6, $ord->ETIQUETA , 'LRTB');
             $pdf->Ln();
             if($i >= 2){
                 for($l=0; $l < count($ubi)-1 ; $l++) { 
-                    $pdf->Cell(40, 4,"",'LB',0,'R');
-                    $pdf->Cell(35, 4,"",'B',0,'R');
+                    $pdf->Cell(35, 4,"",'LB',0,'R');
+                    $pdf->Cell(25, 4,"",'B',0,'R');
                     $pdf->Cell(25, 4,"",'B',0,'R');
                     $pdf->Cell(20, 4,"",'B',0,'R');
+                    $pdf->Cell(25, 4,"",'B',0,'R');
                     $pdf->Cell(20, 4,"",'B',0,'R');
                     $pdf->Cell(55, 4,$ubi[$l],'B',0,'R');
-                    $pdf->Cell(20, 4,"",'B',0,'R');
                     $pdf->Cell(40, 4,"",'RB',0,'R');
                     $pdf->Ln();
                 }
@@ -1465,6 +1480,14 @@ class wms_controller {
             $res=$data->finSurt($ord, $cedis);
             return $res;
         }    
+    }
+
+    function facOrdd($ordd, $uni, $t){
+        if($_SESSION['user']){
+            $data = new wms;
+            $res=$data->facOrdd($ordd, $uni, $t);
+            return $res;
+        }        
     }
 }
 ?>

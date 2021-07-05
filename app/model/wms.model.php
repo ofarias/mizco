@@ -2662,6 +2662,17 @@ class wms extends database {
         }
         return;
     }
+
+    function facOrdd($ordd, $uni, $t){
+        if($t=='u'){
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET UNIDAD = $uni, CAJAS=(ASIG / $uni) WHERE ID_ORDD = $ordd";
+        }elseif($t=='e'){
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ETIQUETA = '$uni' WHERE ID_ORDD = $ordd";
+        }
+        echo $this->query;
+        $this->queryActualiza();
+        return array("sta"=>'ok');
+    }
 }
 ?>
 
