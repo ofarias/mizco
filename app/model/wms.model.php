@@ -824,7 +824,7 @@ class wms extends database {
             ///$l=0;
             ///$e=0;
             $hoja = $xlsx->sheetName(0);
-            if(strtoupper( trim($hoja)) == 'COPPEL'){
+            if(strtoupper(trim($hoja)) == 'COPPEL'){
                 $this->coppel($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper( trim($hoja)) == 'NUEVO WALMART'){
                 $this->walmart($xlsx, $hoja, $file, $ido);
@@ -1013,11 +1013,11 @@ class wms extends database {
 
             foreach ($xlsx->rows() as $key){
                 $col='A';$ln++;
-                        if($ln >=5 and $ln<=count($xlsx->rows()) - 1 and $key[7] !=''){
+                        if($ln >=6 and $ln<=count($xlsx->rows()) - 1 and $key[6] !=''){
                             //echo '<br/>Valor de la celda: '.$col.$ln.' = '. $key[7].'<br/>';
-                            $piezas += $key[7];
+                            if(is_numeric($piezas)){ $piezas += $key[6];}
                             //echo '<br/>Lee la linea: '.$ln.' Columna: 7<br/> valor de key[7]'.$key[7];
-                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL,    $idord, '$key[4]', '', $key[7], 0, '$key[6]', '', 0, 0, 1, '', '','$key[5]','$key[3]','', null) returning ID_ORDD";
+                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $idord, '$key[3]', '', $key[6], 0, '$key[5]', '', 0, 0, 1, '', '$key[9]','$key[2]','$key[1]', '', null) returning ID_ORDD";
                             $res=$this->grabaBD();
                             $res=ibase_fetch_object($res);
                             $res=$res->ID_ORDD;
@@ -1465,9 +1465,9 @@ class wms extends database {
         if(@$idord>0){
             foreach ($xlsx->rows() as $key){
                 $col='A';$ln++;
-                        if($ln >= 5 and $ln<=count($xlsx->rows()) - 1 and ($key[6]!='' and $key[2] !='')){
-                            if(is_numeric($key[6])){$piezas += $key[6];}
-                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM ) VALUES (NULL, $idord, '$key[2]', '$key[1]', $key[6], 0, '', '', 0, 0, 1, '', '$key[10]','','$key[0]') returning ID_ORDD";
+                        if($ln >= 5 and $ln<=count($xlsx->rows()) - 1 and ($key[7]!='' and $key[6] !='')){
+                            if(is_numeric($key[7])){$piezas += $key[7];}
+                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM ) VALUES (NULL, $idord, '$key[6]', '', $key[7], 0, '', '', 0, 0, 1, '', '$key[11]','$key[0]','$key[1]') returning ID_ORDD";
                             $res=$this->grabaBD();
                         }else{   
                         }
