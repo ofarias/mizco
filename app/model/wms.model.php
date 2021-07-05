@@ -1206,7 +1206,7 @@ class wms extends database {
                                     if(is_numeric($k2[$nC])){$piezas += $k2[$nC];}
                                         if(!empty($k2[5])){
                                             $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD, CADENA) VALUES
-                                            (NULL, $idord, '$k2[5]', '', $k2[$nC], 0, '', '$key[$nC]', 0, 0, 1, '', '','$k2[2]','','', $k2[4], '$k2[1]') returning ID_ORDD";
+                                            (NULL, $idord, '$k2[5]', '', ($k2[$nC]*$k2[4]), $k2[$nC], '', '$key[$nC]', 0, 0, 1, '', '','$k2[2]','','', $k2[4], '$k2[1]') returning ID_ORDD";
                                             //echo $this->query;
                                             //die();
                                             $res=$this->grabaBD();
