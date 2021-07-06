@@ -9,18 +9,26 @@
             <div tyle="color: blue;"> 
                     <?php $lt=$_SESSION['user']->NUMERO_LETRAS; if($lt==1){?>
                 <p>
-                    <label>Carga el el Layout para la carga de Ordenes de compra en excel.</label>
-                    <form action="index.wms.php" method="post" enctype="multipart/form-data">
-                        <input type="file" name="files[]" multiple="" onchange="makeFileList()" id="filesToUpload" accept=".xls, .csv, .txt, .xlsx">
-                        <input type="hidden" name="upload_ordenes" value="upload_ordenes" />
-                        <input type="hidden" name="files2upload" value="" />
-                        <input type="submit" value="Cargar Orden" >
-                    </form>
-                    <ul id="fileList">
-                        <li>No hay archivos seleccionados</li>        
-                    </ul>
+                    <div class="col-lg-12">
+                        <div class="col-lg-6">
+                        <label>Carga el el Layout para la carga de Ordenes de compra en excel.</label>
+                        <form action="index.wms.php" method="post" enctype="multipart/form-data">
+                            <input type="file" name="files[]" multiple="" onchange="makeFileList()" id="filesToUpload" accept=".xls, .csv, .txt, .xlsx">
+                            <input type="hidden" name="upload_ordenes" value="upload_ordenes" />
+                            <input type="hidden" name="files2upload" value="" />
+                            <input type="submit" value="Cargar Orden" >
+                        </form>
+                        <ul id="fileList">
+                            <li>No hay archivos seleccionados</li>        
+                        </ul>
+                        </div>
+                        <div class="col-lg-6">
+                           <a class="correos"> Correos Predeterminados.</a>
+                        </div>
+                    </div>
                 </p>
                     <?php }?>
+                    <br/>
                 <p>Ver: <select class="status">
                     <?php foreach ($status as $k => $val){?>
                         <option value="<?php echo $val?>"><?php echo $k?></option>
@@ -128,6 +136,65 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(".correos").click(function(){
+        //$.ajax({
+        //    url:'index.wms.php', 
+        //    type:'post',
+        //    dataType:'json',
+        //    data:{correos2:1, opc:'g', datos:"t"}, 
+        //    success:function(data){
+
+        //                    for(const[] )
+                var datos=[];
+                $.confirm({
+                        columnClass: 'col-md-8',
+                        title: 'Correos',
+                        content: 'Lista de correos para el envio de Ordenes de compra:' +
+                        '<br/><b>Correos predeterminados:</b><br/><br/>'+
+                        '<ul>'+
+                        <?php foreach($correos as $c):?>
+                            <?php if($c->TIPO == 'P'):?>
+                                '<li ><?php echo $c->NOMBRE.'--'.$c->CORREO?></li>'+
+                            <?php endif;?>
+                        <?php endforeach;?>
+                        '</ul>'+
+                        '<br/><b>Otros correos:</b><br/>'+
+                        '<ul>'+
+                        <?php foreach($correos as $c):?>
+                            <?php if($c->TIPO != 'P' and $c->TIPO !='B'):?>
+                                '<li class="opc" id_e="<?php echo $c->ID_EMAIL?>"><?php echo htmlspecialchars_decode($c->NOMBRE).' <font color="blue"><b>'.$c->CORREO.'</b></font>'?>&nbsp;&nbsp; <b>Tipo:</b>&nbsp;&nbsp;Pred:<input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="P"> <b>Opc:</b><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="O">&nbsp;&nbsp; <b>Quitar:</b><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="B"> </li>'+
+                            <?php endif;?>
+                        <?php endforeach;?>
+                        '</ul>'+
+                        ''+
+                        '<br/><br/>'+
+                        ''
+                        ,
+                        buttons: {
+                            Aceptar: function () {
+                                $(".opc").each(function(index){
+                                    var ln = $(this).attr("id_e")
+                                    var opc = $('input:radio[name=tipo_'+ln+']')
+                                    if(opc.checked){
+
+                                        datos.push (ln, opc.val())   
+                                        $.alert('la linea : '+ ln + ' tiene la opcion: ' +  opc)
+                                    }
+                                })
+                                    $.alert('Se almacenaron los datos')
+                            }
+                        ,
+                        cancelar: function () {
+                        },
+                        },
+                });
+        //    }, 
+        //    error:function(error){
+        //    } 
+        //})
+
+    })
 
     $(".filtro").click(function(){
         var ini = $(".ini").val()

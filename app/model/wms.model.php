@@ -1759,9 +1759,9 @@ class wms extends database {
         if($t == 'd'){
             $this->query="SELECT * FROM FTC_ALMACEN_ORDENES_DETALLES where id_ord=$id_o";
         }elseif($t == 'p'){
-            $this->query="SELECT prod, descr, sum(pzas) as pzas, count(cedis) as cedis, max(orden) as orden, upc, item, PROD_SKU, CAST(LIST( DISTINCT color) AS varchar(200)) AS COLOR, sum(PZAS_SUR) as pzas_sur, avg(id_status) as status, sum(asig) as asig
+            $this->query="SELECT prod, descr, sum(pzas) as pzas, count(cedis) as cedis, max(orden) as orden, max(upc) as upc, max(item) as item, max(PROD_SKU) as PROD_SKU, CAST(LIST( DISTINCT color) AS varchar(200)) AS COLOR, sum(PZAS_SUR) as pzas_sur, avg(id_status) as status, sum(asig) as asig
                 from ftc_almacen_ordenes_detalles where id_ord = $id_o 
-                group by prod, upc, PROD_SKU, descr,  item";
+                group by prod, descr";
         }elseif($t == 's'){
             if(!empty($param)){
                 $p= " and cedis = '".$param."'";
@@ -2674,6 +2674,18 @@ class wms extends database {
         echo $this->query;
         $this->queryActualiza();
         return array("sta"=>'ok');
+    }
+
+    function correos2($opc, $datos){
+        if($opc=='o'){
+            $data=array();
+            $this->query="SELECT * FROM FTC_ALMACEN_EMAIL WHERE STATUS=1";
+            $rs=$this->EjecutaQuerySimple();
+            while($tsArray=ibase_fetch_object($rs)){
+                $data[]=$tsArray;
+            }
+            return $data;
+        }
     }
 }
 ?>

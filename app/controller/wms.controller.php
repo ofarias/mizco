@@ -1032,6 +1032,7 @@ class wms_controller {
             $status=array("Todas"=>"0","Nuevas"=>"1", "Liberadas"=>"2", "Asignadas"=>"3", "Surtidas"=>"5", "Reemplazos"=>"8", "Eliminadas"=>"9");
             $ordenes = $data->ordenes($op = ' and id_status != 9', $param);
             $a = $data->actualizaCodigo();
+            $correos= $data->correos2('o', 't');
             include 'app/views/pages/almacenes/p.monitorOrdenes.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
@@ -1490,6 +1491,14 @@ class wms_controller {
             $res=$data->facOrdd($ordd, $uni, $t);
             return $res;
         }        
+    }
+
+    function correos2($opc, $datos){
+        if($_SESSION['user']){
+            $data = new wms;
+            $res=$data->correos2($opc, $datos);
+            return $res;
+        }   
     }
 }
 ?>
