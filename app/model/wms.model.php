@@ -1916,13 +1916,14 @@ class wms extends database {
     }
 
     function asgProd($ord, $prod, $pza, $t, $c, $s){
-        if($t == 'm'){
+        if($t=='m'){
             $res=$this->asgMultiple($ord, $prod);
             return $res;
         }
         $data=array();$msg='Se han asignado '.$pza.' del producto '.$prod;
         if($t=='q'){
-            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = 0 where PROD = '$prod' and id_ord = $ord";
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = 0, status=1 where PROD = trim('$prod') and id_ord = $ord";
+            echo $this->query;
             $this->queryActualiza();
         }
         $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE PROD = '$prod' and id_ord = $ord";
@@ -1934,6 +1935,8 @@ class wms extends database {
         if($t== 'q'){
             $msg="Se han quitado ".$pza." del producto ".$prod;
             $pza=$s - $pza;
+            //$this->actStatus()
+            //return;
         }
         //$pza=$s - $pza;
         //echo 'Piezas a repartir:'.$pza.'<br/>'; 

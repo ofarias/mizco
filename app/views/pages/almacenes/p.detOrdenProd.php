@@ -300,7 +300,8 @@
             var pza = $(this).val()
         }else{
             var ln = $(this).attr('ln') 
-            var pza = $("#asig_"+ln).val() // valor a trabajar
+            //var pza = $("#asig_"+ln).val() // valor a trabajar
+            var pza = $("#colasig_"+ln).val()
             var prod = $(this).attr('id')
         }
         var c = $(this).attr('c')
@@ -319,7 +320,8 @@
         }
         $.confirm({
             title: "Asignacion de Productos",
-            content: "Se asignaran " + pza + " piezas del producto " + prod + " de la Orden " + ord + "<br/> "+ msg + "<p><font size='1.5 px'><b>Puede usar Enter para Si y ESC para No</b></font></p>", 
+            //content: "Se asignaran " + pza + " piezas del producto " + prod + " de la Orden " + ord + "<br/> "+ msg + "<p><font size='1.5 px'><b>Puede usar Enter para Si y ESC para No</b></font></p>", 
+            content: msg + "<p><font size='1.5 px'><b>Puede usar Enter para Si y ESC para No</b></font></p>", 
             buttons:{
                 Si:{
                     text:'Si',
