@@ -53,7 +53,9 @@
                                             <th> Archivo </th>
                                             <th> Prioridad </th>
                                             <th> Trabajar </th>
+                                            <?php if($lt==1){?>
                                             <th> Eliminar </th>
+                                            <?php }?>
                                         </tr>
                                     </thead>
                                   <tbody>
@@ -104,9 +106,10 @@
                                                 <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=s" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;">Surtir Orden</a>
                                                 <?php }?>
                                                 </td>
-
+                                            <?php if($lt==1){?>
                                             <td><input type="button" value="Eliminar" class="btn-sm btn-danger del" oc="<?php echo $ord->ID_ORD?>"><br/>
                                                 <a class="remp" ido="<?php echo $ord->ID_ORD?>" logs="<?php echo $ord->LOGS + $ord->LOGS_DET?>">Remplazar Archivo</a></td>
+                                            <?php }?>
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>
