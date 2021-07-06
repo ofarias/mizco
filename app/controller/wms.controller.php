@@ -65,7 +65,7 @@ class wms_controller {
             }elseif(substr($opc, 0,1) =='r'){
                 $this->wms_report($opc='', $param='');
             }elseif (substr($opc,0,1)=='o'){
-                $this->wms_ordenes($opc='');die();
+                $this->wms_ordenes($opc=substr($opc,1));die();
             }
             $pagina = $this->load_template('Menu Almacen');
             //$html = '';//$this->load_page('');
@@ -1024,11 +1024,13 @@ class wms_controller {
 
     function wms_ordenes($op){
         if($_SESSION['user']){
+            $param = $op;
             $data = new wms;
             $pagina = $this->load_template('Reportes');
             $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenes.php');
             ob_start();
-            $ordenes = $data->ordenes($op = ' and id_status != 9');
+            $status=array("Todas"=>"0","Nuevas"=>"1", "Liberadas"=>"2", "Asignadas"=>"3", "Surtidas"=>"5", "Reemplazos"=>"8", "Eliminadas"=>"9");
+            $ordenes = $data->ordenes($op = ' and id_status != 9', $param);
             $a = $data->actualizaCodigo();
             include 'app/views/pages/almacenes/p.monitorOrdenes.php';
             $table = ob_get_clean();

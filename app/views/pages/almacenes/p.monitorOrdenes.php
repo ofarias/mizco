@@ -7,6 +7,7 @@
 <div class="row">
     <div class="col-lg-12">
             <div tyle="color: blue;"> 
+                    <?php $lt=$_SESSION['user']->NUMERO_LETRAS; if($lt==1){?>
                 <p>
                     <label>Carga el el Layout para la carga de Ordenes de compra en excel.</label>
                     <form action="index.wms.php" method="post" enctype="multipart/form-data">
@@ -19,6 +20,15 @@
                         <li>No hay archivos seleccionados</li>        
                     </ul>
                 </p>
+                    <?php }?>
+                <p>Ver: <select class="status">
+                    <?php foreach ($status as $k => $val){?>
+                        <option value="<?php echo $val?>"><?php echo $k?></option>
+                    <?php } ?>
+                </select>
+                Fecha inicial:&nbsp;&nbsp;<input type="date" class="ini" value="<?php echo date('d/m/Y')?>" > Fecha Final:&nbsp;&nbsp;<input type="date" class="fin" value="<?php echo date('d/m/Y')?>" >&nbsp;&nbsp;<button class="btn-sm btn-info filtro">Ir</button>
+
+            </p>
             </div>
             <br/>
             <div class="row">
@@ -79,14 +89,22 @@
                                             <td><a href="..\\..\\Cargas Ordenes\\<?php echo $ord->ARCHIVO?>" download><?php echo $ord->ARCHIVO?></a></td>
 
                                             <td><?php echo $ord->PRIORIDAD?></td>
-                                            <td><a class="envio"> Enviar Correo</a>
+                                            <td>
                                                 <br/>
+                                                <?php if($lt==1){?>
+                                                <a class="envio"> Enviar Correo</a>
                                                 <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=d" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;" class="marca" lin="<?php echo $ln?>"> Detalles</a>
+                                                <?php }?>
                                                 <br/>
+                                                <?php if($lt==2){?>
                                                 <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=p" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;">Productos de la Orden</a>
+                                                <?php }?>
                                                 <br/>
+                                                <?php if($lt==9){?>
                                                 <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=s" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;">Surtir Orden</a>
+                                                <?php }?>
                                                 </td>
+
                                             <td><input type="button" value="Eliminar" class="btn-sm btn-danger del" oc="<?php echo $ord->ID_ORD?>"><br/>
                                                 <a class="remp" ido="<?php echo $ord->ID_ORD?>" logs="<?php echo $ord->LOGS + $ord->LOGS_DET?>">Remplazar Archivo</a></td>
                                         </tr>
@@ -107,6 +125,13 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(".filtro").click(function(){
+        var ini = $(".ini").val()
+        var fin = $(".fin").val()
+        var sta = $(".status").val()
+        window.open("index.wms.php?action=wms_menu&opc=o:"+ini+":"+fin+":"+sta, "_self")
+    })
 
     $(".marca").click(function(){
         var lin = $(this).attr("lin")

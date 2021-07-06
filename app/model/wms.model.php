@@ -800,17 +800,19 @@ class wms extends database {
         return $data;
     }
 
-    function ordenes($op){
-        $data=array();$param='';
-        if($_SESSION['user']->NUMERO_LETRAS==9){
-            $param = " and id_status = 3 ";
-        }elseif($_SESSION['user']->NUMERO_LETRAS== 1){
-            $param = " and id_status <= 1 ";
-        }elseif($_SESSION['user']->NUMERO_LETRAS== 2){
-            $param = " and (id_status = 2) ";
+    function ordenes($op, $param){
+        $data=array(); $p='';
+        if(empty($param)){
+            if($_SESSION['user']->NUMERO_LETRAS==9){$p = " and id_status = 3 ";
+            }elseif($_SESSION['user']->NUMERO_LETRAS== 1){$p = " and id_status <= 1 ";
+            }elseif($_SESSION['user']->NUMERO_LETRAS== 2){$p = " and (id_status = 2) ";}
+        }else{
+            $param = explode(":", $param);$op = "";
+            if(!empty($param[1])){$p.= " and fecha_carga >= '". $param[1]."'";}
+            if(!empty($param[2])){$p.= " and fecha_carga <= '". $param[2]."'";}
+            $p.= ($param[3]==0)? " ":" and id_status = ". $param[3];
         }
-
-        $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD >0 $op $param";
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD >0 $op $p";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
