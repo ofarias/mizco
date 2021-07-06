@@ -13,13 +13,17 @@
     $asunto = " Envio de Ordenes de compra: ";  
     $mensaje.= "<p>".$msg.".</p>";
     $mensaje.= "<p>Gracias <br/></p>";
-    //$correo='genseg@hotmail.com';//'esther@selectsound.com.mx';
     try {
+        $mail->SMTPSecure = 'tls'; 
+        $mail->Host = 'smtp.gmail.com'; 
+        $mail->Port = '587'; 
         $mail->Username   = "oc.selectsound@gmail.com";  // Nombre del usuario SMTP
         $mail->Password   = "genseg21+";            // Contraseña del servidor SMTP
-        //$mail->AddAddress($correo);      //Direccion a la que se envia
-        for ($i=0; $i <count($correos); $i++) { 
-            $mail->AddAddress($correos[$i]);
+        if(count($correos)>1){
+            echo 'Obtiene correos';
+            for ($i=0; $i < count($correos); $i++) { 
+                $mail->AddAddress($correos[$i]);
+            }
         }
         foreach ($correosP as $key) {
             $mail->AddAddress($key->CORREO, $key->NOMBRE);

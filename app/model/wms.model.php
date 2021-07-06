@@ -2677,15 +2677,40 @@ class wms extends database {
     }
 
     function correos2($opc, $datos){
-        if($opc=='o'){
-            $data=array();
+        $data=array();
+        if($opc=='A'){
             $this->query="SELECT * FROM FTC_ALMACEN_EMAIL WHERE STATUS=1";
-            $rs=$this->EjecutaQuerySimple();
-            while($tsArray=ibase_fetch_object($rs)){
-                $data[]=$tsArray;
-            }
-            return $data;
+        }elseif($opc=='O'){
+            $this->query="SELECT * FROM FTC_ALMACEN_EMAIL WHERE STATUS=1 and TIPO ='O'";
         }
+        $rs=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($rs)){
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function actCorreo($datos){
+        //print_r($datos);
+        for ($i=0; $i < count($datos); $i++) { 
+            //echo '<br/>'.$i; 
+            if($i%2==0 or $i ==0){
+                if($i==0 and $datos[$i]=='add'){
+                    $usuario=$_SESSION['user']->ID;
+                    $this->query="INSERT INTO FTC_ALMACEN_EMAIL (ID_EMAIL, correo, nombre, TIPO, status, usuario, ALTA) VALUES (NULL,'$datos[2]', '$datos[1]', 'O', 1, $usuario, current_timestamp)";
+                    $this->grabaBD();
+                    return array("sta"=>'ok', "msg"=>'Se ha dado de alta el correo '.$datos[2]);
+                    break;
+                }else{   
+                $j=$i+1; $id=$datos[$i]; $sta = $datos[$j];
+                    if($sta!='Z' and $sta !=''){
+                        $this->query="UPDATE FTC_ALMACEN_EMAIL SET TIPO='$sta' WHERE ID_EMAIL= $id";
+                        $this->queryActualiza();
+                    }
+                }
+            }
+        }
+        die();
     }
 }
 ?>

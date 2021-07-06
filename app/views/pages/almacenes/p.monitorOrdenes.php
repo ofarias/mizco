@@ -137,25 +137,22 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
-    $(".correos").click(function(){
-        //$.ajax({
-        //    url:'index.wms.php', 
-        //    type:'post',
-        //    dataType:'json',
-        //    data:{correos2:1, opc:'g', datos:"t"}, 
-        //    success:function(data){
+    var pred = <?php echo count($correos)?>;
 
-        //                    for(const[] )
+    $(".correos").click(function(){
                 var datos=[];
                 $.confirm({
                         columnClass: 'col-md-8',
                         title: 'Correos',
                         content: 'Lista de correos para el envio de Ordenes de compra:' +
+                        '<br/><label><font size="1.5">Pred: Se envia siempre a esta dirección.</font></label>'+
+                        '<br/><label><font size="1.5">Opc: Aparece en la lista de correos opcionales.</font></label>'+
+                        '<br/><label><font size="1.5">Quitar: Se elimina de la lista de direcciones.</font></label>'+
                         '<br/><b>Correos predeterminados:</b><br/><br/>'+
                         '<ul>'+
                         <?php foreach($correos as $c):?>
                             <?php if($c->TIPO == 'P'):?>
-                                '<li ><?php echo $c->NOMBRE.'--'.$c->CORREO?></li>'+
+                                '<li class="opc" id_e="<?php echo $c->ID_EMAIL?>"> <?php echo $c->NOMBRE.'--'.$c->CORREO?>&nbsp;&nbsp; <b>Tipo:</b>&nbsp;&nbsp;<font color="green"><b>Pred:</b></font><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="P"> <b>Opc:</b><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="O">&nbsp;&nbsp;<font color="red"> <b>Quitar:</b></font><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="B"> <input type="radio" class="hidden"  name="tipo_<?php echo $c->ID_EMAIL?>" value="Z" checked></li>'+
                             <?php endif;?>
                         <?php endforeach;?>
                         '</ul>'+
@@ -163,38 +160,71 @@
                         '<ul>'+
                         <?php foreach($correos as $c):?>
                             <?php if($c->TIPO != 'P' and $c->TIPO !='B'):?>
-                                '<li class="opc" id_e="<?php echo $c->ID_EMAIL?>"><?php echo htmlspecialchars_decode($c->NOMBRE).' <font color="blue"><b>'.$c->CORREO.'</b></font>'?>&nbsp;&nbsp; <b>Tipo:</b>&nbsp;&nbsp;Pred:<input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="P"> <b>Opc:</b><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="O">&nbsp;&nbsp; <b>Quitar:</b><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="B"> </li>'+
+                                '<li class="opc" id_e="<?php echo $c->ID_EMAIL?>"> <?php echo htmlspecialchars_decode($c->NOMBRE).' <font color="blue"><b>'.$c->CORREO.'</b></font>'?>&nbsp;&nbsp; <b>Tipo:</b>&nbsp;&nbsp;<font color="green"><b>Pred:</b></font><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="P"> <b>Opc:</b><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="O">&nbsp;&nbsp; <font color="red"> <b>Quitar:</b></font><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="B"><input type="radio" class="hidden"  name="tipo_<?php echo $c->ID_EMAIL?>" value="Z" checked> </li>'+
                             <?php endif;?>
                         <?php endforeach;?>
                         '</ul>'+
                         ''+
-                        '<br/><br/>'+
-                        ''
+                        '<br/><label>Nuevo destinatario:</label><br/>'+
+                        '<input type="text" class="name" placeholder="Nombre" size="35" >&nbsp;&nbsp;&nbsp;<input type="email" value="" placeholder="Correo electrónico" size="35" class="mail"> <a class="addMail">+</a>'+
+                        '<br/><label><font size="1.5pxs">Por default el tipo es opcional</label>'
                         ,
                         buttons: {
                             Aceptar: function () {
                                 $(".opc").each(function(index){
                                     var ln = $(this).attr("id_e")
-                                    var opc = $('input:radio[name=tipo_'+ln+']')
-                                    if(opc.checked){
+                                    var opc = $('input:radio[name=tipo_'+ln+']:checked').val()
+                                    //if(opc.is(':checked')){
+                                        datos.push (ln, opc)
+                                    //}
+                                })
+                                $.ajax({
+                                    url:'index.wms.php',
+                                    type:'post',
+                                    dataType:'json',
+                                    data:{actCorreo:1, datos}, 
+                                    success:function(data){
+                                        $.alert(data.msg)
+                                    }, 
+                                    error:function(error){
 
-                                        datos.push (ln, opc.val())   
-                                        $.alert('la linea : '+ ln + ' tiene la opcion: ' +  opc)
                                     }
                                 })
-                                    $.alert('Se almacenaron los datos')
                             }
                         ,
                         cancelar: function () {
                         },
                         },
                 });
-        //    }, 
-        //    error:function(error){
-        //    } 
-        //})
-
     })
+
+    $("body").on("click",".name", function(e){
+        e.preventDefault()
+        $(".addMail").click(function (){
+            var nom=$(".name").val()
+            var mail=$(".mail").val()
+            if(nom != '' && mail !=''){
+                var datos=["add",nom ,mail]
+                $.ajax({
+                    url:'index.wms.php',
+                    type:'post',
+                    dataType:'json',
+                    data:{actCorreo:1, datos},
+                    success:function(data){
+                        if(data.sta=='ok'){
+                            $.alert(data.msg)
+                            $(".name").val("")
+                            $(".mail").val("")
+                        }
+                    }, 
+                    error:function(error){
+
+                    }
+                })
+            }
+        })
+    })
+
 
     $(".filtro").click(function(){
         var ini = $(".ini").val()
@@ -355,9 +385,9 @@
             '<br/>Para: '+
             '<input type="email" multiple placeholder="Separar las direcciones con coma , " class="dir" size="100" maxlenght="150"><br/><br/>'+
             '<input type="checkbox" name="mail" value="alberto@selectsound.com.mx" correo="alberto@selectsound.com.mx"> Alberto Mizrahi: alberto@selectsound.com.mx<br/>'+
-            '<input type="checkbox" name="mail" value="rafael@selectsound.com.mx" correo="rafael@selectsound.com.mx"> Rafael Mizrahi: rafael@selectsound.com.mx<br/>'+
-            '<input type="checkbox" name="mail" value="esther@selectsound.com.mx" correo="esther@selectsound.com.mx"> Esther Gonzales: esther@selectsound.com.mx<br/>'+
-            '<input type="checkbox" name="mail" value="inteligenciac@selectsound.com.mx" correo="intelicenciac@selectsound.com.mx"> Olga Perez: inteligenciac@selectsound.com.mx<br/>'+
+            <?php foreach($opcion as $opcM):?>
+                '<input type="checkbox" name="mail" value="<?php echo $opcM->CORREO?>" correo="<?php echo $opcM->CORREO?>"> <?php echo $opcM->NOMBRE?>: <?php echo $opcM->CORREO?><br/>'+
+            <?php endforeach;?>
             '<br/>Mensaje:<br/>'+
             '<textarea class="msg" cols="100" rows="15"></textarea>'+
             '<br/><br/>'+
@@ -383,7 +413,7 @@
                         a = a.substring(1)
                     }
                     dir += a 
-                    if(dir==''){
+                    if(dir=='' && pred == 0){
                         $.alert('Debe de contener por lo menos una direccion');
                         return false;
                     }else{

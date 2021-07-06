@@ -99,6 +99,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->facOrdd($_POST['facOrdd'], $_POST['uni'], $_POST['t']);echo json_encode($res);exit();
 }elseif(isset($_POST['correos2'])){
     $res=$controller_wms->correos2($_POST['opc'], $_POST['datos']);echo json_encode($res);exit();
+}elseif(isset($_POST['actCorreo'])){
+    $res=$controller_wms->actCorreo($_POST['datos']);echo json_encode($res);exit();
 }
 else{
     switch ($_GET['action']) {
