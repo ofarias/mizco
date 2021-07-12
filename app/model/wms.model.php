@@ -778,17 +778,14 @@ class wms extends database {
 
     function exist($id, $tipo){
         $data=array();
-        //$this->query="SELECT m.comps, m.prod, iif(m.tipo ='e', sum(piezas), 0) as entradas, iif(m.tipo='s',sum(piezas), 0 ) as salidas from FTC_ALMACEN_MOV m where comps=$id and status ='F' group by m.comps, m.prod, m.tipo";
         if($tipo == 'pc'){
-            $this->query="SELECT m.almacen, m.id_comps, m.prod, iif(m.id_tipo ='e', sum(piezas), 0) as entradas,
-                        -- iif(m.id_tipo='s',sum(piezas), 0 ) as salidas
+            $this->query="SELECT m.almacen, m.id_comps, m.prod, iif(m.id_tipo ='e' or m.id_tipo = 'E', sum(piezas), 0) as entradas,
                         (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps )  as salidas
                         from FTC_ALMACEN_MOVimiento m
                         where id_comps=$id and id_status='F' group by m.id_comps, m.prod, m.id_tipo, m.almacen";
                         echo $this->query;
         }elseif($tipo == 'pp'){
-            $this->query="SELECT m.almacen, m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, iif(m.id_tipo ='e', sum(piezas), 0) as entradas, 
-            --iif(m.id_tipo='s',sum(piezas), 0 ) as salidas
+            $this->query="SELECT m.almacen, m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, iif(m.id_tipo = 'e' or m.id_tipo = 'E', sum(piezas), 0) as entradas, 
                         (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps )  as salidas
                         from FTC_ALMACEN_MOVimiento m
                         where id_status='F' group by m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, m.almacen order by m.id_comps asc ";

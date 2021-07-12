@@ -517,7 +517,6 @@ class wms_controller {
                         $ln++;
                         $in=0;$out=0;$ex=0;
                         $exist=$data->exist($key->ID_COMP, 'pc');
-
                         $xls->setActiveSheetIndex()
                             ->setCellValue($col.$ln,  $key->ID_COMP)
                             ->setCellValue(++$col.$ln,$key->ETIQUETA)
@@ -582,6 +581,8 @@ class wms_controller {
                                 )
                             );
                             $col="A";
+                        }else{
+                            $ln--;
                         }
                     }
                 }
@@ -769,11 +770,8 @@ class wms_controller {
         $usuario = $_SESSION['user']->NOMBRE;   
         $xls= new PHPExcel();
         $data = new wms;
-        //Cabecera:
-        $col = 'A'; $ln=10; $i = 0;
         
-        
-        $col = 'A';$ln=10; $i = 0;
+        $col='A';$ln=10; $i=0;
             foreach ($info['primary'] as $row) {
                 $i++;
                 $ln++;
@@ -840,7 +838,6 @@ class wms_controller {
                         $ln++;
                         $in=0;$out=0;$ex=0;
                         $exist=$key->ENTRADAS-$key->SALIDAS;
-                        //$exist=$data->exist($key->ID_COMP);
                         if($exist!=0){
                             $xls->setActiveSheetIndex()
                                 ->setCellValue($col.$ln, '')
@@ -867,6 +864,8 @@ class wms_controller {
                                     )   
                                 )
                             );       
+                        }else{
+                            $ln--;
                         }
                         $col="A";
                     }
