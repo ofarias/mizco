@@ -876,6 +876,8 @@ class wms extends database {
                 $this->palacio($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='DILTEX SA DE CV'){
                 $this->diltex($xlsx, $hoja, $file, $ido);
+            }elseif(strtoupper(trim($hoja))=='MIX UP1'){
+                $this->mixup1($xlsx, $hoja, $file, $ido);
             }
             else{
                 $res=$this->intelisis($xlsx, $hoja, $file, $ido);
@@ -1707,6 +1709,67 @@ class wms extends database {
             return;
     }
 
+    ///// mixup1($xlsx, $hoja, $file, $ido)
+
+    function mixup1($xlsx, $hoja, $file, $ido){
+        $usuario=$_SESSION['user']->ID;
+        $ln=0;$piezas=0;//$tg=0;
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
+        $res=$this->grabaBD();
+        $res= ibase_fetch_object($res);
+        $idord=@$res->ID_ORD;
+        if(@$idord>0){
+            foreach ($xlsx->rows() as $key){
+                $col='A';$ln++;$nC=0;
+                for ($i=0; $i < count($key); $i++) { 
+                    if($ln==2){
+                        $oc = $key[2];
+                    }
+                        if( ($ln==5 or $ln == 24 or $ln == 43) and $nC>= 3){/// por esta linea solo entra una vez.
+                            $subLn=$ln+1;
+                            $lnn=0;
+                            foreach($xlsx->rows() as $k2){ /// k2 es la nueva linea. y $nC es el numero de columnas. 
+                                $lnn++;
+                                if($lnn >= $subLn and $lnn <= count($xlsx->rows()) and $nC>=3 and $k2[$nC]!=''){
+                                    if(strtoupper($k2[1]) =='TOTAL GENERAL'){
+                                        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ORDEN ='$oc' where id_ord= $idord";
+                                        $this->EjecutaQuerySimple();
+                                        break;
+                                    }elseif (trim($k2[1])=='Total general'){
+                                        break;
+                                    }elseif ($key[$nC] == 'ASIGNADO') {
+                                        break;
+                                    }else{
+                                        $piezas += $k2[$nC];
+                                        $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES
+                                        (NULL, $idord, '$k2[1]', '', $k2[$nC], 0, '', '$key[$nC]', 0, 0, 1, '', '','$k2[0]','','', 1) returning ID_ORDD";
+                                        $res=$this->grabaBD();
+                                        $res=ibase_fetch_object($res);
+                                        $res=$res->ID_ORDD;
+                                        if($res <= 0){
+                                            echo $this->query;
+                                            //die();
+                                        } else{
+                                            $odns[]=$res;
+                                        }
+
+                                    }
+                                }
+                            }
+
+                        }
+
+                    $nC++;
+                    $col++;
+                }
+            }
+        }else{
+            echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
+        }
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;    
+    }
+
     function intelisis($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;$odns=array();
         $ln=0;$piezas=0;
@@ -1743,7 +1806,7 @@ class wms extends database {
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
         return $odns;
-    }    
+    }
 
     function datOrden($id_o){
         $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD = $id_o";
@@ -1861,6 +1924,7 @@ class wms extends database {
         }
         return;
     }
+
 
     function delComp($id, $t){
         if($t==1){
