@@ -555,35 +555,34 @@ class wms_controller {
                                     )   
                                 )
                             );
-                            foreach($exist as $mov)
-                            $ln++;
-                            $col="C";
-                            $xls->setActiveSheetIndex()
-                               ->setCellValue($col.$ln,  $mov->PROD)
-                               ->setCellValue(++$col.$ln,$mov->ENTRADAS)
-                               ->setCellValue(++$col.$ln,$mov->SALIDAS)
-                               ->setCellValue(++$col.$ln,$mov->ENTRADAS - $mov->SALIDAS)
-                            ;
-                            $xls->getActiveSheet()->getStyle("C".$ln.':'.$col.$ln)->applyFromArray(
-                            array(
-                                    'font'=> array(
-                                        'bold'=>true
-                                    ),
-                                    'borders'=>array(
-                                        'allborders'=>array(
-                                            'style'=>PHPExcel_Style_Border::BORDER_THIN
-                                        )
-                                    ), 
-                                    'fill'=>array( 
-                                            'type' => PHPExcel_Style_Fill::FILL_SOLID,             
-                                            'color'=> array('rgb' => FFFFCE)
-                                    )   
-                                )
-                            );
-                            $col="A";
-                        }else{
-                            $ln--;
-                        }
+                            foreach($exist as $mov){
+                                $ln++;
+                                $col="C";
+                                $xls->setActiveSheetIndex()
+                                   ->setCellValue($col.$ln,  $mov->PROD)
+                                   ->setCellValue(++$col.$ln,$mov->ENTRADAS)
+                                   ->setCellValue(++$col.$ln,$mov->SALIDAS)
+                                   ->setCellValue(++$col.$ln,$mov->ENTRADAS - $mov->SALIDAS)
+                                ;
+                                $xls->getActiveSheet()->getStyle("C".$ln.':'.$col.$ln)->applyFromArray(
+                                array(
+                                        'font'=> array(
+                                            'bold'=>true
+                                        ),
+                                        'borders'=>array(
+                                            'allborders'=>array(
+                                                'style'=>PHPExcel_Style_Border::BORDER_THIN
+                                            )
+                                        ), 
+                                        'fill'=>array( 
+                                                'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                                                'color'=> array('rgb' => FFFFCE)
+                                        )   
+                                    )
+                                );
+                                $col="A";
+                            }
+                        }    
                     }
                 }
 

@@ -783,7 +783,7 @@ class wms extends database {
                         (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps )  as salidas
                         from FTC_ALMACEN_MOVimiento m
                         where id_comps=$id and id_status='F' group by m.id_comps, m.prod, m.id_tipo, m.almacen";
-                        echo $this->query;
+                        //echo $this->query;
         }elseif($tipo == 'pp'){
             $this->query="SELECT m.almacen, m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, iif(m.id_tipo = 'e' or m.id_tipo = 'E', sum(piezas), 0) as entradas, 
                         (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps )  as salidas
@@ -2486,6 +2486,7 @@ class wms extends database {
                             when 5 then substring(c.etiqueta from 1 for 1)
                             when 6 then substring(c.etiqueta from 1 for 1)
                             when 7 then substring(c.etiqueta from 1 for 2)
+                            when 8 then substring(c.etiqueta from 1 for 2)
                             else ''
                             end as letra,
                         char_length(c.etiqueta)
