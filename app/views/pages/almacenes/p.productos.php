@@ -9,6 +9,7 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 Productos en Intelisis <input type="button" value="Actualizar" class="btn-sm btn-primary actProdInt" t="p">&nbsp;&nbsp;&nbsp;<input type="button" value="Existencias Intelisis" class="btn-sm btn-info actProdInt" t="x" >
+                <input type="button" value="Imprimir XLS" class="btn-sm btn-success xls">
             </div>
             <div class="panel-body">
                 <div class="table-responsive">                            
@@ -51,8 +52,8 @@
                                 $color = "style=background-color:#eaf5fa;";
                             }
                             ?>
-                            <tr class="color" id="linc<?php echo $i?>" <?php echo $color;?>>
-                                <td><?php echo $row->ID_INT;?></td>
+                            <tr class="color" id="linc<?php echo $i?>" <?php echo $color;?> >
+                                <td><a class="posicion" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"><?php echo $row->ID_INT;?></a></td>
                                 <td id="prod_<?php echo $i?>"><?php echo $row->DESC;?></font></td>
                                 <td><?php echo $row->PZS_ORIG;?></td>
                                 <td align="center"><input type="number" name="p_o" value="<?php echo $row->LARGO;?>" step="any" class="num lg marca" lin="<?php echo $i?>" id="lg<?php echo $i?>">
@@ -68,9 +69,9 @@
                                 <td>
                                     <input type="button" name="gd" value="Guardar" class="btn-sm save hidden" ln="<?php echo $i?>" id="bg<?php echo $i?>" cve="<?php echo $row->ID_PINT?>">
                                 </td>
-                                <td title="Exi:Existencia, Res: Reservado, Rem: Remisionado">Disponible: <?php echo $row->DISP?><br/>Almacen:<?php echo $row->ALMACEN?>&nbsp;&nbsp;<?php echo 'Exis: '.$row->EXI.', Res: '.$row->RES.', Rem: '.$row->REM?></td>
-                                <td>Disponible:<?php echo $row->DISP_ALM?><br/> Entradas:<?php echo $row->ING.'&nbsp;&nbsp; Salidas:'.$row->OUT?></td>
-                                <td><?php echo $dif?></td>
+                                <td title="Exi:Existencia, Res: Reservado, Rem: Remisionado">Disponible: <b><?php echo number_format($row->DISP,0)?></b><br/>Almacen:<b><?php echo $row->ALMACEN?></b>&nbsp;&nbsp;<?php echo 'Exis: <b>'.number_format($row->EXI,0).'</b>, Res: <b>'.number_format($row->RES,0).'</b>, Rem: <b>'.number_format($row->REM,0).'</b>'?><br/><b><?php echo $row->FECHA?><b></td>
+                                <td>Disponible:<?php echo number_format($row->DISP_ALM,0)?><br/> Entradas:<?php echo number_format($row->ING,0).'&nbsp;&nbsp; Salidas:'.number_format($row->OUT)?></td>
+                                <td><?php echo number_format($dif,0)?></td>
                             </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -87,6 +88,64 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+
+    $(".xls").click(function(){
+        var out = 'x'
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{report:1, t:'prod', out},
+            success:function(data){
+                if(data.status == 'ok'){
+                    if(out=='x'){
+                        $.alert('Descarga del archivo de Excel')
+                        window.open( data.completa , 'download')
+                    }
+                }
+            },
+            error:function(){
+                    $.alert('Ocurrio un error')   
+            }
+        })
+    })
+
+    $(".posicion").click(function(){
+        var prod = $(this).attr('prod')
+        var nombre = $(this).attr('nom')
+        var info = "El producto <b>"+ nombre +"</b> se encuenta en: <br/><br/>"
+        //info += "Posicion 1<br/>"
+        //info += "Posicion 2<br/>"
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{posiciones:prod},
+            success:function(data){
+                for(const [key, value] of Object.entries(data.datos)){
+                    for(const[k,val] of Object.entries(value)){
+                        if(k == 'LINEA'){var lin = val}
+                        if(k == 'TARIMA'){var tar = val}
+                        if(k == 'DISPONIBLE'){var disp = val}
+                    }
+                    info += lin + ':' + tar + ', piezas: '+ disp + '<br/>'
+                }
+                if(data.status='ok'){
+                    $.alert(info + "<br/><div><input type='hidden' value='test' class='btn-sm btn-success imprimir'></div>")
+                }
+            },
+            error:function(error){
+            }
+        })
+    })
+
+    $("body").on("click",".imprimir", function(e){
+        e.preventDefault();
+        //$(".imprimir").click(function(){
+            $.alert("Excel")
+        //})
+    })
 
     $(".actProdInt").click(function(){
         $.alert('Actualiza productos desde intelisis')

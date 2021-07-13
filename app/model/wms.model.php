@@ -2356,7 +2356,7 @@ class wms extends database {
         return array("status"=>$sta,"datos"=>$data, "posiciones"=>$pos);
     }
 
-    function posiciones($ordd){
+    /*function posiciones($ordd){
         $data=array();
         $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and (status= 'P' or status = 'F')";
         $res=$this->EjecutaQuerySimple();
@@ -2364,7 +2364,7 @@ class wms extends database {
             $data[]=$tsArray;
         }
         return $data;
-    }
+    }*/
 
     function posImp($ordd){
         $data=array();
@@ -2798,6 +2798,16 @@ class wms extends database {
             //echo $this->query;
             $this->grabaBD();
         }
+    }
+
+    function posiciones($prod){
+        $data=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE id_PROD = $prod";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return array("status"=>'ok', "datos"=>$data);
     }
 }
 ?>

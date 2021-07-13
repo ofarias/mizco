@@ -433,12 +433,15 @@ class wms_controller {
                 $res=$this->repPdfPP($info, $delim);
                 return array('status' => 'ok', 'completa'=>'..\\..\\Reportes_Almacen\\Reporte Posicion de productos'.$delim.'.pdf' );
                 return $res;
-            }elseif ($out=='x' and $t='da') {
+            }elseif ($out=='x' and $t=='da') {
                 $res=$this->repXlsDa($info, $delim);
                 return $res;
-            }elseif ($out=='p' and $t='da') {
+            }elseif ($out=='p' and $t=='da') {
                 $res=$this->repPdfDa($info, $delim);
                 return $res;
+            }elseif($out=='x' and $t=='prod'){
+                $res=$this->repProd();
+                return $res; 
             }
         } else {
             $e = "Favor de Iniciar Sesión";
@@ -1023,6 +1026,198 @@ class wms_controller {
         $pdf->Output($ruta.'Reporte Posicion de productos'.$delim.'.pdf', 'f');
     }
 
+
+    function repProd(){
+        $usuario = $_SESSION['user']->NOMBRE;   
+        $xls= new PHPExcel();
+        $data = new wms;
+        $col='A';$ln=10; $i=0;
+        $ln++;
+        
+        $col='A';
+        $info=$data->productos($op='');
+            foreach ($info as $row) {
+                $dif=$row->DISP-$row->DISP_ALM;
+                $i++;
+                $ln++;
+                $xls->setActiveSheetIndex()
+                        ->setCellValue($col.$ln,$i)
+                        ->setCellValue(++$col.$ln,$row->ID_INT)
+                        ->setCellValue(++$col.$ln,$row->DESC)
+                        ->setCellValue(++$col.$ln,$row->TIPO_INT)
+                        ->setCellValue(++$col.$ln,$row->STATUS)
+                        ->setCellValue(++$col.$ln,$row->ALMACEN)
+                        ->setCellValue(++$col.$ln,$row->EXI)
+                        ->setCellValue(++$col.$ln,$row->RES)
+                        ->setCellValue(++$col.$ln,$row->REM)
+                        ->setCellValue(++$col.$ln,$row->DISP)
+                        ->setCellValue(++$col.$ln,$row->ING)
+                        ->setCellValue(++$col.$ln,$row->OUT)
+                        ->setCellValue(++$col.$ln,$row->DISP_ALM)
+                        ->setCellValue(++$col.$ln,$dif)
+                ;
+                $linea = "A".$ln;
+                //$xls->getActiveSheet()->getStyle("A".$ln.':'.$col.$ln)->applyFromArray(
+                //    array(
+                //            'font'=> array(
+                //                'bold'=>true
+                //            ),
+                //            'borders'=>array(
+                //                'allborders'=>array(
+                //                    'style'=>PHPExcel_Style_Border::BORDER_THIN
+                //                )
+                //            ), 
+                //            'fill'=>array( 
+                //                    'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                //                    'color'=> array('rgb' => 198, 255, 251)
+                //            )   
+                //        )
+                //    );
+                $col="A";
+                //$xls->getActiveSheet()->getStyle("B".$ln.':'.$col.$ln)->applyFromArray(
+                //    array(
+                //            'font'=> array(
+                //                'bold'=>true
+                //            ),
+                //            'borders'=>array(
+                //                'allborders'=>array(
+                //                    'style'=>PHPExcel_Style_Border::BORDER_THIN
+                //                )
+                //            ), 
+                //            'fill'=>array( 
+                //                    'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                //                    'color'=> array('rgb' => FF0000)
+                //            )   
+                //        )
+                //    );
+                //$col="A";
+                $det=0;
+                
+            }
+        $ln=10;
+            $xls->setActiveSheetIndex()
+                ->setCellValue($col.$ln,"")
+                ->setCellValue(++$col.$ln,"")
+                ->setCellValue(++$col.$ln,"")
+                ->setCellValue(++$col.$ln,"")
+                ->setCellValue(++$col.$ln,"")
+                ->setCellValue(++$col.$ln,"Info Intelisis (".$row->FECHA.')')
+                ->setCellValue(++$col.$ln,"")
+                ->setCellValue(++$col.$ln,"")
+                ->setCellValue(++$col.$ln,"")
+                ->setCellValue(++$col.$ln,"")
+                ->setCellValue(++$col.$ln,"Info Almacen")
+            ;
+        $col='A';
+        $ln++;
+            $xls->setActiveSheetIndex()
+                ->setCellValue($col.$ln,"")
+                ->setCellValue(++$col.$ln,"Clave")
+                ->setCellValue(++$col.$ln,"Descripción")
+                ->setCellValue(++$col.$ln,"Tipo")
+                ->setCellValue(++$col.$ln,"Estatus")
+                ->setCellValue(++$col.$ln,"Almacen")
+                ->setCellValue(++$col.$ln,"Existencia")
+                ->setCellValue(++$col.$ln,"Reservado")
+                ->setCellValue(++$col.$ln,"Remisionado")
+                ->setCellValue(++$col.$ln,"Disponible")
+                ->setCellValue(++$col.$ln,"Entradas")
+                ->setCellValue(++$col.$ln,"Salidas")
+                ->setCellValue(++$col.$ln,"Disponible")
+                ->setCellValue(++$col.$ln,"Diferencia")
+            ;
+            
+            $xls->setActiveSheetIndex()
+                ->setCellValue('A1', "IMPORTADORA MIZCO SA DE CV")
+                ->setCellValue('A2', "Reporte Existencia de productos Intelisis vs Almacen")
+                //->setCellValue('A3',  "")
+                ->setCellValue('A4', "Elaborado por: ")
+                ->setCellValue('B4', $usuario)
+                ->setCellValue('A5', "Fecha de Elaboracion: ")
+                ->setCellValue('B5', date("d-m-Y H:i:s" ) )
+                ->setCellValue('A6', "Total Productos:")
+                ->setCellValue('B6', count($info))
+            ;
+            /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+            $col = 'A';
+            $xls->getActiveSheet()->getColumnDimension($col)->setWidth(4);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(35);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+
+
+            $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+            /// Unir celdas
+            $xls->getActiveSheet()->mergeCells('A1:O1');
+            $xls->getActiveSheet()->mergeCells('F10:J10');
+            $xls->getActiveSheet()->mergeCells('K10:M10');
+            // Alineando
+            $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+            $xls->getActiveSheet()->getStyle('F10')->getAlignment()->setHorizontal('center');
+            $xls->getActiveSheet()->getStyle('K10')->getAlignment()->setHorizontal('center');
+            /// Estilando
+            $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+                array('font' => array(
+                        'size'=>20,
+                    )
+                )
+            );
+            $xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+            //$xls->getActiveSheet()->mergeCells('A3:F3');
+            $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
+                array('font' => array(
+                        'size'=>15,
+                    )
+                )
+            );
+            /// Bordes
+            $xls->getActiveSheet()->getStyle('F10:M10')->applyFromArray(
+                array(
+                    'font'=> array(
+                        'bold'=>true
+                    ),
+                    'borders'=>array(
+                        'allborders'=>array(
+                            'style'=>PHPExcel_Style_Border::BORDER_THIN
+                        )
+                    )
+                )
+            );
+            $xls->getActiveSheet()->getStyle('A11:N11')->applyFromArray(
+                array(
+                    'font'=> array(
+                        'bold'=>true
+                    ),
+                    'borders'=>array(
+                        'allborders'=>array(
+                            'style'=>PHPExcel_Style_Border::BORDER_THIN
+                        )
+                    )
+                )
+            );
+            $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
+                if(!file_exists($ruta) ){
+                    mkdir($ruta);
+                }
+                $nom='Existencia de Productos '.date("d-m-Y H_i_s").'_'.$usuario.'.xlsx';
+                $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+            /// salida a descargar
+                $x->save($ruta.$nom);
+                ob_end_clean();
+                return array("status"=>'ok',"nombre"=>$nom, "ruta"=>$ruta, "completa"=>'..\\..\\Reportes_Almacen\\'.$nom, "tipo"=>'x');
+    }
+
+
     function wms_ordenes($op){
         if($_SESSION['user']){
             $param = $op;
@@ -1509,6 +1704,14 @@ class wms_controller {
             $res=$data->actCorreo($datos);
             return $res;
         }   
+    }
+
+    function posiciones($prod){
+        if($_SESSION['user']){
+            $data = new wms;
+            $res=$data->posiciones($prod);
+            return $res;
+        }      
     }
 }
 ?>
