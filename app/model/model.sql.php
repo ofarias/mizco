@@ -105,26 +105,29 @@ class intelisis extends sqlbase {
         return array("status"=>'ok', "info"=>$info1, "errors"=>$errors, "te"=>$te);
     }
 
-    function prodInt(){
-    	$data = array();
+    function prodInt($t){
+    	$data = array();$datos=array();
         $this->query="SELECT * FROM Art where tipo = 'Lote' and (Estatus = 'Alta' or Estatus = 'Alta')";
         $res=$this->EjecutaQuerySimple();
         while($tsarray = sqlsrv_fetch_array($res)){
         	$data[]=$tsarray;
         }
-        //$datos=$this->datosArticulo();
-        return $data;
+        if($t=='x'){
+        	$datos=$this->existInt();
+        }
+        return array("data"=>$data, "datos"=>$datos);
     }
 
-    function datosArticulo(){
+    function existInt(){
     	$data=array();
-    	echo 'Entra al SP';
-    	$this->query="EXEC MIZCOInformacionIntelisis";
+    	$this->query="SELECT Articulo, ISNULL(RTRIM(LTRIM(Almacen)) + ':1, Existencias: ' + CONVERT(VARCHAR,CONVERT(money,ISNULL(Disponible,0))) + ', Reservado: ' + CONVERT(VARCHAR,CONVERT(money,ISNULL(Reservado,0)))  + ', Remisionado:' + CONVERT(VARCHAR,CONVERT(money,ISNULL((SELECT ISNULL(Remisionado, 0) FROM ArtRemisionado r WHERE r.Empresa = d.Empresa AND r.Almacen = d.Almacen AND r.Articulo = d.Articulo), 0))) + '', '') as disponible
+		 FROM ArtDisponibleReservado d
+		WHERE ISNULL(Empresa, 'MIZCO') = 'MIZCO'
+		ORDER BY Articulo";
     	$res=$this->EjecutaQuerySimple();
-    	while($tsarray=ibase_fetch_object($res)){
+    	while($tsarray=sqlsrv_fetch_array($res)){
     		$data[]=$tsarray;
     	}
-    	print_r($data);
-    	die();
+    	return $data;
     }
 }

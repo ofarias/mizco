@@ -9,7 +9,7 @@ require_once 'app/simplexlsx-master/src/SimpleXLSX.php';
 class wms extends database {
     /* Comprueba datos de login */
     function productos($op){
-        $this->query="SELECT * FROM FTC_ALMACEN_PROD_INT $op";
+        $this->query="SELECT * FROM FTC_ALMACEN_PRODUCTOS";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
@@ -2776,6 +2776,28 @@ class wms extends database {
             }
         }
         die();
+    }
+
+    function inExistInt($datos){
+        $usuario =$_SESSION['user']->ID;
+        //Array ( [0] => 2 IN 1-SP [Articulo] => 2 IN 1-SP [1] => iAL ECM:1, Existencas: 20.00, Reservado: 0.00, Remisionado:0.00; [disponible] => AL ECM:1, Existencias: 20.00, Reservado: 0.00, Remisionado:0.00; ) 
+        foreach($datos as $int){
+            //print_r($int);
+            $ex = explode(",",$int[1]);
+            //print_r($ex);
+            $almacen=explode(":",$ex[0]);
+            $almacen = $almacen[0];
+            $existencias =explode(":",$ex[1]);
+            $existencias = $existencias[1];
+            $reservado =explode(":",$ex[2]);
+            $reservado = $reservado[1];
+            $remisionado =explode(":",$ex[3]);
+            $remisionado = $remisionado[1];
+        //echo 'Almacen: '.$almacen;
+            $this->query="INSERT INTO FTC_ALMACEN_EXI_INT (ID, ID_PINT, ID_INT, ALMACEN, EXISTENCIA, RESERVADO, REMISIONADO, DISPONIBLE, FECHA, USUARIO, STATUS) VALUES (NULL, '$int[0]', (SELECT ID_PINT FROM FTC_ALMACEN_PROD_INT WHERE upper(ID_INT) = upper('$int[0]')), '$almacen', $existencias, $reservado, $remisionado, ($existencias - $reservado - $remisionado), current_timestamp, $usuario, 1 )";
+            //echo $this->query;
+            $this->grabaBD();
+        }
     }
 }
 ?>

@@ -8,7 +8,7 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                Productos en Intelisis <input type="button" value="Actualizar" class="btn-sm btn-primary actProdInt">
+                Productos en Intelisis <input type="button" value="Actualizar" class="btn-sm btn-primary actProdInt" t="p">&nbsp;&nbsp;&nbsp;<input type="button" value="Existencias Intelisis" class="btn-sm btn-info actProdInt" t="x" >
             </div>
             <div class="panel-body">
                 <div class="table-responsive">                            
@@ -27,6 +27,9 @@
                                 <th>Tipo <br/>Intelisis</th>
                                 <th>Estatus <br/>Intelisis</th>
                                 <th>Guardar</th>
+                                <th>Info Intelisis</th>
+                                <th>Info Almacen</th>
+                                <th>Diferencia</th>
                             </tr>
                         </thead>
                         <tfoot>
@@ -39,8 +42,16 @@
                             </tr>
                         </tfoot>
                         <tbody>
-                            <?php $i=0;foreach($info as $row): $i++;?>
-                            <tr class="color" id="linc<?php echo $i?>">
+                            <?php $i=0;foreach($info as $row): $i++;
+                            $dif=$row->DISP-$row->DISP_ALM;
+                            $color='';
+                            if($dif > 0 ){
+                                $color = "style=background-color:#ffbcc3;";
+                            }elseif($dif<0){
+                                $color = "style=background-color:#eaf5fa;";
+                            }
+                            ?>
+                            <tr class="color" id="linc<?php echo $i?>" <?php echo $color;?>>
                                 <td><?php echo $row->ID_INT;?></td>
                                 <td id="prod_<?php echo $i?>"><?php echo $row->DESC;?></font></td>
                                 <td><?php echo $row->PZS_ORIG;?></td>
@@ -57,6 +68,9 @@
                                 <td>
                                     <input type="button" name="gd" value="Guardar" class="btn-sm save hidden" ln="<?php echo $i?>" id="bg<?php echo $i?>" cve="<?php echo $row->ID_PINT?>">
                                 </td>
+                                <td title="Exi:Existencia, Res: Reservado, Rem: Remisionado">Disponible: <?php echo $row->DISP?><br/>Almacen:<?php echo $row->ALMACEN?>&nbsp;&nbsp;<?php echo 'Exis: '.$row->EXI.', Res: '.$row->RES.', Rem: '.$row->REM?></td>
+                                <td>Disponible:<?php echo $row->DISP_ALM?><br/> Entradas:<?php echo $row->ING.'&nbsp;&nbsp; Salidas:'.$row->OUT?></td>
+                                <td><?php echo $dif?></td>
                             </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -75,8 +89,9 @@
 <script type="text/javascript">
 
     $(".actProdInt").click(function(){
-        $.alert('Actualiza producto en intelisis')
-        window.open("index.wms.php?action=wms_menu&opc=pa", '_self')
+        $.alert('Actualiza productos desde intelisis')
+        var t = $(this).attr('t')
+        window.open("index.wms.php?action=wms_menu&opc=pa"+t, '_self')
     })
 
     $(".marca").change(function(){

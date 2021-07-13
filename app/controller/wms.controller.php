@@ -46,7 +46,7 @@ class wms_controller {
         ob_start();
         if (isset($_SESSION['user'])){
             if(substr($opc,0,1) == 'p'){
-                $this->wms_prod($op=substr($opc,1,1));die();
+                $this->wms_prod($op=substr($opc,1,2));die();
             }elseif(substr($opc,0,1) =='c'){
                 $this->wms_comp($op='', $param=substr($opc,1));die();
             }elseif(substr($opc,0,1) == 'a'){
@@ -87,9 +87,12 @@ class wms_controller {
             $pagina = $this->load_template('Productos');
             $html = $this->load_page('app/views/pages/almacenes/p.productos.php');
             ob_start();
-            if($op == 'a'){
-                $intelisis = $dataInt->prodInt();
-                $refresh = $data->refresh($intelisis);
+            if(substr($op,0,1) == 'a'){
+                $intelisis = $dataInt->prodInt($t = substr($op,1,1));
+                $refresh = $data->refresh($intelisis['data']);
+                if(count($intelisis['datos']) >0 ){
+                    $exist=$data->inExistInt($intelisis['datos']);
+                }
             }
             $info = $data->productos($op);
             include 'app/views/pages/almacenes/p.productos.php';
