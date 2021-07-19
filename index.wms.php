@@ -103,6 +103,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->actCorreo($_POST['datos']);echo json_encode($res);exit();
 }elseif(isset($_POST['posiciones'])){
     $res=$controller_wms->posiciones($_POST['posiciones']);echo json_encode($res);exit();
+}elseif(isset($_POST['liberar'])){
+    $res=$controller_wms->liberar($_POST['liberar']);echo json_encode($res);exit();
 }
 else{
     switch ($_GET['action']) {

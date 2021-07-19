@@ -1713,6 +1713,14 @@ class wms_controller {
             return $res;
         }      
     }
+
+    function liberar($movs){
+        if($_SESSION['user']){
+            $data=new wms;
+            $res=$data->liberar($movs);
+            return $res;
+        }
+    }
 }
 ?>
 

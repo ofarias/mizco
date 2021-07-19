@@ -249,10 +249,11 @@
                                     if(k=='LINEA'){var s_lin=val}
                                     if(k=='TARIMA'){var s_tar=val}
                                     if (k=='PIEZAS'){ var s_cant=val}    
+                                    if (k=='ID_MS'){ var movs=val}    
                                 }
                                 pos.innerHTML+="<b>Lin: </b> " + s_lin
                                 pos.innerHTML+="<b> Tar: </b> " + s_tar
-                                pos.innerHTML+="<b> Pzas: </b> <font color='green'>" + s_cant +"</font><br/>"
+                                pos.innerHTML+="<b> Pzas: </b> <a class='liberar' id='ms_"+movs+"' npnd=''><font color='green'>" + s_cant +"</font></a><br/>"
                             }
                         }
                     }else{
@@ -265,6 +266,27 @@
             })
         })
     }
+
+    $("body").on("click", ".liberar", function(e){
+        e.preventDefault();
+        $.alert("Se ha liberado")
+        var movs = $(this).attr('id')
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{liberar:movs}, 
+            success:function(data){
+                if(data.status == 'ok'){
+                    document.getElementById(movs).classList.add("hidden")
+                    $(this).attr('npnd')=1;
+                }
+            }, 
+            error:function(error){
+
+            }
+        })
+    })
 
 
 /*
@@ -324,17 +346,18 @@
         })
     }
 */
+
     $("body").on("click", ".surte", function(e){
         e.preventDefault();
-        return false
+        //return false
         var ordd = $(this).attr('ordd');
         var comps = $(this).attr('comps');
         var mov = $(this).attr('mov')
         var pnd = $(this).attr('pnd')
-        if(pnd == 0){
-            $.alert("El pedido esta surtido")
-            return
-        }else{    
+        //if(pnd == 0){
+            //$.alert("El pedido esta surtido")
+            //return
+        //}else{    
             $.ajax({
                 url:'index.wms.php',
                 type:'post',
@@ -351,7 +374,7 @@
                 error:function(){
                 }
             })
-        }
+        //}
     })
 
     $(".ocultar").click(function(){

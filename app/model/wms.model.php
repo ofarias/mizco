@@ -530,7 +530,7 @@ class wms extends database {
                 SUM(CANT) AS CANT, 
                 SUM(PIEZAS) AS PIEZAS  , 
                 MAX(usuario) as usuario, 
-                cast( list(DISTINCT prod) as varchar (1000)) as prod, 
+                cast( list(DISTINCT prod) as varchar (2000)) as prod, 
                 (SELECT MAX(ETIQUETA) FROM FTC_ALMACEN_COMPONENTES AC WHERE AC.ID_COMP = max(AM.ID_compp) ) as componente 
             FROM FTC_ALMACEN_MOVIMIENTO AM $op $p  group by mov order by mov desc";
             //echo 'Consulta de movimientos con filtro: '.$this->query;
@@ -543,9 +543,14 @@ class wms extends database {
     }
 
     function aOC($ord){
-        $this->query="UPDATE FTC_ALMACEN_ORDEN SET status= 2 where id_ord = $ord";
-        $this->EjecutaQuerySimple();
-        return array("sta"=>'ok', "msg"=>'Se ha liberado la orden para Asignacion');
+        $this->query="UPDATE FTC_ALMACEN_ORDEN SET status= 2 where id_ord = $ord and status = 1";
+        $res=$this->queryActualiza();
+        if($res==1){
+            $sta='ok'; $msg="Se ha liberado la orden para Asignacion";
+        }else{
+            $sta='no'; $msg="La Orden esta eliminada y no se puede liberar";
+        }
+        return array("sta"=>$sta, "msg"=>$msg);
     }
 
     function unidades($op){
@@ -2233,20 +2238,22 @@ class wms extends database {
     }
 
     function delOC($id){
-        $mov=0; $sta='no'; $msg="no se encontro el resgitro para elminarlo";
+        $mov=0; $sta='no'; $msg="No se encontro el resgitro para elminarlo";
         $this->query="SELECT o.* , (SELECT count(id_log) FROM FTC_ALMACEN_LOG l where tabla= 1 and l.id = o.id_ord) as Logs FROM FTC_ALMACEN_ORDEN o  WHERE ID_ORD = $id";
         $r=$this->EjecutaQuerySimple();
         $row = ibase_fetch_object($r);
-        $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS= 9 WHERE ID_ORD = $id and status=1";
+        $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS= 9 WHERE ID_ORD = $id and (status=1 or status = 2 or status = 3 )";
         $res=$this->queryActualiza();
-        if($res == 1){
+        if($res==1){
             $sta= 'ok';
-            if($row->STATUS == 1){
+            if($row->STATUS == 1 or $row->STATUS==2){
                 $msg="Se ha eliminado el archivo y sus referencias.";
-            }elseif($row->LOGS > 0 ){
+            }elseif($row->LOGS > 0 and $row->STATUS==3){
                 $msg="El registro tiene ".$row->LOGS." movimientos";
                 $sta= 'ok';
                 $mov= $row->LOGS;
+                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = 0 WHERE ID_ORD = $id";
+                $this->queryActualiza();
             }
         }
         return array("status"=>$sta,"msg"=>$msg, "mov"=>$mov);
@@ -2808,6 +2815,22 @@ class wms extends database {
             $data[]=$tsArray;
         }
         return array("status"=>'ok', "datos"=>$data);
+    }
+
+    function liberar($movs){
+        $movs = substr($movs, 3);
+        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = PZAS_SUR - (SELECT PIEZAS FROM FTC_ALMACEN_MOV_SAL WHERE ID_MS=$movs and (status ='P' or STATUS ='F')) WHERE ID_ORDD = (SELECT ID_ORDD FROM FTC_ALMACEN_MOV_SAL WHERE ID_MS=$movs and (STATUS ='P' OR STATUS='F'))";
+        $res=$this->queryActualiza();
+
+        $this->query="UPDATE FTC_ALMACEN_MOV_SAL SET STATUS='C' WHERE ID_MS=$movs and (STATUS ='P' OR STATUS='F')";
+        $res=$this->queryActualiza();
+
+        if($res == 1){
+            $this->actStatus($tabla=6, $tipo='Salida', $sub='Cancelacion', $ids=','.$movs, $obs='Cancelacion de Surtido '.$movs);
+            $this->revisaStatus();
+        }
+
+        return array("sta"=>'ok');
     }
 }
 ?>
