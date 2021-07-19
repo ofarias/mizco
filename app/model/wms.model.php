@@ -2827,7 +2827,6 @@ class wms extends database {
 
         if($res == 1){
             $this->actStatus($tabla=6, $tipo='Salida', $sub='Cancelacion', $ids=','.$movs, $obs='Cancelacion de Surtido '.$movs);
-            //$this->revisaStatus();
         }
 
         return array("sta"=>'ok');
