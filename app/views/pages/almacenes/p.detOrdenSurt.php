@@ -68,8 +68,10 @@
                                                 
                                                 <label id="ocu_<?php echo $ln?>" ln="<?php echo $ln?>" class="ocultar" hidden="true"><font color ="blue">+/-</font><br/><br/></label>
 
-                                                <label class="comp verComp vc<?php echo $ln?>" mod="<?php echo $ord->PROD?>" ln="<?php echo $ln?>" ordd="<?php echo $ord->ID_ORDD?>" pnd="<?php echo ($ord->ASIG-$ord->PZAS_SUR)?>" srt="<?php echo ($ord->PZAS_SUR)?>"> <font color="red">+ / -</font></label>
-
+                                                <label class="comp verComp vc<?php echo $ln?>" mod="<?php echo $ord->PROD?>" ln="<?php echo $ln?>" ordd="<?php echo $ord->ID_ORDD?>" pnd="<?php echo ($ord->ASIG-$ord->PZAS_SUR)?>" srt="<?php echo ($ord->PZAS_SUR)?>">
+                                                    <font color="red"> + / - </font>
+                                                </label>
+                                                <label class="infoComp<?php echo $ln?>"></label>
 
                                             </td>
                                             <td><?php echo $ord->CAJAS?></td>
@@ -178,6 +180,7 @@
 
     function revisaComp(mod, ln, ordd, comp, pos, pnd){
         $('#ocu_'+ln).prop('hidden', false);
+        var compV = $('.infoComp'+ln) 
         $.ajax({
         url:'index.wms.php',
         type:'post',
@@ -195,11 +198,13 @@
                         if(k == 'SECUNDARIO'){var secu= val}
                         if(k == 'ID_AM'){var mov= val}
                     }
-                    comp.prop('id', ln+'_'+id_comp)
-                    comp.prop('title', compp + '_:_' + comps)
-                    comp.append('<br/><text class="Lit "><b>Linea: </b>' +prim+'</text>')
-                    comp.append('<br/><text class="Lit "><b>Tarima: </b>' +secu+ '</text>')
-                    comp.append('<br/><text class="Lit "><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'" pnd="'+pnd+'" ><font color="red">'+pzas+'</font></a></text>')
+                    compV.prop('id', ln+'_'+id_comp)
+                    compV.prop('title', compp + '_:_' + comps)
+                    //compV.removeClass('verComp')
+                    compV.append('<br/><text class="Lit "><b>Linea: </b>' +prim+'</text>')
+                    compV.append('<br/><text class="Lit "><b>Tarima: </b>' +secu+ '</text>')
+                    compV.append('<br/><text class="Lit "><b>Cantidad:</b> <a class="surte" value="100" comps="'+id_comp+'" cant="'+pzas+'" ordd="'+ordd+'" mov="'+mov+'" pnd="'+pnd+'" ><font color="red">'+pzas+'</font></a></text>')
+
                     }
                     if(data.posiciones.length > 0){
                         for(const [key, value] of Object.entries(data.posiciones)){
@@ -234,6 +239,7 @@
             var ln = $(this).attr("ln")
             var ordd = $(this).attr('ordd')
             var comp = $(this)
+            comp.removeClass('hidden')
             var pos = document.getElementById("surt_"+ln)
             pos.innerHTML=''
             $.ajax({
@@ -253,7 +259,7 @@
                                 }
                                 pos.innerHTML+="<b>Lin: </b> " + s_lin
                                 pos.innerHTML+="<b> Tar: </b> " + s_tar
-                                pos.innerHTML+="<b> Pzas: </b> <a class='liberar' id='ms_"+movs+"' npnd=''><font color='green'>" + s_cant +"</font></a><br/>"
+                                pos.innerHTML+="<b> Pzas: </b> <a class='liberar' id='ms_"+movs+"' npnd='' ln='"+ln+"'><font color='green'>" + s_cant +"</font></a><br/>"
                             }
                         }
                     }else{
@@ -269,25 +275,25 @@
 
     $("body").on("click", ".liberar", function(e){
         e.preventDefault();
-        $.alert("Se ha liberado")
+        var ln = $(this).attr('ln')
         var movs = $(this).attr('id')
+        var p = $("#surt_"+ln)
         $.ajax({
             url:'index.wms.php',
             type:'post',
             dataType:'json',
             data:{liberar:movs}, 
             success:function(data){
-                if(data.status == 'ok'){
-                    document.getElementById(movs).classList.add("hidden")
-                    $(this).attr('npnd')=1;
+                if(data.sta == 'ok'){
+                    p.addClass("hidden")
+                    $(this).attr('npnd', '1');
+                    $.alert("Se ha liberado")
                 }
             }, 
             error:function(error){
-
             }
         })
     })
-
 
 /*
     function revisa(algo){    
@@ -349,14 +355,13 @@
 
     $("body").on("click", ".surte", function(e){
         e.preventDefault();
-        //return false
         var ordd = $(this).attr('ordd');
         var comps = $(this).attr('comps');
         var mov = $(this).attr('mov')
         var pnd = $(this).attr('pnd')
         //if(pnd == 0){
-            //$.alert("El pedido esta surtido")
-            //return
+        //    $.alert("El pedido esta surtido")
+        //    return
         //}else{    
             $.ajax({
                 url:'index.wms.php',
@@ -366,7 +371,7 @@
                 success:function(data){
                     if(data.status=='ok'){
                         /// aqui ponemos los nuevos datos de las existencias
-                        revisa()
+                        revisaSurt()
                         document.getElementById('act_'+ordd).innerHTML=(parseFloat(data.srt))+'\/<font color="blue">'+(parseFloat(data.pnd))+'</font>'
                         // restamos lo asignado a lo pendiente para que cuadre la informacion. 
                     }
