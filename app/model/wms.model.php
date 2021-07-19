@@ -530,7 +530,7 @@ class wms extends database {
                 SUM(CANT) AS CANT, 
                 SUM(PIEZAS) AS PIEZAS  , 
                 MAX(usuario) as usuario, 
-                cast( list(DISTINCT prod) as varchar (2000)) as prod, 
+                cast( list(DISTINCT prod) as varchar (3000)) as prod, 
                 (SELECT MAX(ETIQUETA) FROM FTC_ALMACEN_COMPONENTES AC WHERE AC.ID_COMP = max(AM.ID_compp) ) as componente 
             FROM FTC_ALMACEN_MOVIMIENTO AM $op $p  group by mov order by mov desc";
             //echo 'Consulta de movimientos con filtro: '.$this->query;
