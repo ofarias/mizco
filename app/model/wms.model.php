@@ -543,7 +543,7 @@ class wms extends database {
     }
 
     function aOC($ord){
-        $this->query="UPDATE FTC_ALMACEN_ORDEN SET status= 2 where id_ord = $ord and status = 1";
+        $this->query="UPDATE FTC_ALMACEN_ORDEN SET status= 2, FECHA_ASIGNA = current_timestamp where id_ord = $ord and status = 1";
         $res=$this->queryActualiza();
         if($res==1){
             $sta='ok'; $msg="Se ha liberado la orden para Asignacion";
