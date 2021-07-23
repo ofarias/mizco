@@ -1328,7 +1328,7 @@ class wms_controller {
                 mkdir($target_dir);
             }
             $count = 0;
-            $respuesta = 0;
+            $respuesta = 0;$message=array();
             foreach ($_FILES['files']['name'] as $f => $name) { 
                 if ($_FILES['files']['error'][$f] == 4) {
                     continue; // Skip file if any error found
@@ -1340,6 +1340,9 @@ class wms_controller {
                     }elseif (!in_array(pathinfo($name, PATHINFO_EXTENSION), $valid_formats)) {
                         $message[] = "$name no es un archivo permitido.";
                         continue; // Skip invalid file formats
+                    }elseif(file_exists($target_dir.basename($_FILES["files"]["name"][$f]))){
+                        $message[] = "$name es un archivo duplicado.";
+                        continue; // Skip invalid file formats
                     } else { // No error found! Move uploaded files 
                         $target_file = $target_dir.basename($_FILES["files"]["name"][$f]);
                         $uploadOk =0;
@@ -1349,11 +1352,13 @@ class wms_controller {
                         } else {
                             echo "Ocurrio un problema al subir su archivo, favor de revisarlo.";
                         }
-                            //echo 'Archivo: '.$target_file;
                     }
                 }
             }
-            $this->wms_ordenes($op='');
+            for ($i=0; $i <count($message) ; $i++) { 
+                echo '<p><font color="purpple">'.$message[$i].'</font></p>';
+            }
+            $this->limpiaForm('wms_menu&opc=o');
         } else {
             $e = "Favor de Iniciar Sesión";
             header('Location: index.php?action=login&e=' . urlencode($e));
@@ -1559,8 +1564,8 @@ class wms_controller {
                 }
             }
             $pdf->Cell(20, 6, number_format($total,0)." C", 'LRTB',0,'R');
-            $pdf->Cell(55, 6, $ubicacion, $m,0,'R');
-            $pdf->Cell(40, 6, $ord->ETIQUETA , 'LRTB');
+            $pdf->Cell(55, 6, utf8_decode($ubicacion), $m,0,'R');
+            $pdf->Cell(40, 6, utf8_decode($ord->ETIQUETA) , 'LRTB');
             $pdf->Ln();
             if($i >= 2){
                 for($l=0; $l < count($ubi)-1 ; $l++) { 

@@ -14,7 +14,11 @@ if ($_FILES["fileToUpload"]["size"] > ((1024*1024)*20)) {
     echo "El archivo dede medir menos de 20 MB.";
 }else{
     //file_exists($target_file) or
-    if (  (strtoupper($fileType) != ("XLS") and strtoupper($fileType) != ("XLSX") and strtoupper($fileType) != ("CSV") and strtoupper($fileType) != ("TXT"))){
+    if(file_exists($target_file)){
+        echo 'El Archivo ya existe';
+        die();
+    }
+    if ( file_exists($target_file) or (strtoupper($fileType) != ("XLS") and strtoupper($fileType) != ("XLSX") and strtoupper($fileType) != ("CSV") and strtoupper($fileType) != ("TXT"))){
         echo "El Archivo ".$target_file." que intenta cargar, ya existen en el Sistema, se intenta subir un duplicado <p>";
         echo "o el archivo no es valido; solo se pueden subir arvhivos xls o csv. <p>".strtoupper($fileType);
         $tipo = 'duplicado';

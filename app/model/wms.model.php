@@ -2211,7 +2211,7 @@ class wms extends database {
             //$campos = " sum(pzas) as piezas, sum(asig) as asignado ";
             $param2 = " WHERE ID_ORD = $ord ";
             /// cambiamos el status de la orden a Asignado. 
-            $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 3 WHERE STATUS = 2 AND ID_ORD = $ord";
+            $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 3, FECHA_ASIGNA_F = current_timestamp  WHERE STATUS = 2 AND ID_ORD = $ord";
             $this->queryActualiza();
             $tabla = 1; $tipo='Orden';
         }elseif($t=='l'){
@@ -2242,7 +2242,7 @@ class wms extends database {
         $this->query="SELECT o.* , (SELECT count(id_log) FROM FTC_ALMACEN_LOG l where tabla= 1 and l.id = o.id_ord) as Logs FROM FTC_ALMACEN_ORDEN o  WHERE ID_ORD = $id";
         $r=$this->EjecutaQuerySimple();
         $row = ibase_fetch_object($r);
-        $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS= 9 WHERE ID_ORD = $id and (status=1 or status = 2 or status = 3 )";
+        $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS= 9, ARCHIVO = ARCHIVO||'_old'||$id WHERE ID_ORD = $id and (status=1 or status = 2 or status = 3 )";
         $res=$this->queryActualiza();
         if($res==1){
             $sta= 'ok';
@@ -2255,6 +2255,9 @@ class wms extends database {
                 $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = 0 WHERE ID_ORD = $id";
                 $this->queryActualiza();
             }
+            $file = $row->ARCHIVO;
+            rename($file, $file.'_old'.$row->ID_ORD);
+            $this->actStatus($tabla=1, $tipo='Eliminar', $sub='Orden', ','.$id, $obs='Eliminacion de Orden de compra');
         }
         return array("status"=>$sta,"msg"=>$msg, "mov"=>$mov);
     }
@@ -2316,7 +2319,8 @@ class wms extends database {
 
     function comPro($prod, $ordd){
         $data=array();
-        $this->query="SELECT first 2 m.*, (select
+        $this->query="SELECT first 2 m.ID_AM, m.SIST_ORIGEN, m.ID_ALMACEN, m.ALMACEN, m.ID_TIPO, m.TIPO, m.ID_USUARIO, m.FECHA, m.ID_STATUS, m.STATUS, m.USUARIO_ATT, m.HORA_I, m.HORA_F, m.CANT, m.ID_PROD, m.ID_UNIDAD, m.UNIDAD, m.PIEZAS, m.MOV, m.ID_COMPP, m.COMPP, m.ID_COMPS, m.COMPS, m.COLOR, m.PRIMARIO, m.SECUNDARIO
+        , (select
                 coalesce( sum(ms.piezas), 0) from ftc_almacen_mov_sal ms where ms.id_mov = m.id_am
                 and status= 'F' 
             ) as salidas, 
@@ -2731,8 +2735,9 @@ class wms extends database {
             }
         }
         if($fin == $ordenes){
-            $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 5 WHERE ID_ORD = $ord";
+            $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 5, fecha_almacen_F = current_timestamp WHERE ID_ORD = $ord";
             $this->queryActualiza();
+            $this->actStatus($tabla=1, $tipo='Surtido', "Orden", ','.$ord, $p='Final de surtido de la Orden');
         }
         return;
     }
@@ -2743,7 +2748,6 @@ class wms extends database {
         }elseif($t=='e'){
             $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ETIQUETA = '$uni' WHERE ID_ORDD = $ordd";
         }
-        echo $this->query;
         $this->queryActualiza();
         return array("sta"=>'ok');
     }
