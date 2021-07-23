@@ -165,13 +165,11 @@
                 return $.ajax({
                     method: 'GET',
                     url: 'index.wms.php',
-                    data: 'action=wms_menu&&opc=pa'+t,
+                    data: 'action=wms_menu&opc=pa'+t,
                 }).done(function (response){
                     self.setContent(content);
-                    //self.setContentAppend('Se sincronizo correctamente' );
                     self.setTitle(title);
-                    //window.open("index.wms.php?action=wms_menu&opc=pa"+t, '_self')
-                    window.reload(true)
+                    window.open("index.wms.php?action=wms_menu&opc=p", '_self')
                 }).fail(function(){
                     self.setContent('Algo se nos salio de control o no calculamos bien... favor de reportar al 5550553392');
                 });
