@@ -148,27 +148,32 @@
     })
 
     $(".actProdInt").click(function(){
-        $.alert('Actualiza productos desde intelisis')
+        //$.alert('Actualiza productos desde intelisis')
+        var title=''
+        var content=''
         var t = $(this).attr('t')
-        //window.open("index.wms.php?action=wms_menu&opc=pa"+t, '_self')
+        if(t== 'p'){
+            title= 'Sincronizar Productos'
+            content = 'Se sincronizo correctamente los productos'
+        }else if(t == 'x'){
+            title= 'Sincronizar Existencias'
+            content = 'Se sincronizaron correctamente las existencias'
+        }
         $.confirm({
             content: function () {
                 var self = this;
                 return $.ajax({
-                    //url: 'bower.json',
-                    //dataType: 'json',
-                    //method: 'get'
-                    type: 'GET',
-                    url: 'index.wms.phpwms_menu',
+                    method: 'GET',
+                    url: 'index.wms.php',
                     data: 'action=wms_menu&&opc=pa'+t,
                 }).done(function (response){
-                    self.setContent('Description: ' );
-                    self.setContentAppend('<br>Version: ' );
-                    self.setTitle('Sincronizar Existencias con Intelisis');
-                    window.open("index.wms.php?action=wms_menu&opc=pa"+t, '_self')
+                    self.setContent(content);
+                    //self.setContentAppend('Se sincronizo correctamente' );
+                    self.setTitle(title);
+                    //window.open("index.wms.php?action=wms_menu&opc=pa"+t, '_self')
+                    window.reload(true)
                 }).fail(function(){
                     self.setContent('Algo se nos salio de control o no calculamos bien... favor de reportar al 5550553392');
-                    //window.open("index.wms.php?action=wms_menu&opc=pa"+t, '_self')
                 });
             }
         });
