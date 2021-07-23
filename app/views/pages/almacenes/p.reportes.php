@@ -55,31 +55,37 @@
     $(".report").click(function(){
         var t = $(this).val()
         var out = $("#"+t).val()
-        $.ajax({
-            url:'index.wms.php',
-            type:'post',
-            dataType:'json',
-            data:{report:1, t, out},
-            success:function(data){
-                if(data.status == 'ok'){
-                    if(out == 'x'){
-                        $.alert('Descarga del archivo de Excel')
-                        window.open( data.completa , 'download')
-                    }
-                    if(out == 'p'){
-                        $.alert('Abrir la pagina en una ventana nueva')
-                        window.open(data.completa, '_blank')
-                    }
-                    if(out == 'b'){
-                        $.alert('Descargar el archivo en excel y Abrir la pagina en una ventana nueva')   
-                        window.open( data.completa , 'download')
-                    }
-                }
-            },
-            error:function(){
-                    $.alert('Ocurrio un error')   
+        $.confirm({
+            content: function () {
+                var self = this;
+                return $.ajax({
+                            url:'index.wms.php',
+                            type:'post',
+                            dataType:'json',
+                            data:{report:1, t, out},
+                }).done(function (data) {
+                    self.setContent('Se ha descargado el archivo');
+                    //self.setContentAppend('Descarga de Reporte ');
+                    self.setTitle('Reportes del almacen');
+                        if(data.status == 'ok'){
+                            if(out == 'x'){
+                                //$.alert('Descarga del archivo de Excel')
+                                window.open( data.completa , 'download')
+                            }
+                            if(out == 'p'){
+                                //$.alert('Abrir la pagina en una ventana nueva')
+                                window.open(data.completa, '_blank')
+                            }
+                            if(out == 'b'){
+                                //$.alert('Descargar el archivo en excel y Abrir la pagina en una ventana nueva')   
+                                window.open( data.completa , 'download')
+                            }
+                      }
+                }).fail(function(){
+                    self.setContent('Algo ocurrio y no pude procesarlo, intente nuevamente.');
+                });
             }
-        })
+        }); 
     })
     
 </script>

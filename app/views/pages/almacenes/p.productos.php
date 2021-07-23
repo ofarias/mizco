@@ -150,7 +150,28 @@
     $(".actProdInt").click(function(){
         $.alert('Actualiza productos desde intelisis')
         var t = $(this).attr('t')
-        window.open("index.wms.php?action=wms_menu&opc=pa"+t, '_self')
+        //window.open("index.wms.php?action=wms_menu&opc=pa"+t, '_self')
+        $.confirm({
+            content: function () {
+                var self = this;
+                return $.ajax({
+                    //url: 'bower.json',
+                    //dataType: 'json',
+                    //method: 'get'
+                    type: 'GET',
+                    url: 'index.wms.phpwms_menu',
+                    data: 'action=wms_menu&&opc=pa'+t,
+                }).done(function (response){
+                    self.setContent('Description: ' );
+                    self.setContentAppend('<br>Version: ' );
+                    self.setTitle('Sincronizar Existencias con Intelisis');
+                    window.open("index.wms.php?action=wms_menu&opc=pa"+t, '_self')
+                }).fail(function(){
+                    self.setContent('Algo se nos salio de control o no calculamos bien... favor de reportar al 5550553392');
+                    //window.open("index.wms.php?action=wms_menu&opc=pa"+t, '_self')
+                });
+            }
+        });
     })
 
     $(".marca").change(function(){
@@ -173,23 +194,6 @@
         var uo = document.getElementById('uo'+lin).value
         var linea = document.getElementById("linc"+lin)
         var obj=document.getElementById("bg"+lin)
-        /*$.confirm({
-            content:function(){
-                var self = this;
-                return $.ajax({
-                            url:'index.vms.php',
-                            type:'post',
-                            dataType:'json',
-                            data:{actProd:cve, lg, an, al, p, uo} 
-                        }).done(function(response){
-                            self.setContent('Descripción')+response.desc;
-                            self.setContectAppend('<br>version');
-                            self.setTitle('Correcto')
-                        }).fail(function(){
-                            selt.setContent('No se pudo guardar favor de verificar los valores')
-                        })
-            }
-        })*/
         if(confirm('Desea grabar los cambios?')){
             $.ajax({
                 url:'index.wms.php',
@@ -208,8 +212,6 @@
         }else{
             return false;
         }
-        
-        
     })
   
 </script>
