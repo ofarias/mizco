@@ -2688,7 +2688,7 @@ class wms extends database {
                     $sta =0;
                     break;
             }
-            $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = 5 WHERE ID_COMP = $idc or COMPP=$idc";
+            $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = $sta WHERE ID_COMP = $idc or COMPP=$idc";
             $this->queryActualiza();
             return array("status"=>'ok', "msg"=>'Se ha actualizado el componente');
         }else{
