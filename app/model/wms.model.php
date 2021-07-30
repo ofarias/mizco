@@ -830,7 +830,7 @@ class wms extends database {
             $hoja = $xlsx->sheetName(0);
             if(strtoupper(trim($hoja)) == 'COPPEL'){
                 $this->coppel($xlsx, $hoja, $file, $ido);
-            }elseif(strtoupper( trim($hoja)) == 'NUEVO WALMART'){
+            }elseif(strtoupper( trim($hoja)) == 'NUEVO WALMART' or trim($hoja) == 'NUEVO LINEAL WM'){
                 $this->walmart($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper( trim($hoja)) == 'CIMACO'){
                 $this->cimaco($xlsx, $hoja, $file, $ido);
