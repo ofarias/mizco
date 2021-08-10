@@ -105,7 +105,7 @@
                                 <td><?php echo number_format($row->MEDICION=='m'? $row->ANCHO/100: $row->ANCHO,2).' '.$row->MEDICION?></td>
                                 <td><?php echo number_format($row->MEDICION=='m'? $row->ALTO/100: $row->ALTO,2).' '.$row->MEDICION?></td>
                                 <td><?php echo $row->ALMACEN?></td>
-                                <td><?php echo $row->PRODUCTOS?></td>
+                                <td title="<?php echo $row->PRODUCTOS?>"><?php echo substr($row->PRODUCTOS,0,50).'...'?></td>
                                 <td><textarea cols="25" rows="3" class="chgDesc" t="o" o="<?php echo $row->OBS?>" c="<?php echo $row->ID_COMP?>"><?php echo $row->OBS?></textarea></td>
                                 <td>
                                     <SELECT class="sta" comp="<?php echo $row->ID_COMP?>">

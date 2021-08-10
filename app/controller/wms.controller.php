@@ -185,19 +185,20 @@ class wms_controller {
     }
 
     function wms_mov($op, $param){
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])) {
-            $data = new wms;
+            $data = new wms; $t='';
             $pagina = $this->load_template('Componentes');
             $html = $this->load_page('app/views/pages/almacenes/p.movimientos.php');
             ob_start();
-            
+            echo 'Valor de parametros '.$param.', fin del valor';
+            if(!empty($param)){
+                $t=explode(",",$param);
+                $t=$t[0]; $t=explode(":",$t); $t=$t[1];
+            }
             $info=$data->movimientos($op=" ", $param);
-
             $alm=$data->almacenes($op=" WHERE STATUS = 'Activo'");
             $comp=$data->componentes($op=" WHERE STATUS = 'Activo'", $param='');
             $usuarios=$data->usuarios($op = " WHERE STATUS = ''");
-
             include 'app/views/pages/almacenes/p.movimientos.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
@@ -1725,6 +1726,160 @@ class wms_controller {
             $res=$data->liberar($movs);
             return $res;
         }
+    }
+
+    function movsProd($prod){
+        $usuario = $_SESSION['user']->NOMBRE;   
+        $xls= new PHPExcel();
+        $data = new wms;
+        $info = $data->movsProd($prod);
+        $col='A';$ln=13; $i=0;$sali=0; $entr=0; $sali1=0; $entr1=0; $sali2=0; $entr2=0;
+        
+        $xls->setActiveSheetIndex()
+            ->setCellValue('A1', 'Importadora Mizco SA de CV')
+            ->setCellValue('A2', 'Reporte de Movimientos por producto')
+        ;
+
+        $xls->setActiveSheetIndex()
+            ->setCellValue($col.$ln, 'Num')
+            ->setCellValue(++$col.$ln, 'Movimiento')
+            ->setCellValue(++$col.$ln, 'Tipo' )
+            ->setCellValue(++$col.$ln, 'Almacen')
+            ->setCellValue(++$col.$ln, 'Orden')
+            ->setCellValue(++$col.$ln, 'Producto')
+            ->setCellValue(++$col.$ln, 'Descripcion')
+            ->setCellValue(++$col.$ln, 'Fecha')
+            ->setCellValue(++$col.$ln, 'Usuario')
+            ->setCellValue(++$col.$ln, 'Cantidad')
+            ->setCellValue(++$col.$ln, 'Unidad')
+            ->setCellValue(++$col.$ln, 'Piezas')
+            ->setCellValue(++$col.$ln, 'Linea')
+            ->setCellValue(++$col.$ln, 'Tarima')
+            ->setCellValue(++$col.$ln, 'Cliente')
+            ->setCellValue(++$col.$ln, 'Cedis')
+            
+            ;
+        $col= 'A';
+        foreach($info['entradas'] as $ent){
+            $ln++;$i++;$entr+=$ent->PIEZAS;
+            $entr1 = $ent->ALMACEN == 1? $entr1+$ent->PIEZAS:$entr1+0;
+            $entr2 = $ent->ALMACEN == 2? $entr2+$ent->PIEZAS:$entr2+0;
+
+            $xls->setActiveSheetIndex()
+                ->setCellValue($col.$ln, $i )
+                ->setCellValue(++$col.$ln, $ent->MOV)
+                ->setCellValue(++$col.$ln, $ent->TIPO)
+                ->setCellValue(++$col.$ln, $ent->ALMACEN)
+                ->setCellValue(++$col.$ln, '')
+                ->setCellValue(++$col.$ln, $ent->INTELISIS)
+                ->setCellValue(++$col.$ln, $ent->PROD)
+                ->setCellValue(++$col.$ln, $ent->FECHA_INGRESO)
+                ->setCellValue(++$col.$ln, $ent->USR_ENT)
+                ->setCellValue(++$col.$ln, $ent->CANT)
+                ->setCellValue(++$col.$ln, $ent->UNIDAD)
+                ->setCellValue(++$col.$ln, $ent->PIEZAS)
+                ->setCellValue(++$col.$ln, $ent->LINEA)
+                ->setCellValue(++$col.$ln, $ent->TARIMA)
+                ;
+            $col='A';
+        }
+
+        foreach($info['salidas'] as $sal){
+            $ln++;$i++;$sali +=$sal->PIEZAS;
+            $sali1 = $sal->ID_ALMACEN == 1? $sali1+$sal->PIEZAS:$sali1+0;
+            $sali2 = $sal->ID_ALMACEN == 2? $sali2+$sal->PIEZAS:$sali2+0;
+
+            $xls->setActiveSheetIndex()
+                ->setCellValue($col.$ln, $i )
+                ->setCellValue(++$col.$ln, $sal->SERIE.'-'.$sal->FOLIO)
+                ->setCellValue(++$col.$ln, 'S')
+                ->setCellValue(++$col.$ln, $sal->ID_ALMACEN)
+                ->setCellValue(++$col.$ln, $sal->ORDEN)
+                ->setCellValue(++$col.$ln, $sal->PROD)
+                ->setCellValue(++$col.$ln, $sal->DESCR)
+                ->setCellValue(++$col.$ln, $sal->FECHA)
+                ->setCellValue(++$col.$ln, $sal->NOMBRE)
+                ->setCellValue(++$col.$ln, $sal->PIEZAS * -1)
+                ->setCellValue(++$col.$ln, 'Pieza')
+                ->setCellValue(++$col.$ln, $sal->PIEZAS *-1 )
+                ->setCellValue(++$col.$ln, $sal->LINEA)
+                ->setCellValue(++$col.$ln, $sal->TARIMA)
+                ->setCellValue(++$col.$ln, $sal->CLIENTE)
+                ->setCellValue(++$col.$ln, $sal->CEDIS)
+
+                ;
+            $col='A';
+        }
+
+        $xls->getActiveSheet()->getColumnDimension($col)->setWidth(5);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(12);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(5);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(50);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(50);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(12);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(12);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(12);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+
+        $xls->setActiveSheetIndex()
+            ->mergeCells('A3:C3')
+            ->setCellValue('A3', 'Piezas Entradas: ')
+            ->setCellValue('D3', number_format($entr,2))
+
+            ->setCellValue('A4', 'Piezas Almacen 1: ')
+            ->setCellValue('D4', number_format($entr1,2))
+
+            ->setCellValue('A5', 'Piezas Almacen 2: ')
+            ->setCellValue('D5', number_format($entr2,2))
+
+            ->setCellValue('A7', 'Piezas Salidas: ')
+            ->setCellValue('D7', number_format($sali,2))
+
+            ->setCellValue('A8', 'Salidas Almacen 1: ')
+            ->setCellValue('D8', number_format($sali1,2))
+
+            ->setCellValue('A9', 'Salidas Almacen 2: ')
+            ->setCellValue('D9', number_format($sali2,2))
+
+            ->setCellValue('A11', 'Disponibilidad globla: ')
+            ->setCellValue('D11', number_format($entr - $sali,2))
+
+        ;
+
+        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+        $col='A';
+        //$xls->getActiveSheet()->getColumnDimension($col)->setWidth(4);
+        
+        //$xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+        /// Unir celdas
+        $xls->getActiveSheet()->mergeCells('A1:P1');
+        // Alineando
+        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+        /// Estilando
+        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+            array('font' => array(
+                    'size'=>20,
+                )
+            )
+        );
+
+        $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
+                if(!file_exists($ruta) ){
+                    mkdir($ruta);
+                }
+                $nom='Movimientos del producto '.$prod.'_'.date("d-m-Y H_i_s").'_'.$usuario.'.xlsx';
+                $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+            /// salida a descargar
+                $x->save($ruta.$nom);
+                ob_end_clean();
+                return array("status"=>'ok',"nombre"=>$nom, "ruta"=>$ruta, "completa"=>'..\\..\\Reportes_Almacen\\'.$nom, "tipo"=>'x');
     }
 }
 ?>

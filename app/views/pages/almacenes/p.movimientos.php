@@ -4,6 +4,7 @@
         width: 5em;
     }
 </style>
+<?php echo 'Tipo:'.$t?>
 <br/>
 <div>
     
@@ -57,6 +58,8 @@
     Guardar en : <button class="filtro" value='"p"'><font color="purple">Pdf</font></button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <button class="filtro" value='"x"'><font color="grey">Excel</font></button>
     </b>
+    &nbsp;&nbsp; 
+    Detalle Movimientos: <button class="filtro" value='"dm"'>
 
 </div>
 <br/>
@@ -105,7 +108,7 @@
                                     $color="style='background-color:#f33737;'";$sta=3;
                                 }
                             ?>
-                            <tr class="odd gradeX color" id="linc<?php echo $i?>" <?php echo $color?>>
+                            <tr class="odd gradeX color" id="linc<?php echo $i?>" <?php echo $color?> >
                                 <td><?php echo $r->MOV?></td>
                                 <td><?php echo $r->ALMACEN?></td>
                                 <td><?php echo $r->SIST_ORIGEN?></td>
@@ -116,7 +119,7 @@
                                 <td><?php echo $r->HORA_I?></td>
                                 <td><?php echo $r->HORA_F?></td>
                                 <td><?php echo $r->CANT?></td>
-                                <td><?php echo $r->PROD?></td>
+                                <td title="<?php echo $r->PROD?>" ><?php echo substr($r->PROD,0,50).'...'?></td>
                                 <td><?php echo $r->PIEZAS?></td>
                                 <td><?php echo $r->COMPONENTE?></td>
                                 <td><?php if($sta==0){?>
@@ -160,7 +163,7 @@
         var ff = document.getElementById('ff').value
         //$.alert('Se filtra por los siguientes valores'+ out + a + e + 'prod: ' +p + t + ' us:'+us + 'comp:'+ comp)
         
-        if(out=='"ir"' || out == '"p"'){
+        if(out=='"ir"' || out == '"p"' || out=='"dm"'){
             if(out=='"ir"'){
                 o='_self'
             }else{

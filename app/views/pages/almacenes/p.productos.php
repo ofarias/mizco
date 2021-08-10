@@ -53,7 +53,7 @@
                             }
                             ?>
                             <tr class="color" id="linc<?php echo $i?>" <?php echo $color;?> >
-                                <td><a class="posicion" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"><?php echo $row->ID_INT;?></a></td>
+                                <td><a class="posicion" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"><?php echo $row->ID_INT;?></a><br/><a class="movs" prod="<?php echo $row->ID_INT;?>">Movs a Excel</a></td>
                                 <td id="prod_<?php echo $i?>"><?php echo $row->DESC;?></font></td>
                                 <td><?php echo $row->PZS_ORIG;?></td>
                                 <td align="center"><input type="number" name="p_o" value="<?php echo $row->LARGO;?>" step="any" class="num lg marca" lin="<?php echo $i?>" id="lg<?php echo $i?>">
@@ -69,8 +69,8 @@
                                 <td>
                                     <input type="button" name="gd" value="Guardar" class="btn-sm save hidden" ln="<?php echo $i?>" id="bg<?php echo $i?>" cve="<?php echo $row->ID_PINT?>">
                                 </td>
-                                <td title="Exi:Existencia, Res: Reservado, Rem: Remisionado">Disponible: <b><?php echo number_format($row->DISP,0)?></b><br/>Almacen:<b><?php echo $row->ALMACEN?></b>&nbsp;&nbsp;<?php echo 'Exis: <b>'.number_format($row->EXI,0).'</b>, Res: <b>'.number_format($row->RES,0).'</b>, Rem: <b>'.number_format($row->REM,0).'</b>'?><br/><b><?php echo $row->FECHA?><b></td>
-                                <td>Disponible:<?php echo number_format($row->DISP_ALM,0)?><br/> Entradas:<?php echo number_format($row->ING,0).'&nbsp;&nbsp; Salidas:'.number_format($row->OUT)?></td>
+                                <td title="Exi:Existencia, Res: Reservado, Rem: Remisionado">Disponible: <b><?php echo number_format($row->DISP,0)?></b><br/>Almacen:<b><?php echo $row->ALMACEN?></b>&nbsp;&nbsp;<?php echo 'Exis: <b>'.number_format($row->EXI,0).'</b>, Res: <b>'.number_format($row->RES,0).'</b>, Rem: <b>'.number_format($row->REM,0).'</b>'?><br/><b><?php echo $row->FECHA?><b></td>                                
+                                <td>Disponible:<?php echo number_format($row->DISP_ALM,0)?><br/> <b>Entradas :</b><?php echo number_format($row->ING,0).'&nbsp;&nbsp; <b>Asignado :</b> '.number_format($row->ASIG,0).'&nbsp;&nbsp; <b>Salidas :</b> '.number_format($row->OUT)?></td>
                                 <td><?php echo number_format($dif,0)?></td>
                             </tr>
                             <?php endforeach ?>
@@ -139,6 +139,24 @@
             }
         })
     })
+
+    $(".movs").click(function(){
+        var prod = $(this).attr('prod')
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json', 
+            data:{movsProd:prod},
+            success:function(data){
+                window.open(data.completa, 'download')
+            }, 
+            error:function(){
+                $.alert('no encontre informacion')
+            }
+        })
+        
+    })
+
 
     $("body").on("click",".imprimir", function(e){
         e.preventDefault();

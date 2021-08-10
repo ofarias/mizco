@@ -105,6 +105,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->posiciones($_POST['posiciones']);echo json_encode($res);exit();
 }elseif(isset($_POST['liberar'])){
     $res=$controller_wms->liberar($_POST['liberar']);echo json_encode($res);exit();
+}elseif(isset($_POST['movsProd'])){
+    $res=$controller_wms->movsProd($_POST['movsProd']);echo json_encode($res);exit();
 }
 else{
     switch ($_GET['action']) {

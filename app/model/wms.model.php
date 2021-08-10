@@ -496,7 +496,7 @@ class wms extends database {
                     $p .= " and id_status = '".$value."' ";$i++;
                 }
                 if($key=='us' and $value != 'none'){
-                    $p .= " and id_user = ".$value;$i++;
+                    $p .= " and id_usuario = ".$value;$i++;
                 }
                 if($key=='fi' and $value !=""){
                     $p .= " and fecha >= '".$value."'";$i++;
@@ -516,8 +516,9 @@ class wms extends database {
         }
         
         if(@$tipo=='s'){
-            die("el tipo es salida");
-            $this->query="SELECT  FROM FTC_ALMACEN_MOV_SALIDA ";
+            // echo '<br/>El valor del filtro es: '.$p;
+            $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA $p ";
+            $res=$this->EjecutaQuerySimple();
         }else{
             $this->query="SELECT first 50 mov, 
                 max(SIST_ORIGEN) AS SIST_ORIGEN, 
@@ -2834,6 +2835,21 @@ class wms extends database {
         }
 
         return array("sta"=>'ok');
+    }
+
+    function movsProd($prod){
+        $entradas = array();$salidas=array();
+        $this->query="SELECT * from ftc_almacen_mov_det where intelisis = '$prod' and status !='C'";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $entradas[]=$tsArray;
+        }
+        $this->query="SELECT F.*, (SELECT DESC FROM FTC_ALMACEN_PROD_INT P WHERE P.ID_INT = F.PROD ) as descr FROM ftc_almacen_mov_salida F where F.producto = '$prod' and F.status !='C'";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $salidas[]=$tsArray;
+        }
+        return array("entradas"=>$entradas, "salidas"=>$salidas);
     }
 }
 ?>
