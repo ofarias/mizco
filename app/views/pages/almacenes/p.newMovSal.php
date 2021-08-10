@@ -231,7 +231,7 @@
             cant.val("")
         }else{
             var cnt = document.getElementById("c_"+cant.attr('ln')).getAttribute("cnt")
-            if(parseFloat(cnt) >= parseFloat(cant.val()) && parseFloat(cant.val())<=20 && parseFloat(cant.val())>0){
+            if(parseFloat(cnt) >= parseFloat(cant.val()) && parseFloat(cant.val())<=10000 && parseFloat(cant.val())>0){
                 document.getElementById(cant.attr('ln')).classList.remove("hidden")
                 cant.addClass('proc')
             }else{
