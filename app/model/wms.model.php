@@ -2796,7 +2796,6 @@ class wms extends database {
         foreach($datos as $int){
             //print_r($int);
             $ex = explode(",",$int[1]);
-            //print_r($ex);
             $almacen=explode(":",$ex[0]);
             $almacen = $almacen[0];
             $existencias =explode(":",$ex[1]);
@@ -2805,9 +2804,7 @@ class wms extends database {
             $reservado = $reservado[1];
             $remisionado =explode(":",$ex[3]);
             $remisionado = $remisionado[1];
-        //echo 'Almacen: '.$almacen;
-            $this->query="INSERT INTO FTC_ALMACEN_EXI_INT (ID, ID_PINT, ID_INT, ALMACEN, EXISTENCIA, RESERVADO, REMISIONADO, DISPONIBLE, FECHA, USUARIO, STATUS) VALUES (NULL, '$int[0]', (SELECT ID_PINT FROM FTC_ALMACEN_PROD_INT WHERE upper(ID_INT) = upper('$int[0]')), '$almacen', $existencias, $reservado, $remisionado, ($existencias - $reservado - $remisionado), current_timestamp, $usuario, 1 )";
-            //echo $this->query;
+            $this->query="INSERT INTO FTC_ALMACEN_EXI_INT (ID, ID_PINT, ID_INT, ALMACEN, DISPONIBLE, RESERVADO, REMISIONADO, EXISTENCIA, FECHA, USUARIO, STATUS) VALUES (NULL, '$int[0]', (SELECT ID_PINT FROM FTC_ALMACEN_PROD_INT WHERE upper(ID_INT) = upper('$int[0]')), '$almacen', $existencias, $reservado, $remisionado, ($existencias + $reservado), current_timestamp, $usuario, 1 )";
             $this->grabaBD();
         }
     }
