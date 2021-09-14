@@ -1728,7 +1728,7 @@ class wms extends database {
                     if($ln==2){
                         $oc = $key[2];
                     }
-                        if( ($ln==5 or $ln == 24 or $ln == 43) and $nC>= 3){/// por esta linea solo entra una vez.
+                        if( $ln==4 and $nC>= 3){/// por esta linea solo entra una vez.
                             $subLn=$ln+1;
                             $lnn=0;
                             foreach($xlsx->rows() as $k2){ /// k2 es la nueva linea. y $nC es el numero de columnas. 
@@ -1759,9 +1759,7 @@ class wms extends database {
                                     }
                                 }
                             }
-
                         }
-
                     $nC++;
                     $col++;
                 }
