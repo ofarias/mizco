@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<cfdi:Comprobante xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd" Version="3.3" Serie="FE" Folio="12601" Fecha="2021-08-16T16:32:26" Sello="Nk22C79JLQ5ndeH2CFxuh2lqICQyhmACAiY10P4LF5iKhLcKwViepKPImV0OE0s3hKars62whQQ+2O8K2SaLFa7bGIgJbSwnUjeLprtQWHPPX1eAwUlkOybgaG+jq2pXTVk8TbE0p3Yp0TM59A+U4XmLPcUrv8CfnlYNcF52nZ9dh1WCFgGg1mC+N6xpRrU72Z+7Z/xFTQaLQpWN62fFU7x+Mji7G3vSxTn6JO6t0TnwEa8tfuZQNsQgVi8tdJ1Y4CvNIzLz1AVfHUe2gO0rVF6RO2fPebmTDhkhtpyDHFv99xVAB9AcnVpl/LP96EjLjO/A5cWU1P46hNfEWuLwew==" FormaPago="99" NoCertificado="00001000000505713687" Certificado="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" CondicionesDePago="90 Dias" SubTotal="7428.60" Descuento="0.00" Moneda="MXN" TipoCambio="1" Total="8617.18" TipoDeComprobante="I" MetodoPago="PPD" LugarExpedicion="54030" xmlns:cfdi="http://www.sat.gob.mx/cfd/3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:catCFDI="http://www.sat.gob.mx/sitio_internet/cfd/catalogos" xmlns:tdCFDI="http://www.sat.gob.mx/sitio_internet/cfd/tipoDatos/tdCFDI">
+  <cfdi:Emisor Nombre="IMPORTADORA MIZCO SA DE CV" Rfc="IMI161007SY7" RegimenFiscal="601" />
+  <cfdi:Receptor UsoCFDI="G01" Nombre="TIENDAS SORIANA, SA DE CV" Rfc="TSO991022PB6" />
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462405175" Cantidad="1.00" Importe="900.00" ValorUnitario="900.00" Descripcion="TELEFONO DE ESCRITORIO ALAMBRICO" ClaveProdServ="43191504" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="900.00" Importe="144.00" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1003772" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462428853" Cantidad="1.00" Importe="5160.00" ValorUnitario="5160.00" Descripcion="AUDIFONOS BLUETOOTH" ClaveProdServ="52161514" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="5160.00" Importe="825.60" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1006130" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462428884" Cantidad="1.00" Importe="1368.60" ValorUnitario="1368.60" Descripcion="AUDIFONOS HI-FI" ClaveProdServ="52161514" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="1368.60" Importe="218.98" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1006129" />
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="1188.58">
+    <cfdi:Traslados>
+      <cfdi:Traslado Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="1188.58" />
+    </cfdi:Traslados>
+  </cfdi:Impuestos>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital Version="1.1" UUID="4CEBBB17-851F-4F45-9AD6-1A6A89B61CF1" FechaTimbrado="2021-08-16T16:35:24" RfcProvCertif="LEV031201SE6" SelloCFD="Nk22C79JLQ5ndeH2CFxuh2lqICQyhmACAiY10P4LF5iKhLcKwViepKPImV0OE0s3hKars62whQQ+2O8K2SaLFa7bGIgJbSwnUjeLprtQWHPPX1eAwUlkOybgaG+jq2pXTVk8TbE0p3Yp0TM59A+U4XmLPcUrv8CfnlYNcF52nZ9dh1WCFgGg1mC+N6xpRrU72Z+7Z/xFTQaLQpWN62fFU7x+Mji7G3vSxTn6JO6t0TnwEa8tfuZQNsQgVi8tdJ1Y4CvNIzLz1AVfHUe2gO0rVF6RO2fPebmTDhkhtpyDHFv99xVAB9AcnVpl/LP96EjLjO/A5cWU1P46hNfEWuLwew==" NoCertificadoSAT="00001000000506248998" SelloSAT="PrkGJ7R9YHJ15OSV1Ih0Row3wu0WNsIilkemwDPKWPzilpu6bFqe54RDtD5kI90hBJrGvd/XaYdddpxsbvV5XgQjXU5BDM5XGmeXrp7GAM3NZTZBUTqOFgk7/OGZJtd9fApTJeTae/MRDtuTBgb7TbPVeMKezbPQq9gKSfmrKwf+7lF+LwJ769wnQeY3d74Ve4XpWdBe7JxRXPP8HQQ9Ik1/0VpckwfmGSg276j4yQvtTJUYotxgOVYgX5RwgPvFB7Voma99ivp0EIDpgrK/4xj3HREpFwVWQxMLppJ82gtM92bZvPhflXpzwwdgWRVkxeJrLW4dt9r9j7DQnnxA8A==" xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" xsi:schemaLocation="http://www.sat.gob.mx/TimbreFiscalDigital http://www.sat.gob.mx/sitio_internet/cfd/TimbreFiscalDigital/TimbreFiscalDigitalv11.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
+  </cfdi:Complemento>
+  <cfdi:Addenda>
+    <DSCargaRemisionProv>
+      <Remision Id="Remision0" RowOrder="0">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-12601</Remision>
+        <Consecutivo>0</Consecutivo>
+        <FechaRemision>2021-08-16T00:00:00</FechaRemision>
+        <Tienda>5548</Tienda>
+        <TipoMoneda>1</TipoMoneda>
+        <TipoBulto>1</TipoBulto>
+        <EntregaMercancia>35</EntregaMercancia>
+        <CumpleReqFiscales>true</CumpleReqFiscales>
+        <CantidadBultos>1</CantidadBultos>
+        <Subtotal>7428.6</Subtotal>
+        <Descuentos>0</Descuentos>
+        <IEPS>0</IEPS>
+        <IVA>1188.58</IVA>
+        <OtrosImpuestos>0</OtrosImpuestos>
+        <Total>8617.18</Total>
+        <CantidadPedidos>1</CantidadPedidos>
+        <FechaEntregaMercancia>2021-08-17T00:00:00</FechaEntregaMercancia>
+        <Cita>6076690</Cita>
+      </Remision>
+      <Pedidos Id="Pedido0" RowOrder="0">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-12601</Remision>
+        <FolioPedido>32289258</FolioPedido>
+        <Tienda>5548</Tienda>
+        <CantidadArticulos>3</CantidadArticulos>
+      </Pedidos>
+      <Articulos Id="Articulo0" RowOrder="0">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-12601</Remision>
+        <FolioPedido>32289258</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462405175</Codigo>
+        <CantidadUnidadCompra>1</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>900</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo1" RowOrder="1">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-12601</Remision>
+        <FolioPedido>32289258</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462428853</Codigo>
+        <CantidadUnidadCompra>1</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>5160</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo2" RowOrder="2">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-12601</Remision>
+        <FolioPedido>32289258</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462428884</Codigo>
+        <CantidadUnidadCompra>1</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>1368.6</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+    </DSCargaRemisionProv>
+  </cfdi:Addenda>
+</cfdi:Comprobante>
