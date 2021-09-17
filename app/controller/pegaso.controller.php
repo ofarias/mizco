@@ -12088,8 +12088,8 @@ function compruebaXml($folio) {
         ########## PRIMERA PRUEBA PARA OBTENER LOS DATOS DEL XML DESDE LA BD #############
         /// segun manual http://serviciosweb.soriana.com/RecibeCfd/wseDocRecibo.asmx
         //// Original GB  http://serviciosweb.soriana.com/RecibeCfd/wseDocRecibo.asmx?wsdl
-        $archivo='FE12732.XML';
-        $f='FE12732';
+        $archivo='FE12756.XML';
+        $f='FE12756';
         $xml=file_get_contents('./xml/'.$archivo); //colocar bien la ruta de la carpeta con los xml
         //parametros a enviar, deben ser en array
         $folio=$data->insertaCFDI($xml, $f);
