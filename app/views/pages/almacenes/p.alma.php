@@ -26,7 +26,7 @@
                                 <th>Pasillos</th>
                                 <th>Estado</th>
                                 <th>Mapa</th>
-                                
+                                <th colspan="2" style="text-align:center">Limpiar</th>
                             </tr>
                         </thead>
                         <tfoot>
@@ -52,7 +52,8 @@
                                 <td><?php echo $r->STATUS?></td>
                                 <td></td>
                                 <td><button class="mapa" al="<?php echo $r->ID?>">Mapa</button></td>
-                                
+                                <td align="center" ><input type="button" value="Limpiar Movimientos" class="limpAlma" id="<?php echo $r->ID?>" nom="<?php echo $r->NOMBRE?>" tipo="movs"></td>
+                                <td align="center" ><input type="button" value="Limpiar Ordenes" class="limpAlma" id="<?php echo $r->ID?>" nom="<?php echo $r->NOMBRE?>" tipo="ordenes"></td>
                             </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -73,5 +74,50 @@
     $(".mapa").click(function(){
         var a = $(this).attr('al')
         window.open("index.wms.php?action=mapa&opc=''&param="+a, "_blank")
+    })
+
+    $(".limpAlma").click(function(){
+        var alm = $(this).attr("id")
+        var nom = $(this).attr("nom")
+        var tipo = $(this).attr("tipo")
+        var t1= ''
+        var t2= ''
+        if(tipo == 'movs'){
+            t1 = 'Eliminacion de Movimientos del ' + nom
+            t2 = 'Movimientos a eliminar del ' + nom
+        }else{
+            t1 = 'Eliminacion de Ordenes de compra.'
+            t2 = 'Se eliminaran todas las ordenes de compra a la fecha de hoy, no hay forma de recuperar la información.'
+        }
+        $.confirm({
+            columnClass: 'col-md-6 col-md-offset-3',
+            title: t1,
+            content: t2+
+            "<br/> "+ 
+            "<br/><br/><label> Al eliminar los movimientos no tendran forma de recuperarlo</label> "+
+            "<br/><br/> <label> </label"
+            ,
+            buttons:{
+                Aceptar:function(){
+                    
+                    $.ajax({
+                        url:'index.wms.php',
+                        type:'post', 
+                        dataType:'json', 
+                        data:{delMovs:alm, tipo},
+                        success:function(data){
+                            if(data.status == 'ok'){
+                            }
+                        },
+                        error:function(){
+                            alert('revise la informacion')
+                        }
+                    });
+                },
+                Cancelar:function(){
+                     
+                }
+            }
+        })
     })
 </script>

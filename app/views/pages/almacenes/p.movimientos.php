@@ -4,7 +4,7 @@
         width: 5em;
     }
 </style>
-<?php echo 'Tipo:'.$t?>
+
 <br/>
 <div>
     

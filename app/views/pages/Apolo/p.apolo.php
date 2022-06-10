@@ -12,24 +12,39 @@
                                 <button class="btn-sm btn-warning exec" value="all">Enviar Recibidas</button>
                             <?php }?>
                             
-                            <button class="btn-sm btn-info">Cargar CFDI y PDF </button>
+                           
+                            <b>Carga multiple de archivos de facturas (XML y PDF).</b>
+                            <form action="index.php" method="post" enctype="multipart/form-data">
+                                <input type="file" id="filesToUpload" name="files[]" multiple="" onchange="makeFileList()" accept="text/xml, .pdf" />
+                                <input type="hidden" name="FORM_ACTION_FACTURAS_UPLOAD" value="FORM_ACTION_FACTURAS_UPLOAD" />
+                                <input type="hidden" name="files2upload" value="" />
+                                <input type="submit" value="Inicar Carga"/>
+                                <input type="hidden" value="F" name="tipo">
+                            </form>
+                            </p>
+                                <ul id="fileList">
+                                    <li>No hay archivos seleccionados</li>        
+                                </ul>
+                            </p>
                             <br/><br/>
                         </div>
                         <div class="panel-body">
                             
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered table-hover" id="dataTables-usuarios">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-apolo">
                                     <thead>
                                         <tr>
+                                            <th>Ln</th>
                                             <th>Archivo</th>
                                             <th>RFC <br/>Cliente</th>
                                             <th>RFC <br/>Emisor</th>
                                             <th>Numero <br/> Documento</th>
                                             <th>Folio</th>
-                                            <th>Fecha de Carga</th>
+                                            <th>Fecha de Solicitud</th>
                                             <th>Fecha <br/>Limite Factura</th>
                                             <th>UUID</th>
                                             <th>Status</th>
+                                            <th>Pedido <br/> Intelisis</th>
                                             <th>-------</th>
                                         </tr>
                                     </thead>                                   
@@ -56,6 +71,7 @@
                                             }
                                         ?>
                                         <tr class="odd gradeX">
+                                            <td><?php echo $i?></td>
                                             <td><a href="index.php?action=apolo&id=<?php echo $data->ID?>", target="popup"><?php echo $data->ARCHIVO;?></a> </td>
                                             <td><?php echo $data->RFC_CLIENTE;?></td>
                                             <td><?php echo $data->RFC_SELLER;?></td>
@@ -63,12 +79,13 @@
                                             <td><?php echo $data->FOLIO;?></td>
                                             <td><?php echo $data->FECHA?></td>
                                             <td><?php echo $data->FECHA_LIM?></td>         
-                                            <td><?php echo $data->UUID?></td>         
+                                            <td><?php echo $data->UUID?><br/><font color="blue"><b><?php echo $data->FACTURA_INT?></b></font></td>         
                                             <td><?php echo $status;?></td>         
+                                            <td align="center"><?php echo $data->PEDIDO_INT ==''? '':'Pedido Web '.$data->PEDIDO_INT?></td>
                                             <td><select id="<?php echo $data->ID?>_sel" name="selector">
                                                 <option value="e">Enviar</option>
-                                                <option value="c">Cargar</option>
-                                                <option value="v">Verificar</option>
+                                                <option value="c">Carga Factura</option>
+                                                <!--<option value="v">Verificar</option>-->
                                             </select>
                                             <button class="btn-sm btn-success exec" value="<?php echo $data->ID?>"></button>
                                         </td>
@@ -103,17 +120,56 @@
     $(".exec").click(function(){
         var lin = $(this).val();
         var sel = $("#"+lin+"_sel").val();
-        var opc = '';
+        var opc = document.getElementById(lin+'_sel').value;
+            if(opc == 'c'){
+                var msg = 'Se ha cargado el archivo'
+            }else{
+                var msg = 'Se ha Enviado el correo ...'
+            }
             $.ajax({
                 url:'index.php',
                 type:'post',
                 dataType:'json',
                 data:{correoApolo:1, id:lin, opc},
                 success:function(data){
-                    alert('Se ha Enviado el correo ...')
-                    location.reload(true)
+                    if(data.status == 'ok'){
+                        alert(msg)
+                        location.reload(true)    
+                    }else{
+                        alert('No se encontro la factura en intelisis')
+                    }
+                    
                 }
             })
     })    
+
+    function makeFileList() {
+            var input = document.getElementById("filesToUpload");
+            var ul = document.getElementById("fileList");
+            while (ul.hasChildNodes()) {
+                    ul.removeChild(ul.firstChild);
+            }
+            for (var i = 0; i < input.files.length; i++) {
+                    var li = document.createElement("li");
+                    li.innerHTML = input.files[i].name;
+                    ul.appendChild(li);
+            }
+            if(!ul.hasChildNodes()) {
+                    var li = document.createElement("li");
+                    li.innerHTML = 'No hay archivos selccionados.';
+                    ul.appendChild(li);
+            }
+            document.getElementById("files2upload").value = input.files.length;
+    }
+  //Cuando la página esté cargada completamente
+  $(document).ready(function(){
+    //Cada 10 segundos (10000 milisegundos) se ejecutará la función refrescar
+    //setTimeout(refrescar, 120000);
+  });
+
+  function refrescar(){
+    //Actualiza la página
+    location.reload();
+  }
   
 </script>

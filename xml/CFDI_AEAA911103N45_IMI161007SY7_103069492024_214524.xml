@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ComEdcmm xmlns="http://www.sat.gob.mx/cfd/3" Version="3.3" Serie="214524" Folio="103069492024" Fecha="2022-03-24T11:21:15" FormaPago="28" FormaPagoDesc="Tarjeta de débito" SubTotal="1271.64" Descuento="0.00" Moneda="MXN" MonedaDesc="Peso Mexicano" TipoCambio="1.000000" Total="1475.10" TipoDeComprobante="I" TipoDeComprobanteDesc="Ingreso" MetodoPago="PUE" MetodoPagoDesc="Pago en una sola exhibición" LugarExpedicion="54030" MonedaDecimales="2" EmpresaDecimales="2" ImporteConLetras="MIL CUATROCIENTOS SETENTA Y CINCO Peso Mexicano CON DIEZ  CENTAVOS">
+    <Emisor Rfc="IMI161007SY7" Nombre="Select Sound" RegimenFiscal="601" RegimenFiscalDesc="General de Ley Personas Morales"/>
+    <Receptor Rfc="AEAA911103N45" Nombre="José Antonio Avelar Arroyo" ResidenciaFiscal="MEX" ResidenciaFiscalDesc="México" UsoCFDI="G03" UsoCFDIDesc="Gastos en general" catalogado="true"/>
+    <Conceptos>
+        <Concepto ClaveProdServ="52161512" NoIdentificacion="00750303033208" Cantidad="1.000000" ClaveUnidad="H87" Unidad="EACH" UnidadDesc="EACH" Descripcion="Barra de sonido con Subwoofer Select Sound BT3283" ValorUnitario="1271.640000" Importe="1271.640000" DescuentoPorcentual="false" PorcentajeDescuento="0" Descuento="0" Idproducto="0" Catalogado="false" Editando="false">
+            <Impuestos TotalImpuestosRetenidos="0.000000" TotalImpuestosTrasladados="203.462400">
+                <Traslados>
+                    <Traslado Base="1271.640000" Impuesto="002" ImpuestoDesc="IVA" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="203.462400"/>
+                </Traslados>
+            </Impuestos>
+        </Concepto>
+    </Conceptos>
+    <Impuestos TotalImpuestosTrasladados="203.46">
+        <Traslados>
+            <Traslado Impuesto="002" ImpuestoDesc="IVA" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="203.462400"/>
+        </Traslados>
+    </Impuestos>
+</ComEdcmm>

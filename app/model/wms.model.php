@@ -9,6 +9,7 @@ require_once 'app/simplexlsx-master/src/SimpleXLSX.php';
 class wms extends database {
     /* Comprueba datos de login */
     function productos($op){
+        $data = array();
         $this->query="SELECT * FROM FTC_ALMACEN_PRODUCTOS";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
@@ -517,7 +518,21 @@ class wms extends database {
         
         if(@$tipo=='s'){
             // echo '<br/>El valor del filtro es: '.$p;
-            $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA $p ";
+            $this->query="SELECT id_ms as mov, 
+                                 id_almacen as almacen,
+                                 ORDEN as SIST_ORIGEN,
+                                 'Salida' as TIPO, 
+                                 nombre as USUARIO,
+                                 fecha,
+                                 status,
+                                 '' as HORA_I,
+                                 '' as HORA_F,
+                                 CANT, 
+                                 PROD,
+                                 PIEZAS,
+                                 LINEA ||'-'|| TARIMA AS COMPONENTE
+                          FROM FTC_ALMACEN_MOV_SALIDA $p order by id_ms desc";
+            //echo $this->query;
             $res=$this->EjecutaQuerySimple();
         }else{
             $this->query="SELECT first 50 mov, 
@@ -540,6 +555,7 @@ class wms extends database {
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
         }
+        //print_r($data);
         return $data;
     }
 
@@ -879,8 +895,8 @@ class wms extends database {
                 $this->palacio($xlsx, $hoja, $file, $ido);
             }elseif(strtoupper(trim($hoja))=='DILTEX SA DE CV'){
                 $this->diltex($xlsx, $hoja, $file, $ido);
-            }elseif(strtoupper(trim($hoja))=='MIX UP1'){
-                $this->mixup1($xlsx, $hoja, $file, $ido);
+            }elseif(strtoupper(trim($hoja))=='MIX UP'){
+                $this->mixupg($xlsx, $hoja, $file, $ido);
             }
             else{
                 $res=$this->intelisis($xlsx, $hoja, $file, $ido);
@@ -1771,6 +1787,37 @@ class wms extends database {
             return;    
     }
 
+    function mixupg($xlsx, $hoja, $file, $ido){/// Mixup Generico enviado por Claudia el 18 de Febrero 
+        $usuario=$_SESSION['user']->ID;
+        $ln=0;$piezas=0;
+        $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD,CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL) VALUES (NULL, '$hoja', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$file', $usuario, $ido) returning ID_ORD";
+        $res=$this->grabaBD();
+        $res= ibase_fetch_object($res);
+        $idord=@$res->ID_ORD;
+        if(@$idord>0){
+            foreach ($xlsx->rows() as $key){
+                $col='A';$ln++;
+                        if($ln >= 7 and $ln<=count($xlsx->rows()) - 1 and ($key[3] !='' and $key[6] !='')){
+                            if(is_numeric($key[6])){$piezas+=$key[6];}
+                            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $idord, '$key[3]', '', $key[6], 0, '', '', 0, 0, 1, '', '$key[9]','$key[2]','','', 0) returning ID_ORDD";
+                            //echo '<br/>'.$this->query.'<br/>';
+                            $res=$this->grabaBD();
+                            $res=ibase_fetch_object($res);
+                            $res=$res->ID_ORDD;
+                            if($res <= 0){
+                            
+                            } else{
+                                $odns[]=$res;
+                            }
+                        }else{   
+                        }
+            }
+        }else{
+            echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
+        }
+            //echo '<br/>Ultima Columna: '.$col.'<br/>';
+            return;   
+    }
     function intelisis($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;$odns=array();
         $ln=0;$piezas=0;
@@ -1817,7 +1864,7 @@ class wms extends database {
     }
 
     function orden($id_o, $t, $param){
-        $data= array(); $p='';
+        $data= array(); $p=''; $pnd =array();
         $this->query="UPDATE FTC_ALMACEN_ORDENES_DETALLES o set o.descr = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = o.PROD) where o.descr='' ";
         $this->queryActualiza();
         if($t == 'd'){
@@ -1830,7 +1877,7 @@ class wms extends database {
             if(!empty($param)){
                 $p= " and cedis = '".$param."'";
             }
-            $this->query="SELECT ID_ORDD,UPC, ITEM, PROD, DESCR, PZAS, ASIG, CAJAS, UNIDAD, PROD_SKU, orden, cedis,PZAS_SUR, CAJAS_SUR, status, ETIQUETA FROM FTC_ALMACEN_ORDENES_DETALLES WHERE ID_ORD = $id_o and id_status >=3 $p";
+            $this->query="SELECT ID_ORDD,UPC, ITEM, PROD, DESCR, PZAS, ASIG, CAJAS, UNIDAD, PROD_SKU, orden, cedis,PZAS_SUR, CAJAS_SUR, status, ETIQUETA, id_status FROM FTC_ALMACEN_ORDENES_DETALLES WHERE ID_ORD = $id_o and id_status >=3 $p";
         }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
@@ -1938,6 +1985,14 @@ class wms extends database {
             }
         }elseif($t==2){
             $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = 9 WHERE ID_COMP = $id and (SELECT coalesce(COUNT(*),0) FROM FTC_ALMACEN_COMP WHERE COMPP= $id and status !=9)=0 and tipo=$t";
+            $res= $this->queryActualiza();
+            if($res == 1 ){
+                $msg= 'Se ha eliminado correctamente'; $sta='ok';
+            }else{
+                $msg= 'No se ha podido eliminar ya que el componente tiene Componentes Secundarios (Tarimas) asociados'; $sta='no';
+            }
+        }elseif($t == 3 ){
+            $this->query="UPDATE FTC_ALMACEN_COMP SET STATUS = 9 WHERE ID_COMP = $id and (SELECT coalesce(COUNT(*),0) FROM FTC_ALMACEN_COMP WHERE COMPP= $id and status !=9)= 0 and tipo=$t";
             $res= $this->queryActualiza();
             if($res == 1 ){
                 $msg= 'Se ha eliminado correctamente'; $sta='ok';
@@ -2729,7 +2784,7 @@ class wms extends database {
         $ordenes = count($data);
         $fin=0;
         foreach($data as $d){
-            if($d->STATUS = 7){
+            if($d->STATUS == 7){
                 $fin++;
             }
         }
@@ -2845,6 +2900,77 @@ class wms extends database {
             $salidas[]=$tsArray;
         }
         return array("entradas"=>$entradas, "salidas"=>$salidas);
+    }
+
+    function delMovs($alm, $tipo){
+        // Hacer respaldo de la Base de datos.
+        $usuario=$_SESSION['user']->ID;
+        $this->query="INSERT INTO FTC_ALMACEN_LOG (ID_LOG, USUARIO, TIPO,SUBTIPO, TABLA, FECHA, STATUS, ID, OBS ) VALUES (NULL, $usuario,'Eliminar', '$tipo', 8, current_timestamp, 9, 0, 'Eliminacion de $tipo del Almacen $alm' )";
+        $this->grabaBD();
+        //$eje=date("y");
+        //$mes=date("m");
+        //$dia=date("d");
+        //$ruta="C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\";
+        //$bd="SAE70EMPRE01.FDB";
+        //$rutaBU="E:\\OneDrive\\Respaldos Aspel\\WMS\\";//E:\Dropbox (Biotecsa SA de CV)\RespaldosCOI
+        //$respaldo="Borrado_Almacen_".$alm.'_'.$dia.$mes.$eje.".FDB";
+        //(file_exists($rutaBU))? '':mkdir($rutaBU, 0, true);
+        //if(file_exists($rutaBU.$respaldo)){ 
+        //}else{
+        //    copy($ruta.$bd, $rutaBU.$respaldo);
+        //    $zip = new ZipArchive();
+        //    $zip->open($rutaBU.'/'.$respaldo.'.zip', ZipArchive::CREATE);
+        //    $zip->addFile($rutaBU.$respaldo, 'Respaldo de Movimientos Almacen '.$alm.'_'.$dia.$mes.$eje);
+        //    $zip->close();
+        //    unlink($rutaBU.$respaldo);
+        //}
+
+        //if(file_exists($rutaBU.'/'.$respaldo.'.zip')){
+            //die('Existe el respaldo, se puede continuar con el eliminado');
+            if($tipo=='movs'){
+                $this->query="DELETE FROM FTC_ALMACEN_MOV_SAL MS WHERE (SELECT ALMACEN FROM FTC_ALMACEN_MOV M WHERE M.ID_AM = MS.ID_MOV) = $alm";
+                $rs=$this->grabaBD();
+                $this->query="DELETE FROM FTC_ALMACEN_MOV WHERE ID_AM > 0 AND ALMACEN = $alm";
+                $res=$this->grabaBD();     
+            }elseif($tipo=='ordenes'){
+                $this->query="DELETE FROM FTC_ALMACEN_ORDEN WHERE ID_ORD >=0 ";
+                $this->grabaBD();
+                $this->query="DELETE FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD >= 0";
+                $this->grabaBD();
+                $this->query="DELETE FROM FTC_ALMACEN_OC_CHG WHERE ID_CHG >= 0";
+                $this->grabaBD();
+            }elseif($tipo=='comp'){
+                $this->query="DELETE FROM FTC_ALMACEN_MOV_SAL MS WHERE (SELECT COMPP FROM FTC_ALMACEN_MOV M WHERE M.ID_AM = MS.ID_MOV) = $alm OR (SELECT COMPS FROM FTC_ALMACEN_MOV M WHERE M.ID_AM = MS.ID_MOV) = $alm";
+                $rs=$this->grabaBD();
+                $this->query="DELETE FROM FTC_ALMACEN_MOV WHERE COMPP = $alm OR COMPS = $alm";
+                $this->grabaBD();
+            }
+        //}else{
+        //    die('No Existe el respaldo, No se puede continuar con el eliminado');
+        //}
+        die;
+    }
+
+    function pxc($ordd){
+        $this->query="SELECT first 1 coalesce(unidad, 0) as unidad FROM FTC_ALMACEN_ORDEN_DET WHERE 
+            PROD = (SELECT PROD FROM FTC_ALMACEN_ORDEN_DET P WHERE P.ID_ORDD = $ordd) 
+            AND 
+            CEDIS = (SELECT CEDIS FROM FTC_ALMACEN_ORDEN_DET C WHERE C.ID_ORDD = $ordd)
+            AND
+            UPC = (SELECT UPC FROM FTC_ALMACEN_ORDEN_DET U WHERE U.ID_ORDD = $ordd)
+            AND 
+            UNIDAD IS NOT NULL
+            ORDER BY ID_ORDD DESC ";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray = ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        foreach($data as $val ){
+            $valor = $val->UNIDAD;
+        }
+        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET UNIDAD = $valor, CAJAS=(ASIG / $valor) WHERE ID_ORDD = $ordd";
+        $this->queryActualiza();
+        return array("sta"=>'ok', "valor"=>$valor);
     }
 }
 ?>

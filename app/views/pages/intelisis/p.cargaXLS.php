@@ -7,7 +7,7 @@
     <input type="file" id="filesToUpload" name="files[]" multiple="" onchange="makeFileList()" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
     <input type="hidden" name="UPLOAD_META_DATA" value="UPLOAD_META_DATA" />
     <input type="hidden" name="files2upload" value="" />
-    <input type="submit" value="Inicar Carga"/>
+    <input type="submit" value="Iniciar Carga"/>
     <input type="hidden" value="<?php echo $tipo?>" name="tipo">
 </form>
 </p>

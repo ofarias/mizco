@@ -190,7 +190,7 @@ class wms_controller {
             $pagina = $this->load_template('Componentes');
             $html = $this->load_page('app/views/pages/almacenes/p.movimientos.php');
             ob_start();
-            echo 'Valor de parametros '.$param.', fin del valor';
+            //echo 'Valor de parametros '.$param.', fin del valor';
             if(!empty($param)){
                 $t=explode(",",$param);
                 $t=$t[0]; $t=explode(":",$t); $t=$t[1];
@@ -1503,30 +1503,32 @@ class wms_controller {
         $pdf->write(5, "Elaborado por :". $usuario. " el ".date("d-m-Y h:i:s")."\n");
 
         $pdf->Ln();
-        $pdf->write(5, "Pickin List ");
+        $pdf->write(5, "Picking List ");
         $pdf->Ln(8);
         $pdf->SetFont('Arial', 'B', 8);
 
         $pdf->Cell(35, 4, 'UPC','LRT');
         $pdf->Cell(25, 4, 'Modelo','LRT');
-        $pdf->Cell(25, 4, 'Cantidad / ','LRT',0,'C');
+        $pdf->Cell(25, 4, 'Sustituto','LRT');
+        $pdf->Cell(25, 4, 'Surtir','LRT',0,'C');
         $pdf->Cell(20, 4, 'Piezas x','LRT',0,'C');
-        $pdf->Cell(25, 4, 'Cajas','LRT');
-        $pdf->Cell(20, 4, 'Total','LRT',0,'C');
+        //$pdf->Cell(25, 4, 'Cajas','LRT');
+        $pdf->Cell(20, 4, 'Total de cajas','LRT',0,'C');
         $pdf->Cell(55, 4, 'Ubicacion ','LRT',0,'C');
-        $pdf->Cell(40, 4, 'Etiqueta','LRT');
+        //$pdf->Cell(40, 4, 'Etiqueta','LRT');
         $pdf->Ln();
         
         $pdf->Cell(35, 4, '','LRB');
+        $pdf->Cell(25, 4, 'Original','LRB');
         $pdf->Cell(25, 4, '','LRB');
         $pdf->SetTextColor(30,117,0);
-        $pdf->Cell(25, 4, 'Asigando','LRB',0,'C');
+        $pdf->Cell(25, 4, '','LRB',0,'C');
         $pdf->SetTextColor(0,0,0);
         $pdf->Cell(20, 4, 'Caja ','LRB',0,'C');
-        $pdf->Cell(25, 4, '','LRB');
+        //$pdf->Cell(25, 4, '','LRB');
         $pdf->Cell(20, 4, '','LRB',0,'C');
         $pdf->Cell(55, 4, 'Cantidad en Piezas','LRB',0,'C');
-        $pdf->Cell(40, 4, '','LRB');
+        //$pdf->Cell(40, 4, '','LRB');
         $pdf->Ln();
        
         foreach ($orden as $ord) {
@@ -1537,8 +1539,9 @@ class wms_controller {
             //$pdf->Cell(50, 6, $ord->CEDIS, 'LRT');
             $m = (count($pos)>1)? 'LRT':'LRTB';
             $pdf->Cell(35, 6, $ord->UPC, 'LRTB');
-            $pdf->Cell(25, 6, $ord->PROD, 'LRTB');
-            $pdf->Cell(25, 6, number_format($ord->PZAS,0).' / '.number_format($ord->ASIG,0), 'LRTB',0,'R');
+            $pdf->Cell(25, 6, $ord->PROD_SKU, 'LRTB');/// Producto de la Orden
+            $pdf->Cell(25, 6, $ord->PROD_SKU == $ord->PROD? '':$ord->PROD, 'LRTB');// Sustituto 
+            $pdf->Cell(25, 6, number_format($ord->ASIG,0), 'LRTB',0,'R');
             $pdf->Cell(20, 6, number_format($ord->UNIDAD,0), 'LRTB',0,'R');
 
             $uni = $ord->UNIDAD;
@@ -1550,7 +1553,7 @@ class wms_controller {
                 $resi= " + 1C/".$residuo." ";
                 $total +=1;
             }
-            $pdf->Cell(25, 6, number_format($ord->CAJAS,0)."C/".$ord->UNIDAD.$resi , 'LRTB',0,'R');
+            //$pdf->Cell(25, 6, number_format($ord->CAJAS,0)."C/".$ord->UNIDAD.$resi , 'LRTB',0,'R');
 
             $i=0;
             foreach($pos as $pst){
@@ -1564,9 +1567,9 @@ class wms_controller {
                     $ubi[] = ($ubicacion);
                 }
             }
-            $pdf->Cell(20, 6, number_format($total,0)." C", 'LRTB',0,'R');
+            $pdf->Cell(20, 6, number_format($total,0), 'LRTB',0,'R');
             $pdf->Cell(55, 6, utf8_decode($ubicacion), $m,0,'R');
-            $pdf->Cell(40, 6, utf8_decode($ord->ETIQUETA) , 'LRTB');
+            //$pdf->Cell(40, 6, utf8_decode($ord->ETIQUETA) , 'LRTB');
             $pdf->Ln();
             if($i >= 2){
                 for($l=0; $l < count($ubi)-1 ; $l++) { 
@@ -1577,7 +1580,7 @@ class wms_controller {
                     $pdf->Cell(25, 4,"",'B',0,'R');
                     $pdf->Cell(20, 4,"",'B',0,'R');
                     $pdf->Cell(55, 4,$ubi[$l],'B',0,'R');
-                    $pdf->Cell(40, 4,"",'RB',0,'R');
+                    //$pdf->Cell(40, 4,"",'RB',0,'R');
                     $pdf->Ln();
                 }
             }
@@ -1880,6 +1883,19 @@ class wms_controller {
                 $x->save($ruta.$nom);
                 ob_end_clean();
                 return array("status"=>'ok',"nombre"=>$nom, "ruta"=>$ruta, "completa"=>'..\\..\\Reportes_Almacen\\'.$nom, "tipo"=>'x');
+    }
+
+    function delMovs($alm, $tipo){
+        $data= new wms;
+        $res = $data->delMovs($alm, $tipo);
+        return $res;
+    }
+
+    function pxc($ordd){
+        $data = new wms;
+        $res = $data->pxc($ordd);
+        return $res;
+        //echo '</br>Se busca coincidencia con la ordd '. $ordd;
     }
 }
 ?>

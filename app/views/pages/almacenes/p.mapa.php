@@ -232,10 +232,65 @@
                         action:function(){
                         }
                         },
+                        eliminar:{
+                            text:'Eliminar Movimientos',
+                            keys:['e'],
+                            btnClass:'btn-orange',
+                            action:function(){
+                                alert('Eliminacion de los movimientos del componente' + idc)
+                                $.ajax({
+                                    url:'index.wms.php',
+                                    type:'post',
+                                    dataType:'json',
+                                    data:{delMovs:idc, tipo:'comp'},
+                                    success:function(data){
+                                        
+                                    }, 
+                                    error:function(){
+                                        $.alert('Ocurrio un error, favor de actualizar, si persiste comunicarse con sistemas 55 50553392')
+                                    }
+                                })
+                            }
+                        },
                     },
                 });
             }else{
-                $.alert("Para cambiar el uso el componente debe estar vacio.")
+                //$.alert("Para cambiar el uso el componente debe estar vacio.")
+                $.confirm({
+                    columnClass: 'col-md-8',
+                    title: 'Eliminacion de Movimientos',
+                    content:'Eliminar Movimientos del componente'
+                    ,
+                    buttons:{
+                        cancelar:{
+                        text:'No',
+                        keys:['esc'],
+                        btnClass:'btn-red',
+                        action:function(){
+                        }
+                        },
+                        eliminar:{
+                            text:'Eliminar Movimientos',
+                            keys:['e'],
+                            btnClass:'btn-orange',
+                            action:function(){
+                                alert('Eliminacion de los movimientos del componente' + idc)
+                                $.ajax({
+                                    url:'index.wms.php',
+                                    type:'post',
+                                    dataType:'json',
+                                    data:{delMovs:idc, tipo:'comp'},
+                                    success:function(data){
+                                        
+                                    }, 
+                                    error:function(){
+                                        $.alert('Ocurrio un error, favor de actualizar, si persiste comunicarse con sistemas 55 50553392')
+                                    }
+                                })
+                            }
+                        },
+                    },
+                });
             }
         }
     })

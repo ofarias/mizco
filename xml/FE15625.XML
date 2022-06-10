@@ -1,0 +1,484 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<cfdi:Comprobante xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd http://www.sat.gob.mx/CartaPorte20 http://www.sat.gob.mx/sitio_internet/cfd/CartaPorte/CartaPorte20.xsd" Version="3.3" Serie="FE" Folio="15625" Fecha="2022-01-10T17:20:17" Sello="BHwfDGDkAB7A4YHfcvmYYfsDdeK4K7RcAQShNruPVS83EcwrUITUxviZMLLetNn4I1vWwK0Y1jxmE1mk/bWOxVSH9MTpnz6snsbqrnMc1g+8oIg/4LUG1nmt8FRBhY8FQ0AUB/Y4fJcLYJ+TS/ZDjtQV68dK0S9RqEmPj4u5ubrkNh7eHJR4bol/4Q7nOay2wLwcOxzI4WlAA8L8RguErAuWgk6xLK9DGT0YkWDEhjfzzQO9WLeQTb5KEey4PdW8xbG1/sYF3mNiC/vAxgxpGsVjrpjG7qR6Kkn4AcFnMDDH4CJmWYJsH53uni8QdrIBGm/63EmCvhg6tkYjiyDz3w==" FormaPago="99" NoCertificado="00001000000505713687" Certificado="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" CondicionesDePago="90 Dias" SubTotal="202316.44" Descuento="0.00" Moneda="MXN" TipoCambio="1" Total="234687.08" TipoDeComprobante="I" MetodoPago="PPD" LugarExpedicion="54030" xmlns:cfdi="http://www.sat.gob.mx/cfd/3" xmlns:cartaporte20="http://www.sat.gob.mx/CartaPorte20" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:catCFDI="http://www.sat.gob.mx/sitio_internet/cfd/catalogos" xmlns:tdCFDI="http://www.sat.gob.mx/sitio_internet/cfd/tipoDatos/tdCFDI">
+  <cfdi:Emisor Nombre="IMPORTADORA MIZCO SA DE CV" Rfc="IMI161007SY7" RegimenFiscal="601" />
+  <cfdi:Receptor UsoCFDI="G01" Nombre="TIENDAS SORIANA, SA DE CV" Rfc="TSO991022PB6" />
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462405120" Cantidad="2.00" Importe="2520.00" ValorUnitario="1260.00" Descripcion="TELEFONO DE ESCRITORIO TIPO GONDOLA" ClaveProdServ="43191504" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="2520.00" Importe="403.20" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1003005" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462405151" Cantidad="2.00" Importe="3600.00" ValorUnitario="1800.00" Descripcion="TELEFONO ALAMBRICO CON IDENT DE LLAMADAS" ClaveProdServ="43191504" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="3600.00" Importe="576.00" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="19  20  9005  9047695" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462405175" Cantidad="22.00" Importe="19800.00" ValorUnitario="900.00" Descripcion="TELEFONO DE ESCRITORIO ALAMBRICO" ClaveProdServ="43191504" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="19800.00" Importe="3168.00" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1014534" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462428822" Cantidad="18.00" Importe="28080.00" ValorUnitario="1560.00" Descripcion="AUDIFONOS TIPO DJ" ClaveProdServ="52161514" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="28080.00" Importe="4492.80" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1011222" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462428853" Cantidad="3.00" Importe="15480.00" ValorUnitario="5160.00" Descripcion="AUDIFONOS BLUETOOTH" ClaveProdServ="52161514" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="15480.00" Importe="2476.80" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1014623" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462428884" Cantidad="1.00" Importe="1368.60" ValorUnitario="1368.60" Descripcion="AUDIFONOS HI-FI" ClaveProdServ="52161514" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="1368.60" Importe="218.98" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1006129" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462428761" Cantidad="8.00" Importe="6011.04" ValorUnitario="751.38" Descripcion="AUDIFONOS HI-FI MANOS LIBRES" ClaveProdServ="52161514" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="6011.04" Importe="961.77" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="19  51  3862  9015955" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462431044" Cantidad="1.00" Importe="1684.80" ValorUnitario="1684.80" Descripcion="BOCINA PERRO BLUETOOTH RECARGABLE" ClaveProdServ="52161512" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="1684.80" Importe="269.57" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="20  51  3862  0007147" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462428068" Cantidad="1.00" Importe="3900.24" ValorUnitario="3900.24" Descripcion="RADIOGRABADORA BLUETOOTH" ClaveProdServ="52161543" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="3900.24" Importe="624.04" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1008671" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500463108884" Cantidad="9.00" Importe="3330.00" ValorUnitario="370.00" Descripcion="AUDIFONOS IN-EAR CON MANOS LIBRES" ClaveProdServ="52161514" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="3330.00" Importe="532.80" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1009776" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462428747" Cantidad="4.00" Importe="1800.00" ValorUnitario="450.00" Descripcion="CABLE CARGADOR USB A MICRO USB Y TIPO C" ClaveProdServ="43211617" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="1800.00" Importe="288.00" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="20  51  3862  0003104" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462428358" Cantidad="15.00" Importe="6000.00" ValorUnitario="400.00" Descripcion="CABLE CARGADOR USB A TIPO C" ClaveProdServ="43211617" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="6000.00" Importe="960.00" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1013870" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462428075" Cantidad="8.00" Importe="2800.00" ValorUnitario="350.00" Descripcion="CABLE CARGADOR USB A MICRO USB" ClaveProdServ="43211617" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="2800.00" Importe="448.00" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1009776" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7500462428839" Cantidad="2.00" Importe="1669.80" ValorUnitario="834.90" Descripcion="POWER BANK 3000mAh" ClaveProdServ="26111701" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="1669.80" Importe="267.17" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1012630" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7503026326961" Cantidad="8.00" Importe="2338.96" ValorUnitario="292.37" Descripcion="BAFLE 8 PANTHER II TWS" ClaveProdServ="52161527" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="2338.96" Importe="374.23" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1008730" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7503027948667" Cantidad="3.00" Importe="6984.00" ValorUnitario="2328.00" Descripcion="TELEFONO INALAMBRICO 50 MEMORIAS" ClaveProdServ="43191504" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="6984.00" Importe="1117.44" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1015998" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7503026326145" Cantidad="9.00" Importe="10800.00" ValorUnitario="1200.00" Descripcion="SOPORTE FIJO PARA PANTALLAS DE 24 A 60" ClaveProdServ="45111802" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="10800.00" Importe="1728.00" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1010029" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7503026326152" Cantidad="6.00" Importe="8100.00" ValorUnitario="1350.00" Descripcion="SOPORTE ARTICULADO P/ PANT. DE 24 A 60" ClaveProdServ="45111802" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="8100.00" Importe="1296.00" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1010029" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7503027948223" Cantidad="8.00" Importe="12000.00" ValorUnitario="1500.00" Descripcion="AUDIFONOS BLUETOOTH CON ESTUCHE" ClaveProdServ="52161514" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="12000.00" Importe="1920.00" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="20  51  3862  0003104" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7503026326138" Cantidad="7.00" Importe="4655.00" ValorUnitario="665.00" Descripcion="SOPORTE FIJO PARA PANTALLAS DE 19 A 42" ClaveProdServ="45111802" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="4655.00" Importe="744.80" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1001751" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7503027948629" Cantidad="8.00" Importe="10560.00" ValorUnitario="1320.00" Descripcion="BAFLE BLADE BT/ TWS/FM ENT.USB/TF/AUXILIAR" ClaveProdServ="52161527" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="10560.00" Importe="1689.60" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1010432" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7503034347989" Cantidad="3.00" Importe="6480.00" ValorUnitario="2160.00" Descripcion="AUDIFONOS GAMING GHOST DRAGON MICROFONO INTEGRADO" ClaveProdServ="52161514" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="6480.00" Importe="1036.80" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1016190" />
+    </cfdi:Concepto>
+    <cfdi:Concepto ClaveUnidad="H87" Unidad="PIEZA" NoIdentificacion="7503030332514" Cantidad="13.00" Importe="42354.00" ValorUnitario="3258.00" Descripcion="KIT GAMING THUNDER DRAGON AUDIFONOS/TECLADO/MOUSE/MOUSE PAD" ClaveProdServ="43211700" Descuento="0.00">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado TasaOCuota="0.160000" Base="42354.00" Importe="6776.64" Impuesto="002" TipoFactor="Tasa" />
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+      <cfdi:InformacionAduanera NumeroPedimento="21  51  3862  1015532" />
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="32370.64">
+    <cfdi:Traslados>
+      <cfdi:Traslado Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="32370.64" />
+    </cfdi:Traslados>
+  </cfdi:Impuestos>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital Version="1.1" UUID="0FC6C69C-EC5A-436E-A387-D5A553C219E1" FechaTimbrado="2022-01-10T17:20:31" RfcProvCertif="LEV031201SE6" SelloCFD="BHwfDGDkAB7A4YHfcvmYYfsDdeK4K7RcAQShNruPVS83EcwrUITUxviZMLLetNn4I1vWwK0Y1jxmE1mk/bWOxVSH9MTpnz6snsbqrnMc1g+8oIg/4LUG1nmt8FRBhY8FQ0AUB/Y4fJcLYJ+TS/ZDjtQV68dK0S9RqEmPj4u5ubrkNh7eHJR4bol/4Q7nOay2wLwcOxzI4WlAA8L8RguErAuWgk6xLK9DGT0YkWDEhjfzzQO9WLeQTb5KEey4PdW8xbG1/sYF3mNiC/vAxgxpGsVjrpjG7qR6Kkn4AcFnMDDH4CJmWYJsH53uni8QdrIBGm/63EmCvhg6tkYjiyDz3w==" NoCertificadoSAT="00001000000506248998" SelloSAT="GAZp7rhvfeUiEdZfx5JlLrQRCRZSyuEjx10FsxXKqBUyfcdi2Q8du7aycjiYVbmEXn3bfnFxSXv7KsDT/7ox+7a7jww7cEIEbpZC1ERhXxTaBDqe9RT+yID8vmLEJ2khqsdVS07nESwI0CBhW1EhC6Ff9rUq6nTbOwvGSRSutcezZlV2yoMI4hbNWt0b05coJh5MDE4FxmqSUh0GnebxWIL7hFl/uaw8v2QH8aycE7zSK2GZ5ZaW6Y1T+s9AFaRKhOg9wZAxkeuiWk5LzeoDeYMSlRgkdeVwr1Q8oD9lk2AizkT4S0qpuIl8BGLD9MFexskOh7Fr/rOFfE9yyGaUmg==" xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" xsi:schemaLocation="http://www.sat.gob.mx/TimbreFiscalDigital http://www.sat.gob.mx/sitio_internet/cfd/TimbreFiscalDigital/TimbreFiscalDigitalv11.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
+  </cfdi:Complemento>
+  <cfdi:Addenda>
+    <DSCargaRemisionProv>
+      <Remision Id="Remision0" RowOrder="0">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <Consecutivo>0</Consecutivo>
+        <FechaRemision>2022-01-10T00:00:00</FechaRemision>
+        <Tienda>5548</Tienda>
+        <TipoMoneda>1</TipoMoneda>
+        <TipoBulto>1</TipoBulto>
+        <EntregaMercancia>35</EntregaMercancia>
+        <CumpleReqFiscales>true</CumpleReqFiscales>
+        <CantidadBultos>1</CantidadBultos>
+        <Subtotal>202316.44</Subtotal>
+        <Descuentos>0</Descuentos>
+        <IEPS>0</IEPS>
+        <IVA>32370.64</IVA>
+        <OtrosImpuestos>0</OtrosImpuestos>
+        <Total>234687.08</Total>
+        <CantidadPedidos>1</CantidadPedidos>
+        <FechaEntregaMercancia>2022-01-11T00:00:00</FechaEntregaMercancia>
+        <FolioNotaEntrada>03503273</FolioNotaEntrada>
+      </Remision>
+      <Pedidos Id="Pedido0" RowOrder="0">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <CantidadArticulos>23</CantidadArticulos>
+      </Pedidos>
+      <Articulos Id="Articulo0" RowOrder="0">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462405120</Codigo>
+        <CantidadUnidadCompra>2</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>1260</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo1" RowOrder="1">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462405151</Codigo>
+        <CantidadUnidadCompra>2</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>1800</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo2" RowOrder="2">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462405175</Codigo>
+        <CantidadUnidadCompra>22</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>900</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo3" RowOrder="3">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462428822</Codigo>
+        <CantidadUnidadCompra>18</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>1560</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo4" RowOrder="4">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462428853</Codigo>
+        <CantidadUnidadCompra>3</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>5160</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo5" RowOrder="5">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462428884</Codigo>
+        <CantidadUnidadCompra>1</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>1368.6</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo6" RowOrder="6">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462428761</Codigo>
+        <CantidadUnidadCompra>8</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>751.38</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo7" RowOrder="7">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462431044</Codigo>
+        <CantidadUnidadCompra>1</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>1684.8</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo8" RowOrder="8">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462428068</Codigo>
+        <CantidadUnidadCompra>1</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>3900.24</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo9" RowOrder="9">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500463108884</Codigo>
+        <CantidadUnidadCompra>9</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>370</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo10" RowOrder="10">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462428747</Codigo>
+        <CantidadUnidadCompra>4</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>450</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo11" RowOrder="11">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462428358</Codigo>
+        <CantidadUnidadCompra>15</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>400</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo12" RowOrder="12">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462428075</Codigo>
+        <CantidadUnidadCompra>8</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>350</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo13" RowOrder="13">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7500462428839</Codigo>
+        <CantidadUnidadCompra>2</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>834.9</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo14" RowOrder="14">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7503026326961</Codigo>
+        <CantidadUnidadCompra>8</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>292.37</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo15" RowOrder="15">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7503027948667</Codigo>
+        <CantidadUnidadCompra>3</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>2328</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo16" RowOrder="16">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7503026326145</Codigo>
+        <CantidadUnidadCompra>9</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>1200</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo17" RowOrder="17">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7503026326152</Codigo>
+        <CantidadUnidadCompra>6</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>1350</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo18" RowOrder="18">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7503027948223</Codigo>
+        <CantidadUnidadCompra>8</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>1500</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo19" RowOrder="19">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7503026326138</Codigo>
+        <CantidadUnidadCompra>7</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>665</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo20" RowOrder="20">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7503027948629</Codigo>
+        <CantidadUnidadCompra>8</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>1320</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo21" RowOrder="21">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7503034347989</Codigo>
+        <CantidadUnidadCompra>3</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>2160</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+      <Articulos Id="Articulo22" RowOrder="22">
+        <Proveedor>17893</Proveedor>
+        <Remision>FE-15625</Remision>
+        <FolioPedido>36197054</FolioPedido>
+        <Tienda>5548</Tienda>
+        <Codigo>7503030332514</Codigo>
+        <CantidadUnidadCompra>13</CantidadUnidadCompra>
+        <CostoNetoUnidadCompra>3258</CostoNetoUnidadCompra>
+        <PorcentajeIEPS>0</PorcentajeIEPS>
+        <PorcentajeIVA>16</PorcentajeIVA>
+      </Articulos>
+    </DSCargaRemisionProv>
+  </cfdi:Addenda>
+</cfdi:Comprobante>

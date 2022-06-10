@@ -6,6 +6,7 @@ require_once('app/model/pegaso.model.php');
 require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
 require_once 'app/model/database.php';
+require_once 'app/controller/sql.controller.php';
 
 class pegaso_controller {
     /* Metodo que envía a login */
@@ -12088,16 +12089,22 @@ function compruebaXml($folio) {
         ########## PRIMERA PRUEBA PARA OBTENER LOS DATOS DEL XML DESDE LA BD #############
         /// segun manual http://serviciosweb.soriana.com/RecibeCfd/wseDocRecibo.asmx
         //// Original GB  http://serviciosweb.soriana.com/RecibeCfd/wseDocRecibo.asmx?wsdl
-        $archivo='FE12756.XML';
-        $f='FE12756';
+        $archivo='FE15625.XML';
+        $f='FE15625';
         $xml=file_get_contents('./xml/'.$archivo); //colocar bien la ruta de la carpeta con los xml
+        
+        //echo $xml;
+        //die();
         //parametros a enviar, deben ser en array
         $folio=$data->insertaCFDI($xml, $f);
         $xml=$data->ObtieneXml($folio);  
         //print_r($xml);
-        //exit(print_r($xml));
+        $a = file_get_contents('./xml/'.$archivo);
+        $a = substr($a, 3);
+        //exit(print_r($a));
         #########################
-        $param=array('XMLCFD' => $xml);
+        //--$param=array('XMLCFD'=>$xml);
+        $param=array('XMLCFD'=>$a);
         //print_r($param);
         $oSoapClient->loadWSDL();
         //en call colocamos el nombre del metodo a usar
@@ -12196,7 +12203,7 @@ function compruebaXml($folio) {
             ob_start();            
             
             $usuario = $_SESSION['user']->NOMBRE;
-            $resultado =  'No se pudo realizar la operacion, favor de revisar los datos';
+            $res =  'No se pudo realizar la operacion, favor de revisar los datos';
             if($opcion == 5) {
                 $rec=$data->RecalcularPrecio();
             }elseif ($opcion == 6) {
@@ -12205,9 +12212,12 @@ function compruebaXml($folio) {
                 $rec=$data->recalcularKardex();
             }elseif ($opcion == 8){
                 $rec=$data->costoPromedio();
+            }elseif($opcion == 9){
+                $res=$this->buscaAddenda();
+            }elseif($opcion == 10){
+                $res=$this->detalleDoc($docp, $docf);
             }
-
-            echo $resultado;
+            echo $res;
             //$cf = $data->asociaCF();
                  include 'app/views/pages/p.utilerias.php';
                  $table = ob_get_clean();
@@ -12220,7 +12230,7 @@ function compruebaXml($folio) {
         }
     }
 
-     function verAuxSaldosCxc($fechaini, $fechafin) {
+    function verAuxSaldosCxc($fechaini, $fechafin) {
         session_cache_limiter('private_no_expire');
         if ($_SESSION['user']) {
             $data = new pegaso;
@@ -12356,29 +12366,127 @@ function compruebaXml($folio) {
     }
 
     function apolo($id){
-        if($_SESSION['user']){
+        //if($_SESSION['user']){
             $data = new pegaso;
+            $sql = new intelisis;
             ob_start();
             $pagina = $this->load_template('Pedidos');
             $html = $this->load_page('app/views/pages/Apolo/p.apolo.php');
             $info=$data->apolo();
+            $partidas = $data->partidasApolo();
+            if(count($partidas) > 0 ){
+                $revProd=$sql->revProd($partidas);
+            }
             include 'app/views/pages/Apolo/p.apolo.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             $this->view_page($pagina);
-        }else{
-            $e = "Favor de iniciar Sesión";
-            header('Location: index.php?action=login&e=' . urlencode($e));
-            exit;
-        }        
+        //}else{
+        //    $e = "Favor de iniciar Sesión";
+        //    header('Location: index.php?action=login&e=' . urlencode($e));
+        //    exit;
+        //}        
     }
 
     function correoApolo($id, $opc){
         $data = new pegaso;
-        $_SESSION['info']=$data->correoApolo($id, $opc);
-        include 'app/mailer/send.apolo.php';   ///  se incluye la classe Contrarecibo     
-        $act=$data->regApolo($id, 'envio');
-        return ;
+        $int= new intelisis;
+        $info = $data->correoApolo($id, $opc); /// Trae la informacion para la creacion del correo.
+        if($opc == 'c'){
+            $datos=$int->obtieneUUID($info);
+            if(count($datos)>0){
+                $carga=$data->cargaUUID($id, $datos, $info);
+                return $carga;
+            }
+            return array("status"=>'no');
+        }
+
+        $infoProd = $int->prodApolo($info); /// consulta en intelisis el producto y crea el cliente en caso que no exista
+        if(count($infoProd)==0){
+            foreach($info as $inf){}
+            return array("status"=>'no', "msg"=>'El producto '.$inf->PRODUCTO.' no existe Codigo de Barras '.$inf->NO_IDEN);
+        }
+        $actProd = $data->actProdApolo($infoProd); /// Actualiza el producto de intelisis  
+        $info = $data->correoApolo($id, $opc);/// Consulta ya con la informacion del producto.
+        $insPedido=$int->insertaPedidoWeb($info); /// insercion de la venta en Intelisis
+        $act=$data->regApolo($id, 'envio', $insPedido); /// Actualiza el numero de pedido.
+        $_SESSION['info']=$data->correoApolo($id, $opc); // Trae nuevamente la informacion para la creacion del correo.
+        include 'app/mailer/send.apolo.php';   ///  se envia el correo con toda la informacion     
+        return array("status"=>'ok');
+    }
+
+    function facturacionCargaXML($files2upload, $tipo){
+        if (isset($_SESSION['user'])) {            
+            $data = new pegaso;
+            //$data2 = new imi;
+            $valid_formats = array("xml", "XML", "pdf", "PDF");
+            $max_file_size = 1024 * 1000; //1000 kb
+            $target_dir="C:/xampp/htdocs/uploads/xml/apolo/";
+            if(!file_exists($target_dir)){
+                mkdir($target_dir, 0777, true);
+            }
+            $count = 0;
+            $respuesta = 0;
+            foreach ($_FILES['files']['name'] as $f => $name) { 
+                $ext = pathinfo($name, PATHINFO_EXTENSION);
+                if ($_FILES['files']['error'][$f] == 4) {
+                    continue;
+                }
+                if ($_FILES['files']['error'][$f] == 0){
+                    if ($_FILES['files']['size'][$f] > $max_file_size or $_FILES['files']['size'][$f] == 0){
+                        $message[] = "$name es demasiado grande para subirlo.";
+                        continue; // Skip large files
+                    }elseif(!in_array(pathinfo($name, PATHINFO_EXTENSION), $valid_formats)){
+                        $message[] = "$name no es un archivo permitido.";
+                        continue; // Skip invalid file formats
+                    }else{ // No error found! Move uploaded files 
+                        $archivo = $target_dir.$name;
+                        $ar = $name;
+                        if(strtoupper($ext) == 'XML'){
+                            $a=$data->leeXML($_FILES['files']['tmp_name'][$f]);
+                            if($a['tcf'] == 'falso'){
+                            }else{
+                                $exec=$data->seleccionarArchivoXMLCargado($archivo, $a['uuid']); 
+                                if($exec==null){
+                                    if (move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name)){
+                                        $count++; // Number of successfully uploaded file
+                                        $respuesta += $data->insertarArchivoXMLCargado($archivo, $tipo, $a);
+                                        //if($_SESSION['rfc'] == 'IMI161007SY7'){
+                                        //    $res= $data2->insertarArchivoXMLCargado($archivo, $tipo, $a);
+                                        //}
+                                        //unlink($_FILES["files"]["tmp_name"][$f]);
+                                    }
+                                } else {
+                                    echo "<b><br/>Archivo $ar duplicado. No se ha logrado subir.<b/><br/>";
+                                }   
+                            }    
+                        }else{
+                            move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name);
+                        }
+                        
+                    }
+                }
+            }
+            //$data->revisaParametros($uuid=false); /// Revisa los parametros. 
+            echo "<br/><br/><b>Archivos cargados con exito: $count-$respuesta</b>";
+            //$this->facturacionSeleccionaCargaXML($tipo);
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+    }
+
+    function buscaAddenda(){
+        $data = new pegaso;
+        $path = "c:\\xmls";
+        //$path = $data->mapeo();
+        $info = $data->acomodo($path);
+    }
+
+    function detalleDoc($docp, $docf){
+        $data= new sql_controller;
+        $detalleDoc = $data->detalleDoc($docp, $docf);
     }
 }
 ?>

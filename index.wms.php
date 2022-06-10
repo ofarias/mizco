@@ -107,6 +107,10 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->liberar($_POST['liberar']);echo json_encode($res);exit();
 }elseif(isset($_POST['movsProd'])){
     $res=$controller_wms->movsProd($_POST['movsProd']);echo json_encode($res);exit();
+}elseif(isset($_POST['delMovs'])){
+    $res=$controller_wms->delMovs($_POST['delMovs'], $_POST['tipo']);echo json_encode($res);exit();
+}elseif(isset($_POST['pxc'])){
+    $res=$controller_wms->pxc($_POST['pxc']);echo json_encode($res);exit();
 }
 else{
     switch ($_GET['action']) {

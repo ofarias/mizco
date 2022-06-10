@@ -8,7 +8,12 @@
         foreach ($persona as $per) {
             $pers=$per->NOMBRE; 
         }
-}?>
+    }
+foreach($orden as $od){
+            $status = $od->ID_STATUS;
+        }
+?>
+
 <div class="row">
     <div class="col-lg-12">
         <div>Detalles del Archivo: <label><?php echo $cabecera->ARCHIVO?> </label><br/>Para el Cliente: <label><?php echo $cabecera->CLIENTE?></label>  <?php echo !empty($cabecera->ORDEN)? '<br/>Incluye las ordenes:<label>'.$cabecera->ORDEN.'</label>':''?></label>
@@ -25,7 +30,7 @@
             <p><input type="text" placeholder="Persona Asignada" class="asignar" size="80" cedis="<?php echo (isset($param)? $param:'todos')?>" value="<?php echo $pers?>"></p>
             <?php echo (!empty(@$param))? '<b>Cedis: '.$param.'</b><br/>':''?>
             <input type="button" name="" value="Imprimir" class="btn-sm btn-primary imp" p="<?php echo $param?>"> &nbsp;&nbsp;&nbsp;
-            <input type="button" value="Finalizar" cedis="<?php echo (!empty(@$param))? $param:''?>" class="finSurt" >
+            <input type="button" value="<?php echo $status==7? 'Finalizado':'Finalizar' ?>" <?php echo $status==7? 'disabled':'' ?> cedis="<?php echo (!empty(@$param))? $param:''?>" class="finSurt" >
         </div>
             <br/>
             <div class="row">
@@ -38,7 +43,7 @@
                                         <tr>
                                             <th width="3"> Ln </th>
                                             <th > UPC</th>
-                                            <th > Modelo</th>
+                                            <th > Asignado / <br/> <font color="purple"> Original </font> </th>
                                             <th > Cantidad / <br/> Asignado</th>
                                             <th > Cajas </th>
                                             <th > Piezas por Caja</th>
@@ -61,8 +66,10 @@
                                        <tr class="odd gradeX color" <?php echo $color?>>
                                             <td><?php echo $ln?></td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
-                                            <td><?php echo $ord->PROD?>
-                                            <br/> <font color="purple" > <?php echo $ord->PROD_SKU ?></font>
+                                            <td><b><?php echo $ord->PROD?></b>
+                                            <br/> <?php if($ord->PROD != $ord->PROD_SKU):?>
+                                                <font color="purple" > <?php echo $ord->PROD_SKU ?></font>
+                                                <?php endif;?>
                                             </td>
                                             <td><?php echo $ord->PZAS.' / '.$ord->ASIG?><br/>
                                                 
@@ -83,7 +90,7 @@
                                                     </text>
                                                 <p class="ordd" id="surt_<?php echo $ln?>" ordd="<?php echo $ord->ID_ORDD?>" ln="<?php echo $ln?>" mod="<?php echo $ord->PROD?>"></p> 
                                             </td>
-                                            <td align="center"><input type="text" size="10" class="factor" ordd="<?php echo $ord->ID_ORDD?>" t="u"><br/><text id="<?php echo $ord->ID_ORDD?>"><?php echo $ord->UNIDAD?></text></td>
+                                            <td align="center"><input type="text" size="10" class="factor revpxc" ordd="<?php echo $ord->ID_ORDD?>" t="u" id="u_<?php echo $ord->ID_ORDD?>"><br/><text id="<?php echo $ord->ID_ORDD?>"><?php echo $ord->UNIDAD?></text></td>
                                             <td><input type="text" size="10" class="factor" t="e" ordd="<?php echo $ord->ID_ORDD?>" placeholder="<?php echo $ord->ETIQUETA?>"></td>
                                         </tr>
                                     <?php endforeach ?>               
@@ -231,6 +238,7 @@
     $(document).ready(function(){
         //revisa()
         revisaSurt()
+        revisaPxC()
     })
 
     function revisaSurt(){
@@ -270,6 +278,29 @@
                     comp.text("No se pudo leer la informacion, revise con soporte tecnico al 55-5055-3392")
                 }
             })
+        })
+    }
+
+    function revisaPxC(){
+        $(".revpxc").each(function(){
+            var val = $(this).val()
+            var ordd = $(this).attr('ordd')
+            if(val == ''){
+                $.ajax({
+                    url:'index.wms.php',
+                    type:'post',
+                    dataType:'json',
+                    data:{pxc:ordd}, 
+                    success:function(data){
+                        if(data.sta == 'ok'){
+                            //$(this).val(data.valor)
+                            $("#u_"+ordd).val(data.valor)
+                        }
+                    }, 
+                    error:function(error){
+                    }
+                })
+            }
         })
     }
 

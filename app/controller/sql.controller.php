@@ -100,4 +100,10 @@ class sql_controller {
             exit;
         }	
 	}
+
+    function detalleDoc($docp, $docf){
+        $data = new intelisis;
+        echo '<br/> '.$docf.''.$docp.'<br/>';
+        $info= $data->detalleDoc($docp, $docf);
+    }
 }

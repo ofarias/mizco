@@ -12373,7 +12373,6 @@ where f.cve_doc = :cve_doc
             $this->query="INSERT INTO FTC_APERAK 
                         (ID, FACTURA, APERAK, FECHA) 
                         VALUES (NULL, '$folio','$aperak', current_timestamp) ";
-            echo $this->query;
             $this->EjecutaQuerySimple();
             $file = fopen("C:\\xampp\\htdocs\\Aperak\\Aperak_WS_".$folio.".xml", "a");
             fwrite($file, $aperak.PHP_EOL);
@@ -12381,8 +12380,18 @@ where f.cve_doc = :cve_doc
         return;
     }
 
+    function insertaCFDI($xml, $folio){
+        $this->query="INSERT INTO CFDI01 (TIPO_DOC, CVE_DOC, XML_DOC ) values ('F', '$folio', trim('$xml'))";
+        $this->grabaBD();
+        
+        //$this->query="UPDATE CFDI01 SET XML_DOC = SUBSTRING(XML_DOC FROM 4 ) WHERE CVE_DOC ='$folio'";
+        //$this->EjecutaQuerySimple();
+        return $folio;
+   }
+
     function ObtieneXml($folio){
-        $this->query="SELECT CAST(XML_DOC AS VARCHAR(32765)) AS XML_DOC FROM CFDI01 WHERE CVE_DOC='$folio'";
+        //$this->query="SELECT CAST(XML_DOC AS VARCHAR(32765)) AS XML_DOC FROM CFDI01 WHERE CVE_DOC='$folio'";
+        $this->query="SELECT XML_DOC FROM CFDI01 WHERE CVE_DOC='$folio'";
         $res=$this->EjecutaQuerySimple();
         $row=ibase_fetch_object($res);
         return $row->XML_DOC;
@@ -12427,18 +12436,16 @@ where f.cve_doc = :cve_doc
     return array("status"=>'ok');
    }
 
-   function insertaCFDI($xml, $folio){
-        
-        $this->query="INSERT INTO CFDI01 (TIPO_DOC, CVE_DOC, XML_DOC ) values ('F', '$folio', trim('$xml'))";
-        $this->grabaBD();
-        $this->query="UPDATE CFDI01 SET XML_DOC = SUBSTRING(XML_DOC FROM 4 ) WHERE CVE_DOC ='$folio'";
-        $this->EjecutaQuerySimple();
-        return $folio;
-   }
+   
 
    function apolo(){
-        $path="C:\\inetpub\\ftproot\\out";
-        $dir=scandir($path);
+        //$path="C:\\inetpub\\ftproot\\out";
+        $path = "\\\\192.168.2.23\\SFTP_Root\\Recibir\\";
+        if(@$dir=scandir($path)){
+        }else{
+            $path = "\\\\Mizco-apollo\\SFTP_Root\\Recibir\\";
+            $dir=scandir($path);
+        }
         for ($i=0; $i < count($dir) ; $i++) { 
             if(!is_dir($path.'\\'.$dir[$i])){
                 $file= explode("_", $dir[$i]);
@@ -12447,16 +12454,16 @@ where f.cve_doc = :cve_doc
                 if(ibase_fetch_object($res)->VAL >= 1){
                     //echo '<br/>Archivo ya cargado';
                 }else{
-                    $this->query="INSERT INTO FTC_APOLO VALUES (null, '$dir[$i]', '$file[1]', '$file[2]', '$file[3]', '$file[4]','', 0) returning id";
+                    $this->query="INSERT INTO FTC_APOLO VALUES (null, '$dir[$i]', '$file[1]', '$file[2]', '$file[3]', '$file[4]','', 0, '', '') returning id";
                     $res=$this->EjecutaQuerySimple();
                     $id = ibase_fetch_object($res)->ID;
                     $xml=$this->leerXMLApolo($path, $dir[$i], $id);
-                    $this->regApolo($id, 'Carga de Archivo');
+                    $this->regApolo($id, 'Carga de Archivo', array());
                 }
             }
         }
         $this->query="SELECT A.*, 
-                (SELECT  max(O.FECHA) FROM FTC_APOLO_OBS O WHERE A.ID = O.ID_A ) AS FECHA,
+                (SELECT  C.FECHA FROM FTC_APOLO_CABECERA C WHERE C.ID_A = A.ID ) AS FECHA,
                 DATEADD(2 day to (SELECT O.FECHA FROM FTC_APOLO_OBS O WHERE A.ID = O.ID_A and status = 0)) AS FECHA_LIM
                 FROM FTC_APOLO A WHERE A.STATUS < 10 ";
         $res=$this->EjecutaQuerySimple();
@@ -12477,7 +12484,8 @@ where f.cve_doc = :cve_doc
         $reg_e= $xml->Emisor['RegimenFiscal'];
         $reg_e_d= $xml->Emisor['RegimenFiscalDesc'];
         /// Datos Receptor
-        $rfc_r= $xml->Receptor['Rfc']; 
+        $rfc_r= $xml->Receptor['Rfc'];
+        $nombre_r = $xml->Receptor['Nombre']; 
         $res_r= $xml->Receptor['ResidenciaFiscal'];
         $res_r_d= $xml->Receptor['ResidenciaFiscalDesc'];
         $uso_r= $xml->Receptor['UsoCFDI'];
@@ -12505,7 +12513,7 @@ where f.cve_doc = :cve_doc
         $imp_let = $xml['ImporteConLetras'];
         
         $this->query="INSERT INTO FTC_APOLO_CABECERA (ID_C, ID_A, E_RFC, E_NOMBRE, E_REGIMEN, E_REGIMEN_DESC, R_RFC, R_NOMBRE, R_RESIDENCIA_FISCAL, R_RESIDENCIA_FISCAL_DESC, R_USO_CFDI, R_USO_CFDI_DESC, R_CATALOGADO, SERIE, FOLIO, FECHA, FORMA_PAGO, FORMA_PAGO_DESC, METODO_PAGO, METODO_PAGO_DESC, LUGAR_EXPEDICION, MONEDA_DECIMALES, EMPRESA_DECIMALES, IMPORTE_LETRAS) 
-        VALUES (null, $id, '$rfc_e', '$nom_e', '$reg_e', '$reg_e_d', '$rfc_r', '', '$res_r', '$res_r_d', '$uso_r', '$uso_r_d', '$cat_r', '$serie', '$folio', '$fecha', '$fm', '$fm_d', '$metPag', '$metPag_d', '$lugar', '$moneda_dec', '$empresa_dec', '$imp_let')";
+        VALUES (null, $id, '$rfc_e', '$nom_e', '$reg_e', '$reg_e_d', '$rfc_r', '$nombre_r', '$res_r', '$res_r_d', '$uso_r', '$uso_r_d', '$cat_r', '$serie', '$folio', '$fecha', '$fm', '$fm_d', '$metPag', '$metPag_d', '$lugar', '$moneda_dec', '$empresa_dec', '$imp_let')";
         $this->grabaBD();
 
         foreach ($xml->Conceptos->Concepto as $con){
@@ -12555,9 +12563,14 @@ where f.cve_doc = :cve_doc
         return; 
    }
 
-   function regApolo($id, $obs){
+   function regApolo($id, $obs, $insPedido){
         $usuario = $_SESSION['user']->NOMBRE;
-        $opc = '';
+        $opc = ''; $pedido="";$opc2='';
+
+        if(isset($insPedido)){
+            $pedido = $insPedido['pedido'];
+            $opc2 = ' , PEDIDO_INT = '.$pedido.' ';
+        }
         if($obs=='envio'){
             if($id!='all'){
                 $opc = ' where id = '.$id;
@@ -12572,8 +12585,8 @@ where f.cve_doc = :cve_doc
             foreach ($data as $v){
                 $this->query="INSERT INTO FTC_APOLO_OBS (ID, ID_A, OBSERVACIONES, FECHA, USUARIO, STATUS) VALUES (NULL, $v->ID, 'Envio de correo electronico por $usuario', current_timestamp, '$usuario', 1)";
                 $this->grabaBD();
-                $this->query="UPDATE FTC_APOLO SET STATUS = 1 WHERE ID = $v->ID";
-                $this->EjecutaQuerySimple();
+                $this->query="UPDATE FTC_APOLO SET STATUS = 1 $opc2 WHERE ID = $v->ID";
+                $this->queryActualiza();
             }
         return;
         }
@@ -12582,7 +12595,7 @@ where f.cve_doc = :cve_doc
         return;
    }
 
-   function correoApolo($id){
+   function correoApolo($id, $opc){
         if($id == 'all'){
             $opc = ' where status = 0';
         }else{
@@ -12596,5 +12609,1348 @@ where f.cve_doc = :cve_doc
         return $data;
    }
 
+   function actProdApolo($infoProd){
+        for ($i=0; $i < count($infoProd) ; $i++) { 
+            if($i==0 or $i%2==0){
+                $id = $infoProd[$i]; 
+            }
+            if($i%2!=0){
+                $this->query="UPDATE FTC_APOLO_DETALLE SET PRODUCTO = '$infoProd[$i]' where ID_AD = $id";
+                $this->queryActualiza();
+            }
+        }
+        return;
+   }
+
+   function cargaUUID($id, $datos, $info){
+        $uuid = $datos['uuid']; $factura = $datos['factura'];
+        $this->query="UPDATE FTC_APOLO SET UUID = '$uuid', FACTURA_INT= '$factura' where id = $id";
+        $this->queryActualiza();
+        foreach($info as $inf){}
+        $eje = $datos['eje'];$per=$datos['per']; $cliente=$datos['cliente'];
+        $path_o= "c:\\intelisis\\CFDI\\Comprobantes\\".$eje."\\".$per."\\".trim($cliente)."\\";
+        $factPDF= $path_o."Factura Electronica ".$factura.'.pdf';
+        $factXML= $path_o."Factura Electronica ".$factura.'.XML';
+        
+        //$path_d = 'c:\\inetpub\\ftproot\\in\\';
+        $path_d = '\\\\192.168.2.23\\SFTP_Root\\Entregar\\';
+        $filePDF = substr($inf->ARCHIVO,0, strlen($inf->ARCHIVO)-4).'_'.$uuid.'.PDF'; 
+        copy ($factPDF, $path_d.$filePDF);
+        $fileXML = substr($inf->ARCHIVO,0, strlen($inf->ARCHIVO)-4).'_'.$uuid.'.xml'; 
+        copy ($factXML, $path_d.$fileXML);
+        $this->query="UPDATE FTC_APOLO SET STATUS = 3 WHERE ID = id";
+        $this->queryActualiza();
+        return array("status"=>'ok');
+   }
+
+   function leeXML($archivo){
+        $myFile = fopen("$archivo", "r") or die ("No se ha logrado abrir el archivo ($archivo)!");
+        if(filesize("$archivo") <= 3000){
+            return array("uuid"=>'No', "tcf"=>'falso');
+        }else{
+                $myXMLData = fread($myFile, filesize($archivo));
+                $xml = @simplexml_load_string($myXMLData) or die ("Error: No se ha logrado crear el objeto XML ($archivo)");
+                $ns = $xml->getNamespaces(true);
+                $xml->registerXPathNamespace('c', $ns['cfdi']);
+                $xml->registerXPathNamespace('t', $ns['tfd']);   
+                foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
+                    $version = $cfdiComprobante['version'];
+                    if($version == ''){
+                    $version = $cfdiComprobante['Version'];
+                    }
+                }
+                foreach ($xml->xpath('//t:TimbreFiscalDigital') as $tfd) {
+                    if($version == '3.2'){
+                        $uuid = $tfd['UUID'];
+                    }else{
+                        $uuid = $tfd['UUID'];
+                    }
+                }
+                if($version == '3.2'){
+                    $tipo = $cfdiComprobante['tipoDeComprobante'];
+                }elseif($version == '3.3'){
+                    $tipo = $cfdiComprobante['TipoDeComprobante'];
+                }elseif($version == '4.0'){
+                    $tipo = $cfdiComprobante['TipoDeComprobante'];
+                }
+                foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
+                    if($version == '3.2'){
+                        $rfc= $Receptor['rfc'];
+                        $nombre_recep = utf8_encode($Receptor['nombre']);
+                        $usoCFDI = '';
+                    }elseif($version == '3.3'){
+                        $rfc= $Receptor['Rfc'];
+                        $nombre_recep=utf8_encode($Receptor['Nombre']);
+                        $usoCFDI =$Receptor['UsoCFDI'];
+                     }elseif($version == '4.0'){
+                        $rfc= $Receptor['Rfc'];
+                        $nombre_recep=utf8_encode($Receptor['Nombre']);
+                        $usoCFDI =$Receptor['UsoCFDI'];
+                     }
+                }
+                foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $Emisor){
+                    if($version == '3.2'){
+                        $rfce = $Emisor['rfc'];
+                        $nombreE = '';
+                        $regimen = '';  
+                    }elseif($version == '3.3'){
+                        $rfce = $Emisor['Rfc'];
+                        $nombreE = utf8_encode($Emisor['Nombre']);
+                        $regimen = $Emisor['RegimenFiscal'];
+                    }elseif($version == '3.4'){
+                        $rfce = $Emisor['Rfc'];
+                        $nombreE = utf8_encode($Emisor['Nombre']);
+                        $regimen = $Emisor['RegimenFiscal'];
+                    }
+                }
+                $rfcEmpresa = 'IMI161007SY7';
+                //echo '<br/>'.utf8_decode($nombre_recep);
+                if($rfcEmpresa != $rfce and $rfcEmpresa!=$rfc){
+                    echo ('<br/><font color="red">El RFC '.$rfce.' NO CORRESPONDE A LA EMPRESA '.$rfcEmpresa.' SELECCIONADA, SOLO SE PUEDEN SUBIR RFC DE LA EMPRESA SELECCIONA....'.$uuid.'</font><br/>');
+                    $tipo = 'falso';
+                }
+            return array("uuid"=>$uuid, "tcf"=>$tipo);
+        }
+    }
+
+    
+       
+    function insertarArchivoXMLCargado($archivo, $tipo, $a){
+        $TIME = time();
+        $HOY = date("Y-m-d H:i:s", $TIME);
+        $usuario = $_SESSION['user']->USER_LOGIN;
+        $file=substr($archivo, 37,200);
+        $file=str_replace(".xml", "", $file);
+        $uuid=$a['uuid'];
+        $tcf=$a['tcf'];
+        $this->query="INSERT INTO XML_DATA_FILES (ID,NOMBRE,ARCHIVO,FECHA,USUARIO,TIPO, UUID, TIPO_FISCAL)VALUES(NULL,'$archivo','$file','$HOY','$usuario', '$tipo', '$uuid','$tcf')";
+        $respuesta = $this->grabaBD();
+        $this->insertaXMLData($archivo, $tipo, $uuid);
+        //$this->actParametros($uuid, $tipo);
+        $this->query="UPDATE xml_data set tipo = 'I' where tipo = 'ingreso'";
+        $this->queryActualiza();
+        $this->query="UPDATE xml_data set tipo = 'E' where tipo = 'egreso'";
+        $this->queryActualiza();
+        return $respuesta;
+    }
+
+    function seleccionarArchivoXMLCargado($archivo, $uuid){
+        $this->query= "SELECT NOMBRE,ARCHIVO,FECHA,USUARIO,TIPO FROM XML_DATA_FILES WHERE UUID = '$uuid';";
+        $rs = $this->QueryObtieneDatosN();
+        while($tsArray=ibase_fetch_object($rs)){
+            $data[]=$tsArray;
+        }
+        return @$data;
+    }
+
+    function insertaXMLData($archivo, $tipo, $uuid){
+        $tipo2 = $tipo;
+        $data = $this->seleccionarArchivoXMLCargado($archivo,$uuid);
+        if($data!=null and $tipo2 == 'F'){
+            foreach ($data as $row):
+                $file = $row->NOMBRE;
+            endforeach;
+
+            $myFile = fopen("$file", "r") or die("No se ha logrado abrir el archivo ($file)!");
+            $myXMLData = fread($myFile, filesize($file));
+            $xml = @simplexml_load_string($myXMLData) or die("Error: No se ha logrado crear el objeto XML ($file)");
+            $ns = $xml->getNamespaces(true);
+            $xml->registerXPathNamespace('c', $ns['cfdi']);
+            $xml->registerXPathNamespace('t', $ns['tfd']);
+            @$xml->registerXPathNamespace('impl', $ns['implocal']);
+            @$xml->registerXPathNamespace('p10',$ns['pago10']);
+            @$xml->registerXPathNamespace('nomina',$ns['nomina']);
+                            
+            $verNom = 'No';
+            if(@$xml->xpath('//cfdi:Comprobante//nomina12:Nomina')){
+                //echo '<br/>El comprobante: '.$uuid.' , es nomina 12';
+                $verNom = '1.2';
+            }elseif($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Nomina')){
+                //echo '<br/>El comropbante: '.$uuid.' , es nomina 1.1';
+                $verNom = '1.1';
+            }else{
+                $verNom = 'No';
+                //echo '<br/>El comprobante: '.$uuid.' , no es de nomina';
+            }
+
+            foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
+                  $version = $cfdiComprobante['version'];
+                  if($version == ''){
+                    $version = $cfdiComprobante['Version'];
+                  }
+                  $export='';
+                  if($version == '3.2'){
+                      $serie = $cfdiComprobante['serie'];                  
+                      $folio = $cfdiComprobante['folio'];
+                      $total = $cfdiComprobante['total'];
+                      $subtotal = $cfdiComprobante['subTotal'];
+                      $descuento = $cfdiComprobante['descuento'];
+                      $tipo = $cfdiComprobante['tipoDeComprobante'];
+                      $condicion = $cfdiComprobante['condicionesDePago'];
+                      $metodo = $cfdiComprobante['metodoDePago'];
+                      $moneda = $cfdiComprobante['Moneda'];
+                      $lugar = substr($cfdiComprobante['LugarExpedicion'], 0, 149);
+                      $tc = empty($cfdiComprobante['TipoCambio'])? 1:$cfdiComprobante['TipoCambio'];
+                      $Certificado = $cfdiComprobante['certificado'];
+                      $Sello = $cfdiComprobante['sello'];
+                      $noCert = $cfdiComprobante['noCertificado'];
+                      $formaPago = $cfdiComprobante['formaDePago'];
+                      $LugarExpedicion = substr($cfdiComprobante['LugarExpedicion'],0,149);
+                      $MetodoPago = $cfdiComprobante['metodoDePago'];
+                      
+                  }elseif($version == '3.3' or $version == '4.0'){
+                      $serie = isset($cfdiComprobante['Serie'])? $cfdiComprobante['Serie']:'';                  
+                      $folio = isset($cfdiComprobante['Folio'])? $cfdiComprobante['Folio']:'';
+                      $total = $cfdiComprobante['Total'];
+                      $subtotal = $cfdiComprobante['SubTotal'];
+                      $descuento = $cfdiComprobante['Descuento'];
+                      $tipo = $cfdiComprobante['TipoDeComprobante'];
+                      $condicion = isset($cfdiComprobante['CondicionesDePago'])? $cfdiComprobante['CondicionesDePago']:'';
+                      $metodo = $cfdiComprobante['MetodoPago'];
+                      $moneda = $cfdiComprobante['Moneda'];
+                      $lugar = substr($cfdiComprobante['LugarExpedicion'],0,149);
+                      $tc = empty($cfdiComprobante['TipoCambio'])? 1:$cfdiComprobante['TipoCambio'];
+                      $Certificado = $cfdiComprobante['Certificado'];
+                      $Sello = $cfdiComprobante['Sello'];
+                      $noCert = $cfdiComprobante['NoCertificado'];
+                      $formaPago = $cfdiComprobante['FormaPago'];
+                      $LugarExpedicion = substr($cfdiComprobante['LugarExpedicion'],0,149);
+                      $MetodoPago = $cfdiComprobante['MetodoPago'];
+                      $export = $cfdiComprobante['Exportacion']; /// Nuevo campo en cfdi 4.0
+                  }
+                    if(strpos($tc, ',')){
+                        $tc=str_replace(",", ".", $tc);
+                        echo '<br/> Cambiando coma por punto: '.$tc.'<br/>';
+                        if(@($tc / 1)){
+                            $tc=$tc;
+                        }else{
+                            $tc=1;
+                        }
+                    }
+            }
+            if($tipo == 'P'){
+                $serieComp = $serie; 
+                $folioComp = $folio;
+            }
+            //die;
+
+            if(($tipo == 'I' or $tipo == 'E' or $tipo == 'ingreso' or $tipo == 'egreso' or $tipo== 'P') and $verNom == 'No'){
+                //echo 'Entro a la carga: '.$serie.' <br/> Archivo: '.$archivo.' <br/> tipo: '.$tipo.'<br/> ';
+                        $this->query="UPDATE XML_DATA_FILES SET TIPO = upper(substring('$tipo' from 1 for 1)) WHERE NOMBRE='$archivo'";
+                        $this->EjecutaQuerySimple();
+                            $usoCFDI = '';
+                            $domFisc = '';
+                            $regFisc = '';
+                        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
+                            if($version == '3.2'){
+                                $rfc= $Receptor['rfc'];
+                                $nombre_recep = str_replace("'", "", $Receptor['nombre']);
+                                $usoCFDI = '';
+                            }elseif($version == '3.3'){
+                                $rfc= $Receptor['Rfc'];
+                                $nombre_recep=str_replace("'", "", $Receptor['Nombre']);
+                                $usoCFDI =$Receptor['UsoCFDI'];
+                             }elseif($version == '4.0'){
+                                $rfc= $Receptor['Rfc'];
+                                $nombre_recep=str_replace("'", "", $Receptor['Nombre']);
+                                $usoCFDI =$Receptor['UsoCFDI'];
+                                $domFisc = $Receptor['DomicilioFiscalReceptor'];
+                                $regFisc = $Receptor['RegimenFiscalReceptor'];
+                             }
+                        }
+                        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $Emisor){
+                            if($version == '3.2'){
+                                $rfce = $Emisor['rfc'];
+                                $nombreE = '';
+                                $regimen = '';  
+                            }elseif($version == '3.3'){
+                                $rfce = $Emisor['Rfc'];
+                                $nombreE = str_replace("'", "", $Emisor['Nombre']);
+                                $regimen = $Emisor['RegimenFiscal'];
+                            }
+                        }
+                                $recep_calle='';
+                                $recep_noExterior='';
+                                $recep_noInterior='';
+                                $recep_colonia='';
+                                $recep_municipio='';
+                                $recep_estado='';
+                                $recep_pais='';
+                                $recep_cp='';
+
+                        foreach($xml->xpath('//cfdi:Comprobante//cfdi:Receptor//cfdi:Domicilio') as $Emisor_dir){
+                            if($version == '3.2'){
+                                $recep_calle=$Emisor_dir['calle'];
+                                $recep_noExterior=$Emisor_dir['noExterior'];
+                                $recep_noInterior=$Emisor_dir['noInterior'];
+                                $recep_colonia=$Emisor_dir['colonia'];
+                                $recep_municipio=$Emisor_dir['municipio'];
+                                $recep_estado=$Emisor_dir['estado'];
+                                $recep_pais=$Emisor_dir['pais'];
+                                $recep_cp=$Emisor_dir['codigoPostal'];
+                            }elseif($version == '3.3'){
+                                $recep_calle='';
+                                $recep_noExterior='';
+                                $recep_noInterior='';
+                                $recep_colonia='';
+                                $recep_municipio='';
+                                $recep_estado='';
+                                $recep_pais='';
+                                $recep_cp='';
+                            }elseif($version == '4.0'){
+                                $recep_calle='';
+                                $recep_noExterior='';
+                                $recep_noInterior='';
+                                $recep_colonia='';
+                                $recep_municipio='';
+                                $recep_estado='';
+                                $recep_pais='';
+                                $recep_cp='';
+                            }
+                        }
+                        /// debemos traer el RFC de la empresa que se esta trabajando.
+                        $rfcEmpresa = 'IMI161007SY7';
+                        //echo 'Este es el RFC: '.$rfc.'<br/>';
+
+                        if($rfc == $rfcEmpresa){
+                            $tipoC = 'Proveedor';
+                            $this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfce' and tipo ='$tipoC'";
+                            $res=$this->EjecutaQuerySimple();
+                            $row=ibase_fetch_object($res);
+                            //$nombreE=$nombreE;
+                            if(empty($row)){
+                                $this->query="INSERT INTO XML_CLIENTES (IDcliente, RFC, NOMBRE, CALLE, EXTERIOR, INTERIOR, COLONIA, MUNICIPIO, ESTADO, PAIS, CP, TIPO)
+                                          VALUES (NULL, '$rfce', '$nombreE', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";
+                                if($this->grabaBD() === false){
+                                    echo 'Error en la insercion de '.$tipoC.'<br/>';
+                                    echo $this->query.'<br/>';
+                                }   
+                            }                           
+                        }else{
+                            $tipoC = 'Cliente';
+                            $this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfc' and tipo ='$tipoC'";
+                            $res=$this->EjecutaQuerySimple();
+                            $row=ibase_fetch_object($res);
+                            //$nombre_recep=$nombre_recep;
+                            if(empty($row)){
+                                $this->query="INSERT INTO XML_CLIENTES (IDcliente, RFC, NOMBRE, CALLE, EXTERIOR, INTERIOR, COLONIA, MUNICIPIO, ESTADO, PAIS, CP, TIPO)
+                                              VALUES (NULL, '$rfc', '$nombre_recep', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '  $recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";    
+                                if($this->grabaBD() === false){     
+                                    echo 'Error en la insercion de '.$tipoC.'<br/>';
+                                    echo $this->query.'<br/>';
+                                }
+                            }
+                        }
+                        //echo $this->query;                        
+                        $parIT=0;
+                        $partidaImp=array();
+                        $parte_partida=array();
+                        $parInfoAduana=array();
+                        foreach($xml->xpath('//cfdi:Comprobante//cfdi:Conceptos//cfdi:Concepto') as $Concepto){
+                            $parIT++;
+                            if($version ==  '3.2'){
+                                $unidad = $Concepto['unidad'];
+                                $importe = $Concepto['importe'];
+                                $cantidad = $Concepto['cantidad'];
+                                $descripcion = htmlentities($Concepto['descripcion']);
+                                $valor = $Concepto['valorUnitario'];
+                                $claveSat='';
+                                $claveUni='';
+                                $partida[] =array($unidad, $importe, $cantidad, $descripcion, $valor,$claveSat, $claveUni); 
+                            }elseif($version =='3.3'or $version == '4.0'){
+                                $unidad = $Concepto['Unidad'];
+                                $importe = $Concepto['Importe'];
+                                $cantidad = $Concepto['Cantidad'];
+                                $descripcion = htmlentities($Concepto['Descripcion']);
+                                $valor = $Concepto['ValorUnitario'];
+                                $claveSat=$Concepto['ClaveProdServ'];
+                                $claveUni=$Concepto['ClaveUnidad'];
+                                $descp = isset($Concepto['Descuento'])? $Concepto['Descuento']:0;
+                                $partida[]=array($unidad, $importe, $cantidad, $descripcion, $valor, $claveSat, $claveUni, $descp); 
+                            }
+                            //echo '<br/>Valor de parIT antes de los Impuestos: '.$parIT.'<br/>';
+                            if($Concepto->xpath('cfdi:Impuestos')){
+                                if($Concepto->xpath('cfdi:Impuestos//cfdi:Traslados')){
+                                    //echo '<br/> La partida '.$parIT.' tiene Traslados';
+                                    foreach ($Concepto->xpath('cfdi:Impuestos//cfdi:Traslados//cfdi:Traslado') as $TrasladoPartida) {
+                                        if($version ==  '3.2'){
+                                            $base='';
+                                            $parImpuesto='';
+                                            $parTipoFact='';
+                                            $parTasaCuota='';
+                                            $parImpImporte='';
+                                            $partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte); 
+                                        }elseif($version =='3.3' or $version == '4.0'){
+                                            $base = $TrasladoPartida['Base'];
+                                            $parImpuesto= $TrasladoPartida['Impuesto'];
+                                            $parTipoFact = $TrasladoPartida['TipoFactor'];
+                                            $parTasaCuota = $TrasladoPartida['TasaOCuota'];
+                                            $parImpImporte = $TrasladoPartida['Importe'];
+                                            $tipoImp = 'Traslado';
+                                            $partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte, $tipoImp, $parIT); 
+                                        }
+                                        //echo '<br/>Impuesto: '.$a.' base='.$b.' tipo: '.$tipo.' de la partida: '.$parIT.'<br/>';
+                                    }
+                                }else{
+                                    //echo '<br/> La partida '.$parIT.' No tiene Traslados<br/>';
+                                }
+                                if($Concepto->xpath('cfdi:Impuestos//cfdi:Retenciones')){
+                                    //echo '<br/> La partida '.$parIT.' tiene Retenciones<br/>';
+                                    foreach ($Concepto->xpath('cfdi:Impuestos//cfdi:Retenciones//cfdi:Retencion') as $RetencionPartida) {
+                                        if($version ==  '3.2'){
+                                            $base='';
+                                            $parImpuesto='';
+                                            $parTipoFact='';
+                                            $parTasaCuota='';
+                                            $parImpImporte='';
+                                            $partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte); 
+                                        }elseif($version =='3.3' or $version == '4.0'){
+                                            $base = $RetencionPartida['Base'];
+                                            $parImpuesto= $RetencionPartida['Impuesto'];
+                                            $parTipoFact = $RetencionPartida['TipoFactor'];
+                                            $parTasaCuota = $RetencionPartida['TasaOCuota'];
+                                            $parImpImporte = $RetencionPartida['Importe'];
+                                            $tipoImp = 'Retencion';
+                                            $partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte, $tipoImp, $parIT); 
+                                        }
+                                        //echo '<br/>Impuesto: '.$a.' base='.$b.' tipo: '.$tipo.' de la partida: '.$parIT.'<br/>';
+                                    }
+                                }else{
+                                    //echo '<br/> La partida '.$parIT.' no tiene Retenciones<br/>';
+                                }
+                            }else{
+                                //echo 'La partida '.$parIT.' no Tiene impuestos<br/>';
+                            }
+                        
+                            if($Concepto->xpath('cfdi:InformacionAduanera')){
+                                foreach ($Concepto->xpath('cfdi:InformacionAduanera') as $infoAdu) {
+                                    if($version == '3.2'){
+                                        $numPed = $infoAdu['NumeroPedimento'];
+                                        $fechaPed = isset($infoAdu['fechaPedimento'])? $infoAdu['fechaPedimento']:'01.01.1909';
+                                        $cantiPed = isset($infoAdu['cantidad'])? $infoAdu['cantidad']:$cantidad; 
+                                        $parInfoAduana[]=array($numPed, $parIT, $fechaPed, $cantiPed, $descripcion);
+                                    }elseif($version == '3.3' or $version == '4.0'){
+                                        $numPed = $infoAdu['NumeroPedimento'];
+                                        $fechaPed = isset($infoAdu['fechaPedimento'])? $infoAdu['fechaPedimento']:'01.01.1909';
+                                        $cantiPed = isset($infoAdu['cantidad'])? $infoAdu['cantidad']:$cantidad; 
+                                        $parInfoAduana[]=array($numPed, $parIT, $fechaPed, $cantiPed, $descripcion);
+                                    }
+                                }
+                            }
+                            if($Concepto->xpath('cfdi:Parte')){
+                                foreach ($Concepto->xpath('cfdi:Parte') as $parte){
+                                    if($version == '3.2'){
+                                        $parte_unidad = $Concepto['unidad'];
+                                        $parte_importe = $Concepto['importe'];
+                                        $parte_cantidad = $Concepto['cantidad'];
+                                        $parte_descripcion = htmlentities($Concepto['descripcion']);
+                                        $parte_valor = $Concepto['valorUnitario'];
+                                        $parte_claveSat='';
+                                        $parte_claveUni='';
+                                        $parte_partida[] =array($parte_unidad, $parte_importe, $parte_cantidad, $parte_descripcion, $parte_valor,$parte_claveSat, $parte_claveUni, $parIT);
+                                    }elseif($version == '3.3' or $version == '4.0'){
+                                        $parte_unidad = $Concepto['Unidad'];
+                                        $parte_importe = $Concepto['Importe'];
+                                        $parte_cantidad = $Concepto['Cantidad'];
+                                        $parte_descripcion = htmlentities($Concepto['Descripcion']);
+                                        $parte_valor = $Concepto['ValorUnitario'];
+                                        $parte_claveSat=$Concepto['ClaveProdServ'];
+                                        $parte_claveUni=$Concepto['ClaveUnidad'];
+                                        $parte_descp = isset($Concepto['Descuento'])? $Concepto['Descuento']:0;
+                                        $parte_partida[]=array($parte_unidad, $parte_importe, $parte_cantidad, $parte_descripcion, $parte_valor, $parte_claveSat, $parte_claveUni, $parte_descp, $parIT); 
+                                    }
+                                }
+                            }
+
+                        }
+
+                        //// Revisamos si tiene el nodo Pago  $xml->xpath('//impl:ImpuestosLocales//impl:TrasladosLocales'
+                        $pago = array();
+                        $pagoDetalle=array();
+                        if($xml->xpath('//p10:Pagos')){
+                            foreach ($xml->xpath('//p10:Pagos') as $pg){
+                                foreach ($pg->xpath('//pago10:Pago') as $pggen){
+                                    $fechaPago =isset($pggen['FechaPago'])? $pggen['FechaPago']:'01.01.1999';
+                                    $formaPago =isset($pggen['FormaDePagoP'])? $pggen['FormaDePagoP']:'';
+                                    $mondedaPago =isset($pggen['MonedaP'])? $pggen['MonedaP']:'';
+                                    $monto =isset($pggen['Monto'])? $pggen['Monto']:0;
+                                    $numOperacion =isset($pggen['NumOperacion'])? $pggen['NumOperacion']:'';
+                                    $rfcEmisorCtaOrd =isset($pggen['rfcEmisorCtaOrd'])? $pggen['rfcEmisorCtaOrd']:'';
+                                    $ctaOrdenante =isset($pggen['CtaOrdenante'])? $pggen['CtaOrdenante']:'';
+                                    $rfcEmisorCtaBen=isset($pggen['RfcEmisorCtaBen'])? $pggen['RfcEmisorCtaBen']:'';
+                                    $ctaBeneficiario=isset($pggen['CtaBeneficiario'])? $pggen['CtaBeneficiario']:'';
+                                    $pago[]=array("fechaPago"=>$fechaPago,"formaPago"=>$formaPago,"mondedaPago"=>$mondedaPago,"monto"=>$monto,"numOperacion"=>$numOperacion,"rfcEmisorCtaOrd"=>$rfcEmisorCtaOrd,"ctaOrdenante"=>$ctaOrdenante,"rfcEmisorCtaBen"=>$rfcEmisorCtaBen,"ctaBeneficiario"=>$ctaBeneficiario);
+                                }
+                                foreach ($pg->xpath('//pago10:DoctoRelacionado') as $pgdet){
+                                    $idDocumento =isset($pgdet['IdDocumento'])? $pgdet['IdDocumento']:''; 
+                                    $serie =isset($pgdet['Serie'])? $pgdet['Serie']:''; 
+                                    $folio =isset($pgdet['Folio'])? $pgdet['Folio']:''; 
+                                    $monedaDr =isset($pgdet['MonedaDR'])? $pgdet['MonedaDR']:''; 
+                                    $metodoPago =isset($pgdet['MetodoDePagoDR'])? $pgdet['MetodoDePagoDR']:''; 
+                                    $numParcialidad =isset($pgdet['NumParcialidad'])? $pgdet['NumParcialidad']:1; 
+                                    $impSaldoAnt =isset($pgdet['ImpSaldoAnt'])? $pgdet['ImpSaldoAnt']:0; 
+                                    $impPago =isset($pgdet['ImpPagado'])? $pgdet['ImpPagado']:0; 
+                                    $impSaldoIns =isset($pgdet['ImpSaldoInsoluto'])? $pgdet['ImpSaldoInsoluto']:0; 
+                                    $pagoDetalle[]=array('idDocumento'=>$idDocumento,'serie'=>$serie,'folio'=>$folio,'monedaDr'=>$monedaDr,'metodoPago'=>$metodoPago,'numParcialidad'=>$numParcialidad,'impSaldoAnt'=>$impSaldoAnt,'impPago'=>$impPago,'impSaldoIns'=>$impSaldoIns);
+                                }
+                            }
+                        }
+                        //// Obtenemos las retenciones de los impuestos:
+                        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos') as $Timp){   
+                            if($version == '3.2'){
+                                $titra=0.00;
+                                $tiret=0.00;
+                            }elseif($version == '3.3' or $version == '4.0'){
+                                $titra= isset($Timp['TotalImpuestosTrasladados'])? $Timp['TotalImpuestosTrasladados']:0;
+                                $tiret= isset($Timp['TotalImpuestosRetenidos'])? $Timp['TotalImpuestosRetenidos']:0;
+                            }
+                            //var_dump($Traslado);      
+                           //$impuesto = $Traslado['impuesto']; 
+                        }
+
+                        //HASTA AQUI TODA LA INFORMACION ES LEIDA E IMPRESA CORRECTAMENTE
+                        //ESTA ULTIMA PARTE ES LA QUE GENERA ERROR, AL PARECER NO ENCUENTRA EL NODO
+                        $verCfdi = $version; /// Cambios en CFDI 4
+                        foreach ($xml->xpath('//t:TimbreFiscalDigital') as $tfd) {
+                           if($version == '3.2'){
+                                $fecha = $tfd['FechaTimbrado']; 
+                                $fecha = str_replace("T", " ", $fecha); 
+                                $uuid = $tfd['UUID'];
+                                $noNoCertificadoSAT = $tfd['noCertificadoSAT'];
+                                $RfcProvCertif=$tfd['RfcProvCertif'];
+                                $SelloCFD=$tfd['selloCFD'];
+                                $SelloSAT=$tfd['selloSAT'];
+                                $versat = $tfd['version'];
+                                $rfcprov = empty($tfd['RfcProvCertif'])? '':$tfd['RfcProvCertif'];
+                           }else{
+                                $fecha = $tfd['FechaTimbrado']; 
+                                $fecha = str_replace("T", " ", $fecha); 
+                                $uuid = $tfd['UUID'];
+                                $noNoCertificadoSAT = $tfd['NoCertificadoSAT'];
+                                $RfcProvCertif=$tfd['RfcProvCertif'];
+                                $SelloCFD=$tfd['SelloCFD'];
+                                $SelloSAT=$tfd['SelloSAT'];
+                                $versat = $tfd['Version'];
+                                $rfcprov = $tfd['RfcProvCertif'];
+                           }
+                        }
+                        /*
+                        foreach ($xml->xpath() as $key => $value) {
+                            # code...
+                        }
+                        */
+                        if(empty($descuento)){
+                            $descuento = 0;
+                        }
+                        ///foreach($xml->xpath('//cfdi:Comprobante//cfdi:CfdiRelacionados//cfdi:CfdiRelacionado//') as $rel){
+                        /// if($version == '3.2'){
+                        ///     $relacion= '';
+                        /// }elseif($version == '3.3'){
+                        ///     $relacion= $rel['Rfc'];
+                        ///     $nombre_recep=$Receptor['Nombre'];
+                        ///     $usoCFDI =$Receptor['UsoCFDI'];
+                        ///  }
+                        ///}
+                        if($tipo2 == 'F'){
+                            //echo '<br/> Tipo de cambio: '.$tc.'<br/>';
+                            $this->query = "INSERT INTO XML_DATA (UUID, CLIENTE, SUBTOTAL, IMPORTE, FOLIO, SERIE, FECHA, RFCE, DESCUENTO, STATUS, TIPO, NOCERTIFICADOSAT, SELLOCFD, SELLOSAT, FECHATIMBRADO, CERTIFICADO, SELLO, versionSAT, no_cert_contr, rfcprov,formaPago, LugarExpedicion, metodoPago, moneda, TipoCambio, FILE, USO, RELACION, ID_RELACION, VERSION_CFDI, DOM_FISC_RECEP, REG_FISC_RECEP, EXPORTACION)";
+                            $this->query.= "VALUES ('$uuid', '$rfc', '$subtotal', '$total', '$folio', '$serie', '$fecha', '$rfce', $descuento, 'S', '$tipo', '$noNoCertificadoSAT', '$SelloCFD', '$SelloSAT', '$fecha','$Certificado', '$Sello', '$versat', '$noCert', '$rfcprov', '$formaPago', '$LugarExpedicion', '$MetodoPago', '$moneda', $tc, '$archivo','$usoCFDI', '',null, '$verCfdi', '$domFisc ', '$regFisc', '$export' )";
+                            //echo "<p>query: ".$this->query."</p>";
+                            //$respuesta = $this->grabaDB();
+                            if($respuesta = @$this->grabaBD() === false){
+                                echo 'error en el archivo: '.$archivo;
+                                $this->query="DELETE FROM XML_DATA_FILES WHERE nombre = '$archivo'";
+                                $this->grabaBD();
+
+                                $this->query="INSERT INTO XML_EXCEPCION (ID, UUID, TIPO) VALUES (NULL, '$archivo', 'X')";
+                                $this->grabaBD();
+
+                                return;
+                            }
+                            /// creamos el folder para el movimiento de las facturas a nuestro sistema. 
+                            if($rfc == 'XAXX010101000'){ /// se cambia $rfce por $rfc
+                                $this->query="INSERT INTO XML_UUID_GENERICO (ID_UUID_GEN, NOMBRE) VALUES ('$uuid', '$nombre_recep')";
+                                @$this->grabaBD();
+                            }
+
+                                if($rfce == $rfcEmpresa){
+                                    $carpeta = 'Emitidos';
+                                    $carpeta2= $rfc;
+                                }else{
+                                    $carpeta = 'Recibidos';
+                                    $carpeta2= $rfce;
+                                }
+                                $path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\'.$carpeta.'\\'.$carpeta2;
+                                //echo '<br/>'.$path.'<br/>';
+                                if(is_dir($path)){
+                                    //echo '<br/> El directorio existe<br/>';
+                                }else{
+                                    //echo '<br/> El Direcotirio no existe y se debe de crear<br/>';
+                                    mkdir($path,0777, true);
+                                }
+                                if($tipo=='P'){
+                                   copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serieComp).utf8_encode($folioComp).'-'.$uuid.".xml");
+                                }else{  
+                                   copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serie).utf8_encode($folio).'-'.$uuid.".xml");
+                                }
+                            
+                            /// Insertamos en la tabla de CFIDsss
+
+                            //$this->query="UPDATE FTC_FACTURAS SET UUID = '$uuid' WHERE SERIE='$serie' AND FOLIO='$folio'";
+                            //$this->EjecutaQuerySimple();
+                            $i=1;
+                            //echo 'Valor del arreglo'.var_dump($impuestos);
+                            //echo '<br/>'.count($partidaImp).'<br/>';
+                            if(count($partidaImp)<0){
+                                //echo $uuid.' --- '.$tipo.'  ---<br/>';
+                            }else{
+                                foreach ($partidaImp as $key){
+                                    $base = empty($key[0])? 0:$key[0];;
+                                    $nombre = substr($key[1], 0, 29) ;
+                                    $tasa = $key[3];
+                                    $importe = empty($key[4])? 0:$key[4];
+                                    $tipoFactor = $key[2];
+                                    $tipoImp = $key[5];
+                                    $pi = (isset($key[6]))? $key[6]:0;
+                                    //$partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte); 
+                                    $this->query = "INSERT INTO XML_IMPUESTOS values (null,'$nombre', '$tasa', $importe, $pi, '$uuid', ('$serie'||'-'||'$folio'), '$tipoFactor', $base, '$tipoImp', 0)";
+                                    if($rs=$this->grabaBD() === false){
+                                        echo 'Fallo al insertar en la tabla de impuestos de la Partida<br/>'; 
+                                        echo $this->query.'<br/>';
+                                    }          
+                                    $i=$i+1;    
+                                //echo $this->query;
+                                }
+                            }
+
+                            if($xml->xpath('//impl:ImpuestosLocales//impl:TrasladosLocales')){
+                                foreach ($xml->xpath('//impl:ImpuestosLocales//impl:TrasladosLocales') as $il){
+                                    //echo '<br/><br/>'.print_r($il).'<br/>'.$version;
+                                    $iltrasN= isset($il['ImpLocTrasladado'])? $il['ImpLocTrasladado']:'';
+                                    //$ilretImp= isset($il['Impuesto'])? $il['Impuesto']:'';
+                                    $iltrasM= isset($il['Importe'])? $il['Importe']:0;
+                                    $ilretM= isset($il['Importe'])? $il['Importe']:0;
+                                    $iltrasF= isset($il['TipoFactor'])? $il['TipoFactor']:'';
+                                    $ilretF= isset($il['TipoFactor'])? $il['TipoFactor']:'';
+                                    $pi = (empty($pi))? 0:$pi;
+                                    $this->query="INSERT INTO XML_IMPUESTOS values (null,'$iltrasN', '', $iltrasM, $pi+1, '$uuid', ('$serie'||'-'||'$folio'), '$iltrasF', 0, 'local', 0)";
+                                    if($rs=$this->grabaBD() === false){
+                                        echo 'Fallo al insertar en la tabla de impuestos Locales de la Partida <br/>'; 
+                                        echo $this->query.'<br/>';
+                                    }
+                                }   
+                            }
+                            //echo 'Valor del arrego partida'.var_dump($partida);
+                            $i=1;
+                            foreach ($partida as $data){
+                                $unidad = str_replace(array("'", "<code>"),' ',$data[0]);
+                                $importe = $data[1];
+                                $cantidad = $data[2];
+                                //$descripcion = str_replace(array("\\", "¨", "º", "-", "~",
+                                //             "#", "@", "|", "!", "\"",
+                                //             "·", "$", "%", "&", "/",
+                                //             "(", ")", "?", "'", "¡",
+                                //             "¿", "[", "^", "<code>", "]",
+                                //             "+", "}", "{", "¨", "´",
+                                //             ">", "< ", ";", ",", ":",
+                                //             ".", " "),' ',$data[3]);
+                                $descripcion = str_replace(array("'", "<code>"),' ',$data[3]);
+                                $unitario=$data[4];
+                                $cvesat = $data[5];
+                                $unisat = $data[6];
+                                $descp = empty($data[7])? 0:$data[7];
+                                $this->query = "INSERT INTO XML_PARTIDAS (id, unidad, importe, cantidad, partida, descripcion, unitario, uuid, documento, cliente_SAE, rfc, fecha, descuento, cve_art, cve_clpv, unitario_original, CLAVE_SAT, UNIDAD_SAT) values (null, '$unidad', $importe, $cantidad, $i, '$descripcion', $unitario, '$uuid', ('$serie'||'-'||'$folio'), '', '$rfc', '$fecha', $descp, '', '', $unitario, '$cvesat','$unisat')";
+                                if($rs=$this->grabaBD() === false){
+                                    echo 'Falla al insertar la partida:<br/>';
+                                    echo $this->query.'<br/>';
+                                }          
+                                $i=$i+1;
+                            }
+
+                        if($version == '3.3' or $version == '4.0'){ 
+                            if(count($parte_partida) > 0){
+                                foreach ($parte_partida as $pp ){
+                                    $parte_unidad = $pp[0];
+                                    $parte_importe = $pp[1];
+                                    $parte_cantidad = $pp[2];
+                                    //$descripcion = str_replace(array("\\", "¨", "º", "-", "~",
+                                    //             "#", "@", "|", "!", "\"",
+                                    //             "·", "$", "%", "&", "/",
+                                    //             "(", ")", "?", "'", "¡",
+                                    //             "¿", "[", "^", "<code>", "]",
+                                    //             "+", "}", "{", "¨", "´",
+                                    //             ">", "< ", ";", ",", ":",
+                                    //             ".", " "),' ',$pp[3]);
+                                    $parte_descripcion = str_replace(array("'", "<code>"),' ',$pp[3]);
+                                    $parte_unitario=$pp[4];
+                                    $parte_cvesat = $pp[5];
+                                    $parte_unisat = $pp[6];
+                                    $parte_descp = empty($pp[7])? 0:$pp[7];
+                                    $parte_pi= $pp[8];
+                                    //var_dump($parte_partida);
+                                    $this->query = "INSERT INTO XML_PARTIDAS_PARTE (id, unidad, importe, cantidad, partida, descripcion, unitario, uuid, documento, cliente_SAE, rfc, fecha, descuento, cve_art, cve_clpv, unitario_original, CLAVE_SAT, UNIDAD_SAT) values (null, '$parte_unidad', $parte_importe, $parte_cantidad, $parte_pi, '$parte_descripcion', $parte_unitario, '$uuid', ('$serie'||'-'||'$folio'), '', '$rfc', '$fecha', $parte_descp, '', '', $parte_unitario, '$parte_cvesat','$parte_unisat')";
+                                    if($rs=$this->grabaBD() === false){
+                                        echo 'Falla al insertar la partida informacion de parte:<br/>';
+                                        echo $this->query.'<br/>';
+                                    }       
+                                }       
+                            }
+
+                            if(count($parInfoAduana)>0){
+                                foreach ($parInfoAduana as $pia){
+                                    $pia_pedimento = $pia[0];
+                                    $pia_par=$pia[1];
+                                    $pia_fecha = $pia[2];
+                                    $pia_cantidad = $pia[3];
+                                    $pia_descripcion = str_replace(array("'", "<code>"),' ',$pia[4]);
+                                    $this->query="INSERT INTO XML_PARTIDA_INFO_ADUANA (ID, UUID, PARTIDA, PEDIMENTO, FECHA_PEDIMENTO, LOTE, FECHA_LOTE, CANTIDAD, DESCRIPCION) VALUES (NULL, '$uuid', $pia_par, '$pia_pedimento','$pia_fecha', '', null, $pia_cantidad, '$pia_descripcion' )";
+                                    if($rs=$this->grabaBD() === false){
+                                        echo 'Falla al insertar la partida informacion Aduanera :<br/>';
+                                        echo $this->query.'<br/>';
+                                    }
+                                }
+                            }
+                        }
+
+                            if(count($pago)>0){
+                                foreach ($pago as $keyPago){
+                                    ///$pago[]=array("fechaPago"=>$fechaPago,"formaPago"=>$formaPago,"mondedaPago"=>$mondedaPago,"monto"=>$monto,"numOperacion"=>$numOperacion,"rfcEmisorCtaOrd"=>$rfcEmisorCtaOrd,"ctaOrdenante"=>$ctaOrdenante,"rfcEmisorCtaBen"=>$rfcEmisorCtaBen,"ctaBeneficiario"=>$ctaBeneficiario);
+                                    $fpa = $keyPago['fechaPago'];
+                                    $fmpa = $keyPago['formaPago'];
+                                    $monpa =$keyPago['mondedaPago'];
+                                    $motpa = $keyPago['monto'];
+                                    $numpa =$keyPago['numOperacion'];
+                                    $rfcord =$keyPago['rfcEmisorCtaOrd'];
+                                    $ctaord = $keyPago['ctaOrdenante'];
+                                    $rfcben = $keyPago['rfcEmisorCtaBen'];
+                                    $ctaben =$keyPago['ctaBeneficiario'];
+                                    $this->query="INSERT INTO XML_COMPROBANTE_PAGO (ID, UUID, FECHA, FORMA, MONEDA, MONTO, NUMOPERACION, RFC_BANCO_ORDENANTE, CTA_ORDENANTE, RFC_BANCO_BENEFICIARIO, CTA_BENEFICIARIO, STATUS) VALUES (NULL,'$uuid', '$fpa', '$fmpa', '$monpa', $motpa, '$numpa', '$rfcord', '$ctaord', '$rfcben', '$ctaben', 'P')";
+                                    $this->grabaBD();
+                                }
+                            }
+
+                            if(count($pagoDetalle)>0){
+                                //$pagoDetalle[]=array('idDocumento'=>$idDocumento,'serie'=>$serie,'folio'=>$folio,'monedaDr'=>$monedaDr,'metodoPago'=>$metodoPago,'numParcialidad'=>$numParcialidad,'impSaldoAnt'=>$impSaldoAnt,'impPago'=>$impPago,'impSaldoIns'=>$impSaldoIns);
+                                foreach ($pagoDetalle as $keyPD){
+                                    $idDocumento = $keyPD['idDocumento'];
+                                    $serie = $keyPD['serie'];
+                                    $folio = $keyPD['folio'];
+                                    $monedaDr = $keyPD['monedaDr'];
+                                    $metodoPago = $keyPD['metodoPago'];
+                                    $numParcialidad = $keyPD['numParcialidad'];
+                                    $impSaldoAnt = $keyPD['impSaldoAnt'];
+                                    $impPago = $keyPD['impPago'];
+                                    $impSaldoIns = $keyPD['impSaldoIns'];
+                                    $this->query="INSERT INTO XML_COMPROBANTE_PAGO_DETALLE (ID, ID_DOCUMENTO,SERIE,FOLIO,   MONEDA,METODO_PAGO,NUM_PARCIALIDAD,SALDO,PAGO,SALDO_INSOLUTO,STATUS, UUID_PAGO) VALUES ( null, '$idDocumento', '$serie', '$folio', '$monedaDr', '$metodoPago', $numParcialidad, $impSaldoAnt, $impPago, $impSaldoIns, 'P', '$uuid')";
+                                    $this->grabaBD();
+                                }
+                                
+                            }
+
+                            if($xml->xpath('//cfdi:CfdiRelacionados')){
+                                foreach ($xml->xpath('//cfdi:CfdiRelacionados') as $rel){
+                                    $tipoRelacion = isset($rel['TipoRelacion'])? $rel['TipoRelacion']:'';
+                                    foreach ($rel->xpath('//cfdi:CfdiRelacionado') as $docRel){
+                                        $docUUID = isset($docRel['UUID'])? $docRel['UUID']:'';
+                                        $this->query = "INSERT INTO XML_RELACIONES (ID, UUID, TIPO, UUID_DOC_REL) VALUES (NULL, '$uuid', '$tipoRelacion', '$docUUID')";
+                                        $this->grabaBD();
+                                    }
+                                }
+                            }
+
+                            if($tipo == 'P'){
+                                $this->query="UPDATE XML_DATA SET SERIE='$serieComp', folio='$folioComp', documento= '$serieComp'||'$folioComp' where uuid='$uuid'";
+                                $this->queryActualiza();
+                            }
+    
+                            //$this->calcularImpuestos($uuid);
+                     
+                        }elseif($tipo2 == 'C'){
+                            $this->query = "INSERT INTO XML_DATA_CANCELADOS (UUID, CLIENTE, SUBTOTAL, IMPORTE, FOLIO, SERIE, FECHA, RFCE, DESCUENTO, STATUS, TIPO, FILE )";
+                            $this->query.= "VALUES ('$uuid', '$rfc', '$subtotal', '$total', '$folio', '$serie', '$fecha', '$rfce', $descuento, 'C', '$tipo2', '$archivo')";
+                            echo "<p>query: ".$this->query."</p>";
+                            //$respuesta = $this->grabaDB();
+                            $respuesta = $this->grabaBD();
+                        }
+
+                ////Manejo de impuestos cuando es XML 3.2 (Ya que no se desglozan por partida, entonces todo el impuesto se coloca en la partida 1 )
+                        if($version == '3.2'){
+                            if($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos')){
+                                if($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Traslados')){
+                                    foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Traslados//cfdi:Traslado') as $impTr32){
+                                        $impTr32_nom =  isset($impTr32['impuesto'])? $impTr32['impuesto']:'N/I';
+                                        $impTr32_tasa = isset($impTr32['tasa'])? $impTr32['tasa']:0;
+                                        $impTr32_mon =  isset($impTr32['importe'])? $impTr32['importe']:0;
+                                        //echo 'Se encontraron los traslados del documento: '.$uuid.' el impuesto encontrado es: '.$impTr32_nom.' con una tasa del: '.$impTr32_tasa.' y el monto por: '.$impTr32_mon;
+                                        if(strtoupper($impTr32_nom) == 'IVA' or strtoupper($impTr32_nom) == 'I.V.A.' or strtoupper($impTr32_nom) == 'I.V.A'){
+                                            $impTipo32 = '002';
+                                        }elseif(strtoupper($impTr32_nom) == 'ISR' or strtoupper($impTr32_nom) == 'I.S.R.' or strtoupper($impTr32_nom) == 'I.S.R'){
+                                            $impTipo32 = '001';
+                                        }elseif(strtoupper($impTr32_nom) == 'IEPS' or strtoupper($impTr32_nom) == 'I.E.P.S.' or strtoupper($impTr32_nom) == 'I.E.P.S'){
+                                            $impTipo32 = '003';
+                                        }else{
+                                            $impTipo32 = '000';
+                                        }
+                                        if($impTr32_tasa > 0){
+                                            $impTasa32 = $impTr32_tasa / 100;
+                                        }else{
+                                            $impTasa32 = $impTr32_tasa;
+                                        }
+
+                                        $this->query="INSERT INTO XML_IMPUESTOS (ID, IMPUESTO, TASA, MONTO, PARTIDA, UUID, FACTURA, TIPOFACTOR, BASE, TIPO, STATUS) VALUES (NULL,'$impTipo32', $impTasa32, $impTr32_mon, COALESCE( (SELECT MAX(XI.PARTIDA) FROM XML_IMPUESTOS XI WHERE XI.UUID = '$uuid'), 0 ) + 1, '$uuid', ('$serie'||'-'||'$folio'), 'Tasa', $subtotal, 'Traslado', 0)";
+                                        if($rs=$this->grabaBD() === false){
+                                            echo 'Falla al insertar la partida de impuestos trasladados de la version 3.2 :<br/>';
+                                            echo $this->query.'<br/>';
+                                        }   
+                                    }
+                                }
+                                if($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Retenciones')){
+                                    foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Retenciones//cfdi:Retencion') as $impRt32){
+                                        $impRt32_nom =  isset($impRt32['impuesto'])? $impRt32['impuesto']:'N/I';
+                                        $impRt32_mon =  (isset($impRt32['importe']) OR $impRt32['importe']=='')? $impRt32['importe']:0;
+                                        //echo 'Se enconRtaron los Rtaslados del documento: '.$uuid.' el impuesto enconRtado es: '.$impRt32_nom.' con una tasa del: '.$impRt32_tasa.' y el monto por: '.$impRt32_mon;
+                                        if(strtoupper($impRt32_nom) == 'IVA' or strtoupper($impRt32_nom) == 'I.V.A.' or strtoupper($impRt32_nom) == 'I.V.A'){
+                                            $impTipo32 = '002';
+                                        }elseif(strtoupper($impRt32_nom) == 'ISR' or strtoupper($impRt32_nom) == 'I.S.R.' or strtoupper($impRt32_nom) == 'I.S.R'){
+                                            $impTipo32 = '001';
+                                        }elseif(strtoupper($impRt32_nom) == 'IEPS' or strtoupper($impRt32_nom) == 'I.E.P.S.' or strtoupper($impRt32_nom) == 'I.E.P.S'){
+                                            $impTipo32 = '003';
+                                        }else{
+                                            $impTipo32 = '000';
+                                        }
+
+                                        $this->query="INSERT INTO XML_IMPUESTOS (ID, IMPUESTO, TASA, MONTO, PARTIDA, UUID, FACTURA, TIPOFACTOR, BASE, TIPO, STATUS) VALUES (NULL,'$impTipo32', 0, $impRt32_mon, COALESCE( (SELECT MAX(XI.PARTIDA) FROM XML_IMPUESTOS XI WHERE XI.UUID = '$uuid'), 0 ) + 1, '$uuid', ('$serie'||'-'||'$folio'), 'Tasa', $subtotal, 'Retencion', 0)";
+                                        if($rs=$this->grabaBD() === false){
+                                            echo 'Falla al insertar la partida de impuestos retenidos de la version 3.2 :<br/>';
+                                            echo $this->query.'<br/>';
+                                        }       
+                                    }
+                                }
+                            }
+                        }
+            }   
+                    //return;// $respuesta;
+                    
+            if($tipo=='N' or $verNom == '1.2'){
+                    $this->query="UPDATE XML_DATA_FILES SET TIPO = 'N' WHERE nombre = '$archivo'";
+                    $this->queryActualiza();
+                    foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
+                            if($version == '3.2'){
+                                $rfc= $Receptor['rfc'];
+                                $nombre_recep = utf8_encode($Receptor['nombre']);
+                                $usoCFDI = '';
+                            }elseif($version == '3.3'){
+                                $rfc= $Receptor['Rfc'];
+                                $nombre_recep=utf8_encode($Receptor['Nombre']);
+                                $usoCFDI =$Receptor['UsoCFDI'];
+                            }
+                            $this->query="INSERT INTO XML_NOMINA_EMPLEADOS (IDE, RFC, NOMBRE, USOCFDI ) VALUES (NULL, '$rfc', '$nombre_recep', '$usoCFDI')";
+                            $this->grabaBD();
+                    }
+
+                    foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Receptor') as $Nomina12Receptor) {
+                            if($version == '3.3' or $verNom == '1.2'){
+                                $curp= $Nomina12Receptor['Curp'];
+                                $numss=$Nomina12Receptor['NumSeguridadSocial'];
+                                $FechaInicioRelLaboral =$Nomina12Receptor['FechaInicioRelLaboral'];
+                                $Antiguedad=$Nomina12Receptor['Antigüedad']; 
+                                $TipoContrato=$Nomina12Receptor['TipoContrato'];
+                                $Sindicalizado=$Nomina12Receptor['Sindicalizado'];
+                                $TipoJornada=$Nomina12Receptor['TipoJornada'];
+                                $TipoRegimen=$Nomina12Receptor['TipoRegimen'];
+                                $NumEmpleado= $Nomina12Receptor['NumEmpleado'];
+                                $Departamento= $Nomina12Receptor['Departamento'];
+                                $Puesto= $Nomina12Receptor['Puesto'];
+                                $RiesgoPuesto= $Nomina12Receptor['RiesgoPuesto'];
+                                $PeriodicidadPago= $Nomina12Receptor['PeriodicidadPago'];
+                                $SalarioBaseCotApor= $Nomina12Receptor['SalarioBaseCotApor'];
+                                $SalarioDiarioIntegrado= $Nomina12Receptor['SalarioDiarioIntegrado'];
+                                $ClaveEntFed=$Nomina12Receptor['ClaveEntFed'];
+                                $Banco = isset($Nomina12Receptor['Banco'])? $Nomina12Receptor['Banco']:'';
+                                $CuentaBancaria = isset($Nomina12Receptor['CuentaBancaria'])? $Nomina12Receptor['CuentaBancaria']:'';
+
+                            }
+                            $this->query="INSERT INTO XML_NOMINA_RECEPTOR (ID, CURP, NumSeguridadSocial, 
+                                                        FechaInicioRelLaboral,
+                                                        Antiguedad, 
+                                                        TipoContrato, 
+                                                        Sindicalizado, 
+                                                        TipoJornada, 
+                                                        TipoRegimen, 
+                                                        NumEmpleado, 
+                                                        Departamento, 
+                                                        Puesto, 
+                                                        RiesgoPuesto, 
+                                                        PeriodicidadPago, 
+                                                        SalarioBaseCotApor, 
+                                                        SalarioDiarioIntegrado, 
+                                                        ClaveEntFed, 
+                                                        Archivo,
+                                                        UUID_NOMINA, 
+                                                        BANCO,
+                                                        CUENTA_BANCARIA
+                                                         ) 
+                                    VALUES (NULL, '$curp', '$numss', '$FechaInicioRelLaboral',
+                                                '$Antiguedad', 
+                                                '$TipoContrato', 
+                                                '$Sindicalizado', 
+                                                '$TipoJornada', 
+                                                '$TipoRegimen', 
+                                                '$NumEmpleado', 
+                                                '$Departamento', 
+                                                '$Puesto', 
+                                                '$RiesgoPuesto', 
+                                                '$PeriodicidadPago', 
+                                                '$SalarioBaseCotApor', 
+                                                '$SalarioDiarioIntegrado', 
+                                                '$ClaveEntFed',
+                                                '$archivo',
+                                                '$uuid',
+                                                '$Banco',
+                                                '$CuentaBancaria'                                               
+                                                )";
+                            $this->grabaBD();
+
+                            $this->query="UPDATE XML_NOMINA_EMPLEADOS SET CURP = '$curp', NSS='$numss' where RFC = '$rfc'";
+                            $this->queryActualiza();
+                    }
+
+                    foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Nomina') as $nomVal) {
+                            if ($version == '3.3' or $verNom == '1.2'){
+                                $fechaInicialPago = $nomVal['FechaInicialPago'];
+                                $fechaFinalPago = $nomVal['FechaFinalPago'];
+                                $fechaPago = $nomVal['FechaPago'];
+                                $numDiasPagados = isset($nomVal['NumDiasPagados'])? $nomVal['NumDiasPagados']:0;
+                                $tipoNomina = $nomVal['TipoNomina'];
+                                $totalDeducciones = isset($nomVal['TotalDeducciones'])? $nomVal['TotalDeducciones']:0;
+                                $totalPercepciones = isset($nomVal['TotalPercepciones'])? $nomVal['TotalPercepciones']:0;
+                                $totalOtrosPagos = isset($nomVal['TotalOtrosPagos'])? $nomVal['TotalOtrosPagos']:0;
+                                $versionNomina = $nomVal['Version'];
+                            }
+                            if( strlen($formaPago)>3){$formaPago = '99';}
+                            $this->query="INSERT INTO xml_nomina_trabajador (ID_NT, FECHA_INICIAL, FECHA_FINAL, FECHA_PAGO, DIAS, TIPO_NOMINA, DEDUCCIONES, PERCEPCIONES, VERSION_NOMINA, REG_PATRONAL, UUID_NOMINA, FORMA_PAGO) values (NULL, '$fechaInicialPago', '$fechaFinalPago', '$fechaPago', $numDiasPagados, '$tipoNomina', $totalDeducciones, $totalPercepciones, '$versionNomina', null, '$uuid', '$formaPago') RETURNING ID_NT";
+                            $RS=$this->grabaBD();
+                            $r_id_nt = ibase_fetch_object($RS)->ID_NT;
+                    }
+
+                    foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Emisor') as $regPat) {
+                            $RegistroPatronal = $regPat['RegistroPatronal'];
+                            $curp = isset($regPat['Curp'])? $regPat['Curp']:'';
+                            $rfcPatOrigen = isset($regPat['RfcPatronOrigen'])? $regPat['RfcPatronOrigen']:'';
+                            $this->query="UPDATE XML_NOMINA_TRABAJADOR set REG_PATRONAL = '$RegistroPatronal', curp = '$curp', rfc_pat_origen = '$rfcPatOrigen' where id_nt = $r_id_nt";
+                            $this->queryActualiza();
+                    }
+
+                    foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones') as $percep) {
+                        $totalSueldos =  isset($percep['TotalSueldos'])? $percep['TotalSueldos']:0;
+                        $totalSeparacion = isset($percep['TotalSeparacionIndemnizacion'])? $percep['TotalSeparacionIndemnizacion']:0;
+                        $totalJubilacion =  isset($percep['TotalJubilacionPensionRetiro'])? $percep['TotalJubilacionPensionRetiro']:0;
+                        $totalGravado =  isset($percep['TotalGravado'])? $percep['TotalGravado']:0;
+                        $totalExento = isset( $percep['TotalExento'])? $percep['TotalExento']:0;
+                        $this->query="INSERT INTO XML_NOMINA_PERCEPCIONES (ID_NP, TOTAL_SUELDOS, TOTAL_SEPARACION_INDEM, TOTAL_JUBILACION_PENRET, TOTAL_GRAVADO, TOTAL_EXECTO, STATUS, UUID_NOMINA) VALUES (null, $totalSueldos, $totalSeparacion, $totalJubilacion, $totalGravado, $totalExento, 0, '$uuid') RETURNING ID_NP";
+                        $RSPER=$this->grabaBD();
+                        $rowrsper = ibase_fetch_object($RSPER)->ID_NP;
+                    }
+
+                    foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones//nomina12:Percepcion') as $nomPer) {
+                        $clavePer = $nomPer['Clave'];
+                        $concepPer =$nomPer['Concepto'];
+                        $impExePer = $nomPer['ImporteExento'];
+                        $impGraPer = $nomPer['ImporteGravado'];
+                        $tipPer = $nomPer['TipoPercepcion'];
+                        $this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA) VALUES (NULL, $rowrsper, 0, '$tipPer', '$clavePer', '$concepPer', $impGraPer, $impExePer, 'P', 0, '', 0, 0, 0, '$uuid')";
+                        $this->grabaBD();
+                    }
+
+                    if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones//nomina12:Percepcion//nomina12:HorasExtra')){
+                        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones//nomina12:Percepcion//nomina12:HorasExtra') as $nomHE){
+                            $heDias= isset($nomHE['Dias'])? $nomHE['Dias']:0;
+                            $heTipoHora = isset($nomHE['TipoHoras'])? $nomHE['TipoHoras']:'';
+                            $heHE = isset($nomHE['HorasExtra'])? $nomHE['HorasExtra']:0;
+                            $heImpPag = isset($nomHE['ImportePagado'])? $nomHE['ImportePagado']:0;
+                            $this->query="UPDATE XML_NOMINA_PERCEPCIONES_DETALLE SET DIAS = $heDias, TIPO_HORAS = '$heTipoHora', HORAS_EXTRA = $heHe, IMPORTE_PAGADO_HE = $heImpPag";
+                            $this->queryActualiza();
+                        }
+                    }   
+             
+                    if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones')){
+                        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones') as $deduc){
+                                    $totalOtrasDeduc = isset($deduc['TotalOtrasDeducciones'])? $deduc['TotalOtrasDeducciones']:0;
+                                    $totalImpRet = isset($deduc['TotalImpuestosRetenidos'])? $deduc['TotalImpuestosRetenidos']:0;
+                            $this->query="INSERT INTO XML_NOMINA_DEDUCCIONES (ID_ND, UUID_NOMINA, TOTAL_IMP_RET, TOTAL_OTRAS_DED, STATUS) VALUES (NULL, '$uuid', $totalImpRet, $totalOtrasDeduc, 0) RETURNING ID_ND";
+                            $resded= $this->grabaBD();
+                            $rowded = ibase_fetch_object($resded)->ID_ND;
+                        }
+                    }   
+
+                    if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina12:Deduccion')){
+                        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina12:Deduccion') as $nomDed) {
+                                        $claveDed = $nomDed['Clave'];
+                                        $concepDed = $nomDed['Concepto'];
+                                        $impDed = $nomDed['Importe'];
+                                        $tipoDed = $nomDed['TipoDeduccion'];
+                            $this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA) VALUES (NULL, 0, $rowded, '$tipoDed', '$claveDed', '$concepDed', 0, $impDed, 'D', 0, '', 0, 0, 0, '$uuid')";
+                            $this->grabaBD();
+                        }
+                    }
+
+                    if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:OtrosPagos')){
+                        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:OtrosPagos//nomina12:OtroPago') as $otroP) {
+                                    $opTipo = isset($otroP['TipoOtroPago'])? $otroP['TipoOtroPago']:'';
+                                    $opClave = isset($otroP['Clave'])? $otroP['Clave']:'';
+                                    $opConcepto = isset($otroP['Concepto'])? $otroP['Concepto']:'';
+                                    $opImporte = isset($otroP['Importe'])? $otroP['Importe']:0;
+
+                            $this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA ) VALUES (NULL, 0, 0, '$opTipo', '$opClave', '$opConcepto', 0, $opImporte, 'O', 0, '', 0, 0, 0, '$uuid')";
+                            $this->grabaBD();
+                        }
+
+                    
+                    if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:SubsidioAlEmpleo')){
+                            foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:SubsidioAlEmpleo') as $otroSE){
+                                $opseCausado = $otroSE['SubsidioCausado'];
+                            $this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA ) VALUES (NULL, 0, 0, '', '', 'Subsidio Causado', 0, $opseCausado, 'S', 0, '', 0, 0, 0, '$uuid')";
+                            $this->grabaBD();       
+                            }
+                        }                       
+                    }
+                    #### aqui va la compensasion a favor ############
+                    /*
+                    if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina12:Incapacidades'){
+                        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina12:Incapacidades') as $nomDed) {
+                                    $claveDed = $nomDed['Clave'];
+                                    $concepDed = $nomDed['Concepto'];
+                                    $impDed = $nomDed['Importe'];
+                                    $tipoDed = $nomDed['TipoDeduccion'];
+                        }                       
+                    }
+                    */
+                //die;
+                    $rfcEmpresa = $_SESSION['rfc'];
+                    $path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\Nomina\\';
+                    //echo '<br/>'.$path.'<br/>';
+                    if(is_dir($path)){
+                        //echo '<br/> El directorio existe<br/>';
+                    }else{
+                        //echo '<br/> El Direcotirio no existe y se debe de crear<br/>';
+                        mkdir($path,0777, true);
+                    }
+                    copy($archivo, $path.$uuid.".xml");
+                }
+                
+            }
+
+            if( $version=='3.2' and $verNom=='1.1'){
+                $this->query="UPDATE XML_DATA_FILES SET TIPO_FISCAL = '$serie' where Nombre = '$archivo'";
+                $this->queryActualiza();
+
+                foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
+                            if($version == '3.2'){
+                                $rfc= $Receptor['rfc'];
+                                $nombre_recep = utf8_encode($Receptor['nombre']);
+                                $usoCFDI = '';
+                            }elseif($version == '3.3'){
+                                $rfc= $Receptor['Rfc'];
+                                $nombre_recep=utf8_encode($Receptor['Nombre']);
+                                $usoCFDI =$Receptor['UsoCFDI'];
+                            }
+                            $this->query="INSERT INTO XML_NOMINA_EMPLEADOS (IDE, RFC, NOMBRE, USOCFDI ) VALUES (NULL, '$rfc', '$nombre_recep', '$usoCFDI')";
+                            $this->grabaBD();
+                }
+
+                foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Nomina') as $Nomina32Receptor) {
+                            if($version == '3.2'){
+                                $curp= $Nomina32Receptor['CURP'];
+                                $FechaInicioRelLaboral =$Nomina32Receptor['FechaInicioRelLaboral'];
+                                $TipoRegimen=$Nomina32Receptor['TipoRegimen'];
+                                $NumEmpleado= $Nomina32Receptor['NumEmpleado'];
+                                $Departamento= $Nomina32Receptor['Departamento'];
+                                $PeriodicidadPago= $Nomina32Receptor['PeriodicidadPago'];// Revisar el tamaño del campo o ajustar al catalogo del SAT 
+                                $SalarioBaseCotApor= $Nomina32Receptor['SalarioBaseCotApor'];
+                                $SalarioDiarioIntegrado= $Nomina32Receptor['SalarioDiarioIntegrado'];
+                                $Banco = isset($Nomina32Receptor['Banco'])? $Nomina32Receptor['Banco']:'';
+
+                                $CuentaBancaria = isset($Nomina32Receptor['CuentaBancaria'])? $Nomina32Receptor['CuentaBancaria']:'';
+                                $numss=isset($Nomina32Receptor['NumSeguridadSocial'])? $Nomina32Receptor['NumSeguridadSocial']:''; 
+                                $ClaveEntFed=isset($Nomina32Receptor['ClaveEntFed'])? $Nomina32Receptor['ClaveEntFed']:'';
+                                $RiesgoPuesto= isset($Nomina32Receptor['RiesgoPuesto'])? $Nomina32Receptor['RiesgoPuesto']:'';
+                                $Puesto= isset($Nomina32Receptor['Puesto'])? $Nomina32Receptor['Puesto']:'';
+                                $TipoJornada=isset($Nomina32Receptor['TipoJornada'])? $Nomina32Receptor['TipoJornada']:'';
+                                $Sindicalizado=isset($Nomina32Receptor['Sindicalizado'])? $Nomina32Receptor['Sindicalizado']:'';
+                                $Antiguedad= isset($Nomina32Receptor['Antigüedad'])? $Nomina32Receptor['Antigüedad']:''; 
+                                $TipoContrato=isset($Nomina32Receptor['TipoContrato'])? $Nomina32Receptor['TipoContrato']:'';
+                            }
+
+                            $this->query="INSERT INTO XML_NOMINA_RECEPTOR (ID, CURP, NumSeguridadSocial, FechaInicioRelLaboral, Antiguedad, TipoContrato, Sindicalizado, TipoJornada, TipoRegimen, NumEmpleado, Departamento, Puesto, RiesgoPuesto, PeriodicidadPago, SalarioBaseCotApor, SalarioDiarioIntegrado, ClaveEntFed, Archivo,UUID_NOMINA, BANCO,CUENTA_BANCARIA) 
+                                    VALUES (NULL, '$curp', '$numss', '$FechaInicioRelLaboral', '$Antiguedad', '$TipoContrato', '$Sindicalizado', '$TipoJornada', '$TipoRegimen', '$NumEmpleado', '$Departamento', '$Puesto', '$RiesgoPuesto', '$PeriodicidadPago', '$SalarioBaseCotApor', '$SalarioDiarioIntegrado', '$ClaveEntFed','$archivo','$uuid','$Banco','$CuentaBancaria')";
+                            $this->grabaBD();
+
+                            $this->query="UPDATE XML_NOMINA_EMPLEADOS SET CURP = '$curp', NSS='$numss' where RFC = '$rfc'";
+                            $this->queryActualiza();
+                }
+
+                foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Nomina') as $nomVal32) {
+                            if ($version == '3.2') {    
+                                $fechaInicialPago = $nomVal32['FechaInicialPago'];
+                                $fechaFinalPago = $nomVal32['FechaFinalPago'];
+                                $fechaPago = $nomVal32['FechaPago'];
+                                $numDiasPagados = isset($nomVal32['NumDiasPagados'])? $nomVal32['NumDiasPagados']:0;
+                                $versionNomina = $nomVal32['Version'];
+                                $regPatronal = isset($nomVal32['RegistroPatronal'])? $nomVal32['RegistroPatronal']:'';
+                                $totalDeducciones = isset($nomVal32['TotalDeducciones'])? $nomVal32['TotalDeducciones']:0;
+                                $totalPercepciones = isset($nomVal32['TotalPercepciones'])? $nomVal32['TotalPercepciones']:0;
+                                $totalOtrosPagos = isset($nomVal32['TotalOtrosPagos'])? $nomVal32['TotalOtrosPagos']:0;
+                                $tipoNomina = isset($nomVal32['TipoNomina'])? $nomVal32['TipoNomina']:'';
+                            }
+                            $this->query="INSERT INTO xml_nomina_trabajador (ID_NT, FECHA_INICIAL, FECHA_FINAL, FECHA_PAGO, DIAS, TIPO_NOMINA, DEDUCCIONES, PERCEPCIONES, VERSION_NOMINA, REG_PATRONAL, UUID_NOMINA, FORMA_PAGO) values (NULL, '$fechaInicialPago', '$fechaFinalPago', '$fechaPago', $numDiasPagados, '$tipoNomina', $totalDeducciones, $totalPercepciones, '$versionNomina', '$regPatronal', '$uuid', '99') RETURNING ID_NT";
+                            $RS=$this->grabaBD();
+                            $r_id_nt = ibase_fetch_object($RS)->ID_NT;
+                }
+
+                foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $regPat) {
+                            $RegistroPatronal = $regPatronal;
+                            $curp = isset($regPat['Curp'])? $regPat['Curp']:'';
+                            $rfcPatOrigen = isset($regPat['rfc'])? $regPat['rfc']:'';
+                            $this->query="UPDATE XML_NOMINA_TRABAJADOR set REG_PATRONAL = '$RegistroPatronal', curp = '$curp', rfc_pat_origen = '$rfcPatOrigen' where id_nt = $r_id_nt";
+                            $this->queryActualiza();
+                }
+
+                foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Percepciones') as $percep32) {
+                        $totalSueldos =  isset($percep32['TotalSueldos'])? $percep32['TotalSueldos']:0;
+                        $totalSeparacion = isset($percep32['TotalSeparacionIndemnizacion'])? $percep32['TotalSeparacionIndemnizacion']:0;
+                        $totalJubilacion =  isset($percep32['TotalJubilacionPensionRetiro'])? $percep32['TotalJubilacionPensionRetiro']:0;
+                        $totalGravado =  isset($percep32['TotalGravado'])? $percep32['TotalGravado']:0;
+                        $totalExento = isset( $percep32['TotalExento'])? $percep32['TotalExento']:0;
+                        $this->query="INSERT INTO XML_NOMINA_PERCEPCIONES (ID_NP, TOTAL_SUELDOS, TOTAL_SEPARACION_INDEM, TOTAL_JUBILACION_PENRET, TOTAL_GRAVADO, TOTAL_EXECTO, STATUS, UUID_NOMINA) VALUES (null, $totalSueldos, $totalSeparacion, $totalJubilacion, $totalGravado, $totalExento, 0, '$uuid') RETURNING ID_NP";
+                        $RSPER=$this->grabaBD();
+                        $rowrsper = ibase_fetch_object($RSPER)->ID_NP;
+                }
+
+                foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Percepciones//nomina:Percepcion') as $nomPer32) {
+                        $clavePer = $nomPer32['Clave'];
+                        $concepPer =$nomPer32['Concepto'];
+                        $impExePer = $nomPer32['ImporteExento'];
+                        $impGraPer = $nomPer32['ImporteGravado'];
+                        $tipPer = $nomPer32['TipoPercepcion'];
+                        $this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA) VALUES (NULL, $rowrsper, 0, '$tipPer', '$clavePer', '$concepPer', $impGraPer, $impExePer, 'P', 0, '', 0, 0, 0, '$uuid')";
+                        $this->grabaBD();
+                }
+
+                if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Percepciones//nomina:Percepcion//nomina:HorasExtra')){
+                        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Percepciones//nomina:Percepcion//nomina:HorasExtra') as $nomHE32){
+                            $heDias= isset($nomHE32['Dias'])? $nomHE32['Dias']:0;
+                            $heTipoHora = isset($nomHE32['TipoHoras'])? $nomHE32['TipoHoras']:'';
+                            $heHE = isset($nomHE32['HorasExtra'])? $nomHE32['HorasExtra']:0;
+                            $heImpPag = isset($nomHE32['ImportePagado'])? $nomHE32['ImportePagado']:0;
+                            $this->query="UPDATE XML_NOMINA_PERCEPCIONES_DETALLE SET DIAS = $heDias, TIPO_HORAS = '$heTipoHora', HORAS_EXTRA = $heHe, IMPORTE_PAGADO_HE = $heImpPag";
+                            $this->queryActualiza();
+                        }
+                }
+
+                if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Deducciones')){
+                        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Deducciones') as $deduc32){
+                                    $totalOtrasDeduc = isset($deduc32['TotalExento'])? $deduc32['TotalExento']:0;
+                                    $totalImpRet = isset($deduc32['TotalGravado'])? $deduc32['TotalGravado']:0;
+                            $this->query="INSERT INTO XML_NOMINA_DEDUCCIONES (ID_ND, UUID_NOMINA, TOTAL_IMP_RET, TOTAL_OTRAS_DED, STATUS) VALUES (NULL, '$uuid', $totalImpRet, $totalOtrasDeduc, 0) RETURNING ID_ND";
+                            $resded= $this->grabaBD();
+                            $rowded = ibase_fetch_object($resded)->ID_ND;
+                        }
+                }
+
+                if(@$xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina:Deduccion')){
+                        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina:Deduccion') as $nomDed32){
+                                        $claveDed = $nomDed32['Clave'];
+                                        $concepDed = $nomDed32['Concepto'];
+                                        $impDed = $nomDed32['ImporteGravado'];
+                                        $tipoDed = $nomDed32['TipoDeduccion'];
+                                        $impDedEx = $nomDed32['ImporteExento'];
+                            $this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA) VALUES (NULL, 0, $rowded, '$tipoDed', '$claveDed', '$concepDed', $impDed, $impDedEx, 'D', 0, '', 0, 0, 0, '$uuid')";
+                            $this->grabaBD();
+                        }
+                }       
+
+                $rfcEmpresa = $_SESSION['rfc'];
+                $path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\Nomina\\';
+                if(is_dir($path)){
+                }else{
+                    mkdir($path,0777, true);
+                }
+                copy($archivo, $path.$uuid.".xml");
+            }
+
+            if($tipo2 == 'C'){
+       
+                foreach ($data as $row):
+                    $file = $row->NOMBRE;
+                endforeach;
+    
+                    $myFile = fopen("$file", "r") or die("No se ha logrado abrir el archivo ($file)!");
+                    $myXMLData = fread($myFile, filesize($file));
+                    //exit(print_r($file));
+                    $xml = simplexml_load_string($myXMLData) or die("Error: No se ha logrado crear el objeto XML ($file)");
+                    //$xml = simplexml_load_string($myFile) or die("Error: No se ha logrado crear el objeto XML ($file)");
+                    
+                    $ns = $xml->getNamespaces(true);
+                    foreach ($xml->xpath('//CancelaCFDResult') as $acuse){
+                        $fecha = substr($acuse['Fecha'],0,19);    
+                        $rfc = $acuse['RfcEmisor'];
+                    }
+                    
+                    foreach ($xml->Folios as $fol) {
+                        $UUID= $fol->UUID;
+                        $estadoUUID=$fol->EstatusUUID;
+                    }
+                    foreach ($xml->Signature as $signature) {
+                        $signatureValue= $signature->SignatureValue;
+                        $digestValue=$signature->SignedInfo->Reference->DigestValue;
+                    }
+                    $this->query="INSERT INTO XML_CANCEL_DET (ID, FECHA, RFCEMISOR, STATUS_UUID, UUID, SIGNATUREVALUE, DIGESTVALUE, EXPONENT) 
+                            VALUES (NULL, '$fecha', '$rfc', '$estadoUUID', '$UUID', '$signatureValue', '$digestValue', '$exponent')";
+                $this->EjecutaQuerySimple();
+                //echo $this->query;
+                //$this->query="DELETE FROM XML_DATA_files WHERE NOMBRE = 'C:/xampp/htdocs/uploads/xml/cancelados/FPE980326GH9-CAN-FRF912.xml'";
+                //s$this->EjecutaQuerySimple();
+                exit($UUID);
+            }
+        return;
+     }
+
+    function acomodo($path){
+        //$destiny="\\\\192.168.100.33\\c$\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descargas\\";
+
+        $all = scandir($path);
+        $files=0;$dir=0; $file=array(); $d=array();
+        for($i=0; $i<count($all); $i++){
+            if(is_file($path."\\".$all[$i])){
+                $files++;
+                $file[]=$all[$i];
+            }else{
+                if($all[$i]!= '.' And $all[$i]!= '..'){
+                    $dir++;
+                    $d[]=$all[$i];
+                }
+            }
+        }
+        //echo '<br/>Son '.$files.' archivos y '.$dir.' directorios';
+        if(count($file)>0){
+            for($i=0;$i<count($file);$i++){
+                $rfc = explode("\\",$path);
+                //echo '<br/>'.$path."\\".$file[$i]. " el rfc es: ".$rfc[2];
+                //rename($path."\\".$file[$i], $destiny.$rfc[1]."\\".$file[$i]);
+                //echo '<br/> nombre del archivo'.substr($file[$i], (strlen($file[$i])-3));
+                if(substr($file[$i], (strlen($file[$i])-3))== 'XML'){
+                    //echo '<br/> Es un archivo XML: '.$file[$i];
+                    $archivo= $path."\\".$file[$i];
+                    $this->registra($archivo, $file[$i], $rfc[2]);
+                }
+            }
+        }
+        if(count($d)>0){
+            //echo 'Los directorios son:';
+            for($i=0;$i<count($d);$i++){
+                //echo "<br/>$i .- $d[$i]";
+                if($d[$i]!= '.' And $d[$i]!= '..'){
+                    //echo '<br/>'.$path.'\\'.$d[$i];
+                    $this->acomodo($path.'\\'.$d[$i]);
+                }
+            }   
+        }
+        //$this->$cierra();
+    }
+
+    function registra($archivo, $file, $rfc){
+        $res = $this->leeXML_Addenda($archivo);
+        if($res["status"] == 'ok'){
+            $tipo = $res['tcf']; $uuid = $res['uuid']; $add=$res['add'];
+            $this->query="INSERT INTO XML_ADDENDA (id, estado, tipo, archivo, rfc_receptor, nombre, uuid, fecha, addenda) VALUES (NULL, 0, '$tipo', '$archivo', '$rfc', '', '$uuid', current_timestamp, $add )";
+            $this->grabaBD();    
+        }
+        return;
+    }
+
+    function leeXML_Addenda($archivo){
+        $add=0;$status= 'ok';
+        $myFile = fopen("$archivo", "r") or die ("No se ha logrado abrir el archivo ($archivo)!");
+        if(filesize("$archivo") <= 3000){
+            return array("uuid"=>'No', "tcf"=>'falso');
+        }else{
+                $myXMLData = fread($myFile, filesize($archivo));
+                $xml = @simplexml_load_string($myXMLData) or die ("Error: No se ha logrado crear el objeto XML ($archivo)");
+                $ns = $xml->getNamespaces(true);
+                $xml->registerXPathNamespace('c', $ns['cfdi']);
+                $xml->registerXPathNamespace('t', $ns['tfd']); 
+                //$xml->registerXPathNamespace('a', $ns['addenda'])  
+                foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
+                    $version = $cfdiComprobante['version'];
+                    if($version == ''){
+                    $version = $cfdiComprobante['Version'];
+                    }
+                }
+                foreach ($xml->xpath('//t:TimbreFiscalDigital') as $tfd) {
+                    if($version == '3.2'){
+                        $uuid = $tfd['UUID'];
+                    }else{
+                        $uuid = $tfd['UUID'];
+                    }
+                }
+                if($version == '3.2'){
+                    $tipo = $cfdiComprobante['tipoDeComprobante'];
+                }elseif($version == '3.3' or $version == '4.0'){
+                    $tipo = $cfdiComprobante['TipoDeComprobante'];
+                }
+
+                if($xml->xpath('//cfdi:Comprobante//cfdi:Addenda')){
+                    $add=1;
+                }
+
+                foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
+                    if($version == '3.2'){
+                        $rfc= $Receptor['rfc'];
+                        $nombre_recep = utf8_encode($Receptor['nombre']);
+                        $usoCFDI = '';
+                    }elseif($version == '3.3'){
+                        $rfc= $Receptor['Rfc'];
+                        $nombre_recep=utf8_encode($Receptor['Nombre']);
+                        $usoCFDI =$Receptor['UsoCFDI'];;
+                     }elseif($version == '4.0'){
+                        $rfc= $Receptor['Rfc'];
+                        $nombre_recep=utf8_encode($Receptor['Nombre']);
+                        $usoCFDI =$Receptor['UsoCFDI'];
+                        $domFisc = $Receptor['DomicilioFiscalReceptor'];// nuevo para la version 4.0 
+                        $regFisc = $Receptor['RegimenFiscalReceptor'];// nuevo para la version 4.0
+                     }
+                }
+
+                foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $Emisor){
+                    if($version == '3.2'){
+                        $rfce = $Emisor['rfc'];
+                        $nombreE = '';
+                        $regimen = '';  
+                    }elseif($version == '3.3' or $version == '4.0'){
+                        $rfce = $Emisor['Rfc'];
+                        $nombreE = utf8_encode($Emisor['Nombre']);
+                        $regimen = $Emisor['RegimenFiscal'];
+                    }
+                }
+                $rfcEmpresa = 'IMI161007SY7';
+                //echo '<br/>'.utf8_decode($nombre_recep);
+                if($rfcEmpresa != $rfce and $rfcEmpresa!=$rfc){
+                    echo ('<br/><font color="red">El RFC '.$rfce.' NO CORRESPONDE A LA EMPRESA '.$rfcEmpresa.' SELECCIONADA, SOLO SE PUEDEN SUBIR RFC DE LA EMPRESA SELECCIONA....'.$uuid.'</font><br/>');
+                    $tipo = 'falso'; $status= 'no';
+                }
+            return array("status"=>$status,"uuid"=>$uuid, "tcf"=>$tipo, "add"=>$add);
+        }
+    
+    }
+
+    function partidasApolo(){
+        $data=array();
+        $this->query="SELECT * FROM FTC_APOLO_DETALLE WHERE PRODUCTO = ''";
+        $res=$this->EjecutaQuerySimple();
+        while($tsarray=ibase_fetch_object($res)){
+            $data[]=$tsarray;
+        }
+        return $data;
+    }
 }
 ?>

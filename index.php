@@ -1533,8 +1533,11 @@ elseif (isset($_POST['utilerias'])) {
     echo json_encode($res);
     exit();
 }elseif (isset($_POST['correoApolo'])) {
-    $res=$controller->correoApolo($_POST['id'], $_POST['opc']);
-    echo json_encode($res);exit();
+    $res=$controller->correoApolo($_POST['id'], $_POST['opc']); echo json_encode($res); exit();
+}elseif(isset($_POST['FORM_ACTION_FACTURAS_UPLOAD'])){
+    $tipo = $_POST['tipo'];
+    $files2upload = $_POST['files2upload'];
+    $controller->facturacionCargaXML($files2upload, $tipo);
 }
 else {
     switch ($_GET['action']) {

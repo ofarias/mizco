@@ -321,6 +321,7 @@
             }
             document.getElementById("files2upload").value = input.files.length;
     }
+   ul
 
     $(".del").click(function(){
         var id = $(this).attr('oc')
