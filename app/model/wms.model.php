@@ -635,6 +635,13 @@ class wms extends database {
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
         }
+
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE id_MS= $op and status != 'Baja' order by id_ms";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+
         return $data;
     }
 
@@ -2552,6 +2559,8 @@ class wms extends database {
                             when 6 then substring(c.etiqueta from 1 for 1)
                             when 7 then substring(c.etiqueta from 1 for 2)
                             when 8 then substring(c.etiqueta from 1 for 2)
+                            when 9 then substring(c.etiqueta from 1 for 2)
+                            when 10 then substring(c.etiqueta from 1 for 2)
                             else ''
                             end as letra,
                         char_length(c.etiqueta)
@@ -2971,6 +2980,13 @@ class wms extends database {
         $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET UNIDAD = $valor, CAJAS=(ASIG / $valor) WHERE ID_ORDD = $ordd";
         $this->queryActualiza();
         return array("sta"=>'ok', "valor"=>$valor);
+    }
+
+    function desc($id){
+        $this->query="UPDATE FTC_ALMACEN_PROD_INT SET STATUS = iif(STATUS = 'Alta', 'Descontinuado', 'Alta') where id_pint = $id ";
+        $res=$this->queryActualiza();
+
+        return array("status"=>'ok');
     }
 }
 ?>

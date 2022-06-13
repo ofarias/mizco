@@ -9,7 +9,8 @@ abstract class database {
     private $cnx;
     protected $query;
     //private $host = "C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE6.00\\Empresa01\\Datos\\SAE60EMPRE01.FDB";
-    private $host = "C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
+    //private $host = "C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
+    private $host = "C:\\DATA\\MIZCO_WMS.FDB";
     //private $host = "ofa.dyndns.org:c:\\ftcData\\SAE\\MIZCOSAE.FDB";
     
     private function AbreCnx() {

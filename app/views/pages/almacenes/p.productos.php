@@ -10,15 +10,17 @@
             <div class="panel-heading">
                 Productos en Intelisis <input type="button" value="Actualizar" class="btn-sm btn-primary actProdInt" t="p">&nbsp;&nbsp;&nbsp;<input type="button" value="Existencias Intelisis" class="btn-sm btn-info actProdInt" t="x" >
                 <input type="button" value="Imprimir XLS" class="btn-sm btn-success xls">
+                <input type="button" value="Descontinuados" class="btn-sm btn-warning descon">
             </div>
             <div class="panel-body">
                 <div class="table-responsive">                            
                     <table class="table table-striped table-bordered table-hover" id="dataTables-productos">
                         <thead>
                             <tr>
-                                <th>Clave</th>
+                                <th>Clave<br/> Desc</th>
+
                                 <th>Descripción</th>
-                                <th>Presentación <br/>entrada</th>
+                                <!--<th>Presentación <br/>entrada</th>-->
                                 <th>Largo <br/> cm</th>
                                 <th>Ancho <br/> cm</th>
                                 <th>Alto <br/> cm</th>
@@ -52,10 +54,15 @@
                                 $color = "style=background-color:#eaf5fa;";
                             }
                             ?>
-                            <tr class="color" id="linc<?php echo $i?>" <?php echo $color;?> >
-                                <td><a class="posicion" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"><?php echo $row->ID_INT;?></a><br/><a class="movs" prod="<?php echo $row->ID_INT;?>">Movs a Excel</a></td>
+                            <tr class=" <?php echo $row->STATUS?>" id="linc<?php echo $i?>" <?php echo $color;?> <?php echo $row->STATUS=='Alta'? '':'hidden'?> >
+                                <td><a class="posicion" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"><?php echo $row->ID_INT;?></a><br/><a class="movs" prod="<?php echo $row->ID_INT;?>">Movs a Excel</a>
+                                    <br/>
+                                    <input type="checkbox" name="desc" class="desc" <?php echo $row->STATUS == 'Alta'? '':'checked' ?> prod = "<?php echo $row->ID_PINT?>"> desc
+                                </td>
                                 <td id="prod_<?php echo $i?>"><?php echo $row->DESC;?></font></td>
-                                <td><?php echo $row->PZS_ORIG;?></td>
+                                
+                                <!--<td><?php echo $row->PZS_ORIG;?></td>-->
+                                
                                 <td align="center"><input type="number" name="p_o" value="<?php echo $row->LARGO;?>" step="any" class="num lg marca" lin="<?php echo $i?>" id="lg<?php echo $i?>">
                                     <br/><font color="blue" ><?php echo $row->LARGO;?></font>
                                 </td>
@@ -89,6 +96,25 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
+    $(".descon").click(function(){
+        $(".Descontinuado").show()
+    })
+
+    $(".desc").click(function (){
+        var prod = $(this).attr('prod')
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{desc:prod},
+            success:function(data){
+                $.alert('Descontinudo')
+            }, 
+            error:function(){
+
+            }
+        })
+    })
 
     $(".xls").click(function(){
         var out = 'x'

@@ -111,6 +111,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->delMovs($_POST['delMovs'], $_POST['tipo']);echo json_encode($res);exit();
 }elseif(isset($_POST['pxc'])){
     $res=$controller_wms->pxc($_POST['pxc']);echo json_encode($res);exit();
+}elseif(isset($_POST['desc'])){
+    $res=$controller_wms->desc($_POST['desc']);echo json_encode($res);exit();
 }
 else{
     switch ($_GET['action']) {

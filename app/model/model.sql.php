@@ -162,7 +162,7 @@ class intelisis extends sqlbase {
 
     function prodInt($t){
     	$data = array();$datos=array();
-        $this->query="SELECT * FROM Art where tipo = 'Lote' and (Estatus = 'Alta' or Estatus = 'Alta')";
+        $this->query="SELECT * FROM Art where (tipo = 'Lote' or tipo = 'Juego') and Estatus = 'Alta'";
         $res=$this->EjecutaQuerySimple();
         while($tsarray = sqlsrv_fetch_array($res)){
         	$data[]=$tsarray;
