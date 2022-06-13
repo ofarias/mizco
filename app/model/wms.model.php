@@ -2565,7 +2565,7 @@ class wms extends database {
                             end as letra,
                         char_length(c.etiqueta)
                         from
-                        ftc_almacen_comp c where c.almacen = $param and c.status < 8 and c.tipo = 2";
+                        ftc_almacen_comp c where c.almacen = $param and c.status < 8 and c.tipo = 2 order by id_comp";
         //echo $this->query;
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){

@@ -136,7 +136,7 @@
                         alert(msg)
                         location.reload(true)    
                     }else{
-                        alert('No se encontro la factura en intelisis')
+                        alert(data.msg)
                     }
                     
                 }

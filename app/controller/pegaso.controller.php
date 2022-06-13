@@ -12400,18 +12400,17 @@ function compruebaXml($folio) {
             }
             return array("status"=>'no');
         }
-
         $infoProd = $int->prodApolo($info); /// consulta en intelisis el producto y crea el cliente en caso que no exista
         if(count($infoProd)==0){
             foreach($info as $inf){}
-            return array("status"=>'no', "msg"=>'El producto '.$inf->PRODUCTO.' no existe Codigo de Barras '.$inf->NO_IDEN);
+            return array("status"=>'no', "msg"=>'El producto '.$inf->PRODUCTO.' no existe Codigo de Barras '.substr($inf->NO_IDEN,2). ' en intelisis, descripcion: '.utf8_decode($inf->DESCRIPCION));
         }
-        $actProd = $data->actProdApolo($infoProd); /// Actualiza el producto de intelisis  
+        $actProd = $data->actProdApolo($infoProd); /// Actualiza el producto de intelisis.
         $info = $data->correoApolo($id, $opc);/// Consulta ya con la informacion del producto.
-        $insPedido=$int->insertaPedidoWeb($info); /// insercion de la venta en Intelisis
+        $insPedido=$int->insertaPedidoWeb($info); /// insercion de la venta en Intelisis.
         $act=$data->regApolo($id, 'envio', $insPedido); /// Actualiza el numero de pedido.
         $_SESSION['info']=$data->correoApolo($id, $opc); // Trae nuevamente la informacion para la creacion del correo.
-        include 'app/mailer/send.apolo.php';   ///  se envia el correo con toda la informacion     
+        include 'app/mailer/send.apolo.php';   ///  se envia el correo con toda la informacion.
         return array("status"=>'ok');
     }
 
