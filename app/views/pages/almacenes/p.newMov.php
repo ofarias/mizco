@@ -113,7 +113,7 @@
                                        <tr>
                                             <td><input type="text" name="" placeholder="Codigo de Barras"></td>
                                             <td>
-                                                <input type="text" placeholder="Producto" id="prod" class="prod" size="50" maxlength="100" required="required" class="prod">
+                                                <input type="text" placeholder="Producto" id="prod" class="prod" size="50" maxlength="100" required="required" >
                                         <!--        <select class="prod">
                                                 <option value="none">Seleccione un producto</option>
                                                 <?php foreach($prod as $p):?>
@@ -217,6 +217,10 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">  
+
+    $(".prod").change(function(){
+        $("#btnAdd").removeClass("hidden")
+    })
 
     $(".compS").change(function(){
         var tipo = $(".tip").val()

@@ -25,7 +25,7 @@
                                 <th>Ancho <br/> cm</th>
                                 <th>Alto <br/> cm</th>
                                 <th>Peso <br/>Volumétrico</th>
-                                <th title="Piezas por Palet/Tarima.">Piezas <br/>x Palet</th>
+                                <th title="Cantidad de piezas en una Palet/Tarima estandar americana 100x120x10. 25 Kg">Piezas <br/>x Palet</th>
                                 <th title="Cantidad de Piezas de Origen por Caja.">Master</th>
                                 <th>Tipo <br/>Intelisis</th>
                                 <th>Estatus <br/>Intelisis</th>
@@ -46,6 +46,7 @@
                         </tfoot>
                         <tbody>
                             <?php $i=0;foreach($info as $row): $i++;
+                            $vol=0; $volT = 960000; $volm = 0;
                             $dif=$row->DISP-$row->DISP_ALM;
                             $color='';
                             if($dif > 0 ){
@@ -53,6 +54,9 @@
                             }elseif($dif<0){
                                 $color = "style=background-color:#eaf5fa;";
                             }
+                            $vol = $row->ANCHO * $row->ALTO * $row->LARGO;
+                            $volm = ($row->UNIDAD_ORIG>0 and $row->PZS_PALET_O > 0)? $vol*$row->UNIDAD_ORIG:0;
+
                             ?>
                             <tr class=" <?php echo $row->STATUS?>" id="linc<?php echo $i?>" <?php echo $color;?> <?php echo $row->STATUS=='Alta'? '':'hidden'?> >
                                 <td><a class="posicion" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"><?php echo $row->ID_INT;?></a><br/><a class="movs" prod="<?php echo $row->ID_INT;?>">Movs a Excel</a>
@@ -68,9 +72,21 @@
                                 </td>
                                 <td align="center"><input type="number" name="p_o" value="<?php echo $row->ANCHO;?>" step="any" class="num an marca" lin="<?php echo $i?>" id="an<?php echo $i?>"><br/><font color="blue" ><?php echo $row->ANCHO;?></font></td>
                                 <td align="center"><input type="number" name="p_o" value="<?php echo $row->ALTO;?>" step="any" class="num al marca" lin="<?php echo $i?>" id="al<?php echo $i?>"><br/><font color="blue" ><?php echo $row->ALTO;?></font></td>
-                                <td align="right"><?php echo number_format((($row->LARGO * $row->ANCHO * $row->ALTO)/166),5)?></td> 
-                                <td align="center" title="Piezas por Palet/Tarima."><input type="number" name="p_o" value="<?php echo $row->PZS_PALET_O;?>" step="any" class="num p marca" lin="<?php echo $i?>" id="p<?php echo $i?>"><br/><font color="blue" ><?php echo $row->PZS_PALET_O;?></font></td>
-                                <td align="center" title="Cantidad de Piezas de Origen por Caja."><input type="number" name="p_o" value="<?php echo $row->UNIDAD_ORIG;?>" step="any" class="num uo marca" lin="<?php echo $i?>" id="uo<?php echo $i?>"><br/><font color="blue" ><?php echo $row->UNIDAD_ORIG;?></font></td>
+                                <td align="right"><?php echo number_format((($row->LARGO * $row->ANCHO * $row->ALTO)/166),5)?>
+                                    <b>Volumen: </b> <?php echo number_format($vol).'cm3'?>
+                                </td> 
+
+                                <td align="center" title="Piezas por Palet/Tarima.">
+                                    <!--<input type="number" name="p_o" value="<?php echo $row->PZS_PALET_O;?>" step="any" class="num p marca" lin="<?php echo $i?>" id="p<?php echo $i?>">
+                                    <br/>-->
+                                    <font color="blue" ><?php echo $row->PZS_PALET_O;?></font>
+                                </td>
+                                <td align="center" title="Cantidad de Piezas de Origen por Caja.">
+                                    <input type="number" name="p_o" value="<?php echo $row->UNIDAD_ORIG;?>" step="any" class="num uo marca" lin="<?php echo $i?>" id="uo<?php echo $i?>"><br/><font color="blue" ><?php echo $row->UNIDAD_ORIG;?></font>
+                                    <?php if($volm>0){?>
+                                        <br/><b>Volumen Master:</b> <?php echo number_format($volm).' cm3'?>
+                                    <?php }?>
+                                </td>
                                 <td><?php echo $row->TIPO_INT?></td>
                                 <td><?php echo $row->STATUS?></td>
                                 <td>

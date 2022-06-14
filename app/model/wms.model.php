@@ -37,9 +37,13 @@ class wms extends database {
 
     function actProd($cve, $lg, $an, $al, $p, $ou){
         $lg = ($lg=='')? 0:$lg; $an = ($an=='')? 0:$an; $al = ($al=='')? 0:$al; $p = ($p=='')? 0:$p; $ou = ($ou=='')? 0:$ou; 
+        $volT = 960000;// cambiarla por una variable global.
+        if($lg > 0 and $an > 0 and $al > 0 ){
+            $vol = $lg * $an * $al;
+            $p = $volT / $vol;
+        }
         $this->query="UPDATE FTC_ALMACEN_PROD_INT SET largo= $lg, ancho =$an, alto=$al, pzs_palet_o = $p, unidad_orig = $ou where ID_PINT = $cve";
         $res=$this->queryActualiza();
-        
         if($res >= 1){
             $m= 'Se ha actualizado correctamente';
         }else{
@@ -670,7 +674,7 @@ class wms extends database {
             $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status', HORA_F = current_timestamp  where MOV = (select mov from FTC_ALMACEN_MOV where id_AM = $idMov) and status='P'";
             $res= $this->queryActualiza();
             if($res>=1){
-                $this->creaSalida($idMov);
+                /// $this->creaSalida($idMov); comentada el 14 de junio del 2022, ya que al parecer no debe de hacer ninguna salida.... 
                 $msg='Se ha finalizado el Momiemiento, ya puede imprimir el QR';
             }else{
                 $msg='Surgio un inconveniente favor de actulizar';

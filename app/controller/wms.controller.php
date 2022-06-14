@@ -211,10 +211,6 @@ class wms_controller {
     }
 
     function wms_newMov($op, $ver){
-        //session_cache_limiter('private_no_expire');
-        //echo $ver;
-        echo '<br/> ver: '.$ver; 
-        echo '<br/> opciones: '.$op;
         $a='';$datos=array();$compA=array();$p='';$param='';$fa='';
         if (isset($_SESSION['user'])) {
             $data = new wms;
