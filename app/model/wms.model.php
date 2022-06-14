@@ -104,9 +104,10 @@ class wms extends database {
         //echo '<p>'.$this->query.'</p>';
         $this->query="SELECT $f c.*,
         (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 1 ) AS entradasS, 
-        (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP 
-         FROM FTC_ALMACEN_COMPONENTES c $op $p order by id_comp desc";
-        //echo $this->query;
+        (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP , 
+        v.dispONIBLE AS DISP
+        FROM FTC_ALMACEN_COMPONENTES c left join ftc_alm_comp_disp v on v.id_c = c.id_comp $op $p order by id_comp desc";
+       //echo $this->query;
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;

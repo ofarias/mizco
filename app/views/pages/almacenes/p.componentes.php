@@ -65,7 +65,7 @@
                                 <th>Etiqueta</th>
                                 <th>Descripción</th>
                                 <th>Tipo <br/> <font color="blue">Asociado con:</font></th>
-                                <th>Largo</th>
+                                <th>Largo <br/> <font color="blue">Volumen:</font><br/><font color="green">Disponible</font></th>
                                 <th>Ancho</th>
                                 <th>Alto</th>
                                 <th>Almacen</th>
@@ -101,7 +101,10 @@
                                 <td><?php echo $row->ETIQUETA?></td>
                                 <td><textarea cols="25" rows="3" class="chgDesc" t="d" o="<?php echo $row->DESC?>" c="<?php echo $row->ID_COMP?>"><?php echo $row->DESC?></textarea></td>
                                 <td><?php echo $row->TIPO?><br/><font color="blue"><?php echo $row->COMPPR?></font></td>
-                                <td><?php echo number_format($row->MEDICION=='m'? $row->LARGO/100: $row->LARGO,2).' '.$row->MEDICION?></td>
+                                <td><?php echo number_format($row->MEDICION=='m'? $row->LARGO/100: $row->LARGO,2).' '.$row->MEDICION?>
+                                    <br/> <font color="blue"><?php echo number_format($row->VOLUMEN,0).'cm3'?></font>
+                                    <br/> <font color="green"><?php echo number_format($row->DISP,0).'cm3'?>
+                                </td>
                                 <td><?php echo number_format($row->MEDICION=='m'? $row->ANCHO/100: $row->ANCHO,2).' '.$row->MEDICION?></td>
                                 <td><?php echo number_format($row->MEDICION=='m'? $row->ALTO/100: $row->ALTO,2).' '.$row->MEDICION?></td>
                                 <td><?php echo $row->ALMACEN?></td>

@@ -253,7 +253,7 @@
         var an = document.getElementById('an'+lin).value
         var al = document.getElementById('al'+lin).value
         var lg = document.getElementById('lg'+lin).value
-        var p = document.getElementById('p'+lin).value
+        var p = 0 ///document.getElementById('p'+lin).value
         var uo = document.getElementById('uo'+lin).value
         var linea = document.getElementById("linc"+lin)
         var obj=document.getElementById("bg"+lin)
