@@ -82,6 +82,7 @@
                                             <th> Piezas <br/> Entrada </th>
                                             <th> Salida </th>
                                             <th> Piezas <br/>Disponibles </th>
+                                            <th> Categoria</th>
                                             <th> Piezas a <br/>Sacar </th>
                                             <th> Ejecutar </th>
                                             
@@ -101,6 +102,7 @@
                                             <td><?php echo $kp->PIEZAS?></td>
                                             <td><?php echo $kp->PIEZAS_SAL?></td>
                                             <td><?php echo $kp->DISPONIBLE?></td>
+                                            <td><?php echo $kp->CATEGORIA?></td>
                                             <td align="right"><input type="text" placeholder="Cantidad" size="5" class="cant" onpaste="alert('No puedes pegar');return false" ln="<?php echo $ln?>" cs="<?php echo $kp->ID_COMPS?>" cp="<?php echo $kp->ID_COMPP?>" mov="<?php echo $kp->ID_AM?>"></td>
                                             <td><a class="exeSal hidden <?php echo $ln?>" id="<?php echo $ln?>" >&#x23f5;</a></td>
                                         </tr>

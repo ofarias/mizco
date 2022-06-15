@@ -18,7 +18,7 @@ if (isset($_POST['usuario'])) {
 }elseif(isset($_POST['cpComp'])){
     $res=$controller_wms->cpComp($_POST['cns'], $_POST['can'], $_POST['id'], $_POST['ser'], $_POST['fol'], $_POST['sep']);echo json_encode($res);exit();
 }elseif (isset($_POST['addMov'])) {
-    $res=$controller_wms->addMov($_POST['tipo'], $_POST['alm'],$_POST['compP'],$_POST['compS'],$_POST['prod'],$_POST['uni'],$_POST['cant'],$_POST['col'],$_POST['mov'], $_POST['pza']);echo json_encode($res);exit();
+    $res=$controller_wms->addMov($_POST['tipo'], $_POST['alm'],$_POST['compP'],$_POST['compS'],$_POST['prod'],$_POST['uni'],$_POST['cant'],$_POST['col'],$_POST['mov'], $_POST['pza'], $_POST['cat']);echo json_encode($res);exit();
 }elseif (isset($_POST['delMov'])) {
     $res=$controller_wms->delMov($_POST['delMov'], $_POST['tp']); echo json_encode($res);exit();
 }elseif (isset($_POST['asocia'])) {

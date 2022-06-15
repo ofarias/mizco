@@ -278,10 +278,10 @@ class wms_controller {
         $this->view_page($pagina);
     }
 
-    function addMov($tipo, $alm, $compP, $compS, $prod, $uni, $cant, $col, $mov, $pza){
+    function addMov($tipo, $alm, $compP, $compS, $prod, $uni, $cant, $col, $mov, $pza, $cat){
         if($_SESSION['user']){
             $data = new wms;
-            $exec = $data->addMov($tipo, $alm, $compP, $compS, $prod, $uni, $cant, $col, $mov, $pza);
+            $exec = $data->addMov($tipo, $alm, $compP, $compS, $prod, $uni, $cant, $col, $mov, $pza, $cat);
             return $exec;
         }
     }

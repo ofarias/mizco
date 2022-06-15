@@ -104,8 +104,11 @@
                                             <th> Producto </th>
                                             <th> Unidad </th>
                                             <th> Cantidad </th>
-                                            <th> Color </th>
+                                            <!--<th> Color </th>-->
                                             <th> Total Piezas </th>
+
+                                            <th class="catP hidden"> Categoria </th>
+                                            
                                             <th> Agregar </th>
                                         </tr>
                                     </thead>
@@ -127,9 +130,10 @@
                                                 <?php foreach($uniE as $u):?>
                                                     <option value="<?php echo $u->ID_UNI?>" fact="<?php echo $u->FACTOR?>"><?php echo $u->FACTOR.'--'.$u->DESC.' -> Factor x '.$u->FACTOR.' En Palet caben: '.$u->PZS_PALET?></option>
                                                 <?php endforeach;?>
-                                            </select></td>
+                                            </select> <a class= "newUE">+</a> 
+                                        </td>
                                             <td><input class="cant total" type="number" min="1" max="100"></td>
-                                            <td>
+                                            <!--<td>
                                                 <select class="col">
                                                     <option value="">Seleccione color</option>
                                                     <option>Rojo</option>
@@ -137,10 +141,20 @@
                                                     <option>Blanco</option>
                                                     <option>Verde</option>
                                                     <option>Mixto (R,N,B,V)</option>
-                                                </select>
+                                                </select>-->
+
                                                 <!--<input class="col" type="text" name="" placeholder="color">-->
                                             </td>
                                             <td align="rigth"><label id="totPzas"></label></td>
+                                            
+                                            <td class="catP hidden">
+                                                <select id="catProd" >
+                                                    <option value="1">Primera</option>
+                                                    <option value="2">Segunda</option>
+                                                    <option value="3">Tercera</option>
+                                                </select>
+                                            </td>
+
                                             <td>
                                                 <?php if(@$m->STATUS!='Finalizado'):?>
                                                         <input type="button" class="btn-sm btn-primary add hidden" id="btnAdd" value="agregar">
@@ -168,10 +182,12 @@
                                             <th> Producto </th>
                                             <th> Unidad </th>
                                             <th> Cantidad </th>
-                                            <th> Color </th>
+                                            <!--<th> Color </th>-->
                                             <th> Total Piezas </th>
+                                            <th> Categoria </th>
+                                            <th> Volumen</th>
                                             <th> Estado </th>
-                                            <th> Color </th>
+                                            <!--<th> Color </th>-->
                                             <th> Copiar a:</th>
                                             <th> Eliminar </th>
                                         </tr>
@@ -187,10 +203,12 @@
                                             <td><?php echo $kp->PROD?></td>
                                             <td><?php echo $kp->UNIDAD?></td>
                                             <td><?php echo $kp->CANT?></td>
-                                            <td><?php echo $kp->COLOR?></td>
+                                            <!--<td><?php echo $kp->COLOR?></td>-->
                                             <td><?php echo $kp->PIEZAS?></td>
+                                            <td><?php echo $kp->CATEGORIA?></td>
+                                            <td><?php echo $kp->VOLUMEN?></td>
                                             <td><?php echo $kp->STATUS?></td>
-                                            <td><?php echo $kp->COLOR?></td>
+                                            <!--<td><?php echo $kp->COLOR?></td>-->
                                             <td><select class="cpa" id="<?php echo $kp->ID_AM?>">
                                                 <option value="none">Copiar a:</option>
                                                 <?php foreach($compA as $ca):?>
@@ -217,6 +235,10 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">  
+
+    $(".newUE").click(function(){
+        //$.alert("Nueva unidad de entrada")
+    })
 
     $(".prod").change(function(){
         $("#btnAdd").removeClass("hidden")
@@ -245,6 +267,9 @@
     $(document).ready(function (){  
         //or if you want to be more efficient and use less characters, chain it
         $('#selcomps').focus().select()
+        //if($('.tip').val() == 'd'){
+            $(".catP").removeClass("hidden")
+        //}
     });
 
     var mov=<?php echo $mov==''? "'nuevo'":$mov?>
@@ -326,8 +351,9 @@
         var prod = $(".prod").val();
         var uni = $(".uni").val();
         var cant = $(".cant").val();
-        var col = $(".col").val();
+        var col = ''//$(".col").val();
         var pza = document.getElementById("totPzas").innerHTML;
+        var cat = $("#catProd").val();
         $.ajax({
             url:'index.wms.php',
             type:'post',
@@ -339,7 +365,7 @@
                         url:'index.wms.php',
                         type:'post',
                         dataType:'json',
-                        data:{addMov:1, tipo, alm, compP, compS, prod:data.prod, uni, cant, col, mov, pza},
+                        data:{addMov:1, tipo, alm, compP, compS, prod:data.prod, uni, cant, col, mov, pza, cat},
                         success:function(data){
                             window.open('index.wms.php?action=wms_menu&opc=ediMov:'+ data.mov, "_self")
                         }
