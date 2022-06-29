@@ -537,24 +537,28 @@ class wms extends database {
                                  PIEZAS,
                                  LINEA ||'-'|| TARIMA AS COMPONENTE
                           FROM FTC_ALMACEN_MOV_SALIDA $p order by id_ms desc";
-            //echo $this->query;
+            echo 'Movimientos de salida: '.$this->query;
             $res=$this->EjecutaQuerySimple();
         }else{
-            $this->query="SELECT first 50 mov, 
-                max(SIST_ORIGEN) AS SIST_ORIGEN, 
-                (select max(nombre) from FTC_ALMACEN a where a.id =  MAX(AM.ID_ALMACEN)) AS ALMACEN, 
-                MAX(TIPO) AS TIPO, 
-                MAX(FECHA) AS FECHA, 
-                MAX(STATUS) AS STATUS, 
-                MIN(HORA_I) AS HORA_I, 
-                MAX(HORA_F) AS HORA_F, 
-                SUM(CANT) AS CANT, 
-                SUM(PIEZAS) AS PIEZAS  , 
-                MAX(usuario) as usuario, 
-                cast( list(DISTINCT prod) as varchar (3000)) as prod, 
-                (SELECT MAX(ETIQUETA) FROM FTC_ALMACEN_COMPONENTES AC WHERE AC.ID_COMP = max(AM.ID_compp) ) as componente 
-            FROM FTC_ALMACEN_MOVIMIENTO AM $op $p  group by mov order by mov desc";
-            //echo 'Consulta de movimientos con filtro: '.$this->query;
+            $this->query="  SELECT first 50 
+                                mov, 
+                                max(SIST_ORIGEN) AS SIST_ORIGEN, 
+                                (select max(nombre) from FTC_ALMACEN a where a.id =  MAX(AM.ID_ALMACEN)) AS ALMACEN, 
+                                MAX(TIPO) AS TIPO, 
+                                MAX(FECHA) AS FECHA, 
+                                MAX(STATUS) AS STATUS, 
+                                MIN(HORA_I) AS HORA_I, 
+                                MAX(HORA_F) AS HORA_F, 
+                                SUM(CANT) AS CANT, 
+                                SUM(PIEZAS) AS PIEZAS  , 
+                                MAX(usuario) as usuario, 
+                                cast( list(DISTINCT prod) as varchar (3000)) as prod, 
+                                (SELECT MAX(ETIQUETA) FROM FTC_ALMACEN_COMPONENTES AC WHERE AC.ID_COMP = max(AM.ID_compp) ) as componente 
+                            FROM FTC_ALMACEN_MOVIMIENTO AM $op $p  group by mov order by mov desc";
+            echo 'Consulta de movimientos con filtro: '.$this->query;
+
+            $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA ";
+
         }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
@@ -1830,6 +1834,7 @@ class wms extends database {
             //echo '<br/>Ultima Columna: '.$col.'<br/>';
             return;   
     }
+
     function intelisis($xlsx, $hoja, $file, $ido){
         $usuario=$_SESSION['user']->ID;$odns=array();
         $ln=0;$piezas=0;
@@ -1866,6 +1871,42 @@ class wms extends database {
             echo 'Ocurro un error en la cabecera del archivo, favor de reportar a sistemas al 55 50553392';
         }
         return $odns;
+    }
+
+    function insOrdenes($info){
+        $n=0; 
+        foreach($info as $i){
+            $n++;
+            $usuario=$_SESSION['user']->ID;
+            $id = $i['ID']; $cliente = $i['Cliente']; $mov = trim($i['Mov']); $movId = $i['MovID']; $oc = $i['OrdenCompra'];$nombre=$i['nombre']; $staInt=$i['Estatus'];
+            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN WHERE ID_ORD = $id";
+            $res=$this->EjecutaQuerySimple();
+            if(!ibase_fetch_row($res)){
+                $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD, idCliente, CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL, MOV, Movid, STA_INT) VALUES ($id, '$cliente', '$nombre', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$mov'||'$movId', '$usuario', '$oc', '$mov','$movId', '$staInt' ) returning ID_ORD ";
+                    $res=$this->grabaBD();
+                if(ibase_fetch_object($res)){
+                    /// insertamos los detalles del documento;
+                    // tenemos que traerlo de intelisis
+                    /// o mejor lo insertamos cuando lo abra el usuario....
+                }       
+            }
+        }
+        return;
+    }
+
+    function insDetOcInt($datos){
+        foreach($datos as $d){
+            $id = $d['ID']; $prod=trim($d['Articulo']);$desc=trim($d['descr']); $cant=$d['Cantidad']; $part=$d['Renglon']; $upc=trim($d['upc']); 
+            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $id and PARTIDA =$part";
+            $res=$this->EjecutaQuerySimple();
+            if(!ibase_fetch_object($res)){
+                $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PARTIDA, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $id, $part,'$prod', '$desc', $cant, 0, '', '', 0, 0, 1, '', '','$upc','','', 1) returning ID_ORDD";
+                $res=$this->grabaBD();
+                $res=ibase_fetch_object($res);
+                $res=$res->ID_ORDD;
+            }
+        }
+        return;
     }
 
     function datOrden($id_o){

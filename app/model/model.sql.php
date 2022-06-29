@@ -28,12 +28,17 @@ class intelisis extends sqlbase {
 				$cant = $col['CANT'];
 				$fecha = $col['FECHA'];
 				$suc = $col['SUCURSAL'];
-				$alm = 'ALM ML';
+				$cadena = trim($col['cadena']);
+				$alm = ($cadena=='WM')? 'ALM WM':'ALM ML';
+				$mov = ($cadena=='WM')? 'Pedido Web':'Pedido Contado';
+				//$alm = 'ALM ML';
 				$rfc = $col['RFC'];
 				$nombre = $col['NOMBRE'];
 				$movID = $col['movID'];
 				$mp = $col['mp'];
 				$tv = $col['tv'];
+				$lista = $col['lista'];
+
 
 				$this->query="SELECT TOP 1 * FROM dbo.CTE WHERE cliente = '$cliente' or rfc = '$rfc'";
 				$res = $this->EjecutaQuerySimple();
@@ -52,13 +57,13 @@ class intelisis extends sqlbase {
 							$part =1;
 						}
 						if($part==1){
-							$this->query="INSERT INTO Venta (EMPRESA, MOV, FECHAEMISION, Moneda, TipoCambio, Usuario, Estatus, Cliente, Almacen, enviarA, FormaPagoTipo, comentarios, ORDENCOMPRA, Agente, Atencion, MovID, Observaciones, Referencia, ListaPreciosEsp) VALUES ('MIZCO', 'Pedido Contado', '$fecha', 'Pesos', '1', 'ECOMMERCE', 'SINAFECTAR', '$cliente', '$alm', $suc, '$mp', '$obs', 'ML'+ '$movID', '02', iif( (SELECT top 1 departamento FROM DESACondicionesxDepto WHERE CLIENTE = '$cliente') is null, 'General', (SELECT top 1 DEPARTAMENTO FROM DESACondicionesxDepto WHERE CLIENTE = '$cliente')), '$oc', '$obs', '$tv', 'MERC LIBRE')";
+							$this->query="INSERT INTO Venta (EMPRESA, MOV, FECHAEMISION, Moneda, TipoCambio, Usuario, Estatus, Cliente, Almacen, enviarA, FormaPagoTipo, comentarios, ORDENCOMPRA, Agente, Atencion, MovID, Observaciones, Referencia, ListaPreciosEsp) VALUES ('MIZCO', '$mov', '$fecha', 'Pesos', '1', 'ECOMMERCE', 'SINAFECTAR', '$cliente', '$alm', $suc, '$mp', '$obs', '$cadena'+ '$movID', '02', iif( (SELECT top 1 departamento FROM DESACondicionesxDepto WHERE CLIENTE = '$cliente') is null, 'General', (SELECT top 1 DEPARTAMENTO FROM DESACondicionesxDepto WHERE CLIENTE = '$cliente')), '$oc', '$obs', '$tv', '$lista')";
 							$this->grabaBD();
 							$docs++;
 						}
 						$id = $id * $part;
 						$this->query="INSERT INTO VENTAD (ID, Renglon, Almacen, Cantidad, Articulo, Precio, Impuesto1, Unidad, DescripcionExtra, renglonID, CantidadInventario, OrdenCompra )
-									VALUES ((SELECT MAX(ID) FROM VENTA), $id, 'AL PT', $cant, '$art', $precio, 16, 'PIEZA', 'ML'+'$movID', 0, $cant, '$movID')";
+									VALUES ((SELECT MAX(ID) FROM VENTA), $id, '$alm', $cant, '$art', $precio, 16, 'PIEZA', '$cadena'+'$movID', 0, $cant, '$movID')";
 						$this->grabaBD();
 						$ocBase= $oc;
 					}else{
@@ -112,7 +117,7 @@ class intelisis extends sqlbase {
 	function lee_xls($file){
 		$data= array();
 		$usuario = $_SESSION['user']->NOMBRE;
-
+		$lista = '';
 		$inputFileType=PHPExcel_IOFactory::identify($file);
         $objReader=PHPExcel_IOFactory::createReader($inputFileType);
         $objPHPExcel=$objReader->load($file);
@@ -141,20 +146,22 @@ class intelisis extends sqlbase {
 	            $K = $sheet->getCell(++$col.$row)->getValue();//MovID
 	            $L = $sheet->getCell(++$col.$row)->getValue();//Metodo de Pago
 	            $M = $sheet->getCell(++$col.$row)->getValue();//Tipo de Venta Full o Mizco
+	            $N = $sheet->getCell(++$col.$row)->getValue();//Cadena
 	            $L = $this->metodos($L);
 	            $this->query="SELECT TOP 1 * FROM dbo.CTE WHERE cliente = '$B' or rfc = '$I'";
 				$res = $this->EjecutaQuerySimple();
 				$rowC = sqlsrv_fetch_array($res);
+				$lista = $N=='ML'? 'MERC LIBRE':'WALMART.COM';
 				if(empty($rowC)){
-					$this->insertaCliente($J, $I, $U='',$L, $lista='MERC LIBRE');
+					$this->insertaCliente($J, $I, $U='',$L, $lista);
 				}
 				
 	            if(strpos(($A.$B.$C.$D.$E.$F.$G.$H.$I),"|")){
 	            	$errors .= $row.',';
 	            	$te++;
 	            }else{
-	            	$info[] = $A.'|'.$B.'|'.$C.'|'.$D.'|'.$E.'|'.$F.'|'.$G.'|'.$H.'|'.$I.'|'.$J.'|'.$K;
-            		$info1[] = array("FECHA"=>$A,"CLIENTE"=>$B, "SUCURSAL"=>$C, "OC"=>$D, "ART"=>$E, "CANT"=>$F,"PRECIO"=>$G, "OBS"=>$H, "RFC"=>$I, "NOMBRE"=>$J, "movID"=>$K, "mp"=>$L, "tv"=>$M, "linea"=>$row);
+	            	$info[] = $A.'|'.$B.'|'.$C.'|'.$D.'|'.$E.'|'.$F.'|'.$G.'|'.$H.'|'.$I.'|'.$J.'|'.$K.'|'.$N;
+            		$info1[] = array("FECHA"=>$A,"CLIENTE"=>$B, "SUCURSAL"=>$C, "OC"=>$D, "ART"=>$E, "CANT"=>$F,"PRECIO"=>$G, "OBS"=>$H, "RFC"=>$I, "NOMBRE"=>$J, "movID"=>$K, "mp"=>$L, "tv"=>$M, "linea"=>$row, "cadena"=>$N, "lista"=>$lista);
 	            }
         }
         return array("status"=>'ok', "info"=>$info1, "errors"=>$errors, "te"=>$te);
@@ -192,8 +199,8 @@ class intelisis extends sqlbase {
 	    	## Consulta el producto
     		if($inf->PRODUCTO == ''){
 	    		$iden = strlen($inf->NO_IDEN)==14? substr($inf->NO_IDEN, 2):$inf->ID_IDEN;
-	    		//$this->query="SELECT top 1 * from listaPreciosD where DESACodigoBarras like '%$iden%' and lista = 'WALMART.COM'";
-	    		$this->query="SELECT top 1 * from listaPreciosD where DESACodigoBarras ='$iden' and lista = 'WALMART.COM'";
+	    		$this->query="SELECT * from listaPreciosD where DESACodigoBarras like '%$iden%' and lista = 'WALMART.COM'";
+	    		//$this->query="SELECT top 1 * from listaPreciosD where DESACodigoBarras ='$iden' and lista = 'WALMART.COM'";
 	    		$res=$this->EjecutaQuerySimple();
 	    		$row = sqlsrv_fetch_array($res);
 	    		if($row){
@@ -375,5 +382,38 @@ class intelisis extends sqlbase {
 		//die();
 	}
 
+	function documentos($op0, $op1, $ini, $fin){
+		$data = array(); $hoy=date("d.m.Y");
+		$ini = empty($ini)?  date("d.m.Y", strtotime($hoy."- 1 days")):date("d.m.Y", strtotime($ini));
+		$fin = empty($fin)?  date("d.m.Y"):date("d.m.Y", strtotime($fin));
+		if($op0 == '0'){
+			$this->query="SELECT mov, count(*) as cant FROM VENTA  where fechaemision between '$ini' and '$fin' GROUP BY MOV";
+		}else{
+			$this->query="SELECT (SELECT c.NOMBRE FROM cte c where c.cliente = v.cliente) as nombre,  v.* FROM VENTA v WHERE 
+						v.FECHAEMISION between '$ini' and '$fin' 
+						and v.estatus !='CANCELADO' 
+						and v.mov = '$op1'";	
+		}
+		$res=$this->Ejecutaquerysimple();	
+			while($tsarray=sqlsrv_fetch_array($res)){
+				$data[]=$tsarray;
+			}
+		echo "<br/><b>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Se muestra información del ".$ini.' al '.$fin.'</b>';
+		return $data;
+	}
 
+	function detDoc($doc){
+		$data=array();
+		$this->query="SELECT (SELECT a.DESCRIPCION1 FROM art a where a.Articulo = d.Articulo) as descr, 
+							(SELECT l.DESACodigoBarras from ListaPreciosD l where lista = v.ListaPreciosEsp and d.Articulo = l.articulo) as upc , 
+							d.* 
+							FROM VENTAD d
+								LEFT JOIN VENTA v on v.id = d.id 
+							WHERE d.ID = $doc";
+		$res=$this->Ejecutaquerysimple();
+		while($tsArray=sqlsrv_fetch_array($res)){
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
 }

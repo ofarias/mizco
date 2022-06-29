@@ -106,4 +106,5 @@ class sql_controller {
         echo '<br/> '.$docf.''.$docp.'<br/>';
         $info= $data->detalleDoc($docp, $docf);
     }
+
 }

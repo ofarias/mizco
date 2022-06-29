@@ -1221,12 +1221,33 @@ class wms_controller {
         if($_SESSION['user']){
             $param = $op;
             $data = new wms;
+            $data_i = new intelisis;
             $pagina = $this->load_template('Reportes');
             $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenes.php');
             ob_start();
-            $status=array("Todas"=>"0","Nuevas"=>"1", "Liberadas"=>"2", "Asignadas"=>"3", "Surtidas"=>"5", "Reemplazos"=>"8", "Eliminadas"=>"9");
+            $opc = explode(":", $op);
+            if(count($opc)> 1){
+                if($opc[3] != '0'){
+                    $op1=$opc[3]; $op0=1;
+                    $info=$data_i->documentos(1, $opc[3] , $opc[1], $opc[2]);
+                    $ins= $data->insOrdenes($info);
+                }else{
+                    $op0= 0;
+                }
+            }else{$op0=0;}
+            $docs = $data_i->documentos(0, '', '', '');
+            if($op0 == 0){
+                $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenesInt.php');
+                ob_start();
+                include 'app/views/pages/almacenes/p.monitorOrdenesInt.php';
+                $table = ob_get_clean();
+                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+                $this->view_page($pagina); 
+                die;
+            }
+            
             $ordenes = $data->ordenes($op = ' and id_status != 9', $param);
-            $a = $data->actualizaCodigo();
+            //$a = $data->actualizaCodigo();
             $correos= $data->correos2('A', 't');
             $opcion= $data->correos2('O', 'o');
             include 'app/views/pages/almacenes/p.monitorOrdenes.php';
@@ -1900,6 +1921,14 @@ class wms_controller {
         $data = new wms;
         $res = $data->desc($id);
         return $res;
+    }
+
+    function detOcInt($doc){
+        $data_i = new intelisis;
+        $data = new wms;
+        $datos = $data_i->detDoc($doc);
+        $inserta = $data->insDetOcInt($datos);
+        return $inserta;
     }
 }
 ?>

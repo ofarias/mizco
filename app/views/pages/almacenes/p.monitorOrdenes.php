@@ -30,8 +30,8 @@
                     <?php }?>
                     <br/>
                 <p>Ver: <select class="status">
-                    <?php foreach ($status as $k => $val){?>
-                        <option value="<?php echo $val?>"><?php echo $k?></option>
+                    <?php foreach ($docs as $k){?>
+                        <option value="<?php echo $k['mov']?>"><?php echo $k['mov'].'('.$k['cant'].')'?></option>
                     <?php } ?>
                 </select>
                 Fecha inicial:&nbsp;&nbsp;<input type="date" class="ini" value="<?php echo date('d/m/Y')?>" > Fecha Final:&nbsp;&nbsp;<input type="date" class="fin" value="<?php echo date('d/m/Y')?>" >&nbsp;&nbsp;<button class="btn-sm btn-info filtro">Ir</button>
@@ -54,7 +54,7 @@
                                             <th> Cedis </th>
                                             <th> Productos </th>
                                             <th> Piezas </th>
-                                            <th> Estado </th>
+                                            <th> Estado <br/> <font color="blue">Intelisis</font></th>
                                             <th> Fecha Asigna <br/> <font color="brown">Final</font></th>
                                             <th> Fecha Almacen <br/><font color="green">Final</font></th>
                                             <th> Usuario </th>
@@ -77,6 +77,7 @@
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?> id="lin_<?php echo $ln?>">
                                             <th><input type="checkbox" name="sel" value="<?php echo $ord->ARCHIVO?>" ids="<?php echo $ord->ID_ORD?>"></th>
+                                            <input type="hidden" name="" class="orden" ord="<?php echo $ord->ID_ORD?>">
                                             <td><?php echo $ord->CLIENTE?><br/>
                                                 <?php if($ord->LOGS > 0 or $ord->LOGS_DET > 0){?>
                                                     <label title="Tiene los siguientes movimientos" class="logs" ido="<?php echo $ord->ID_ORD?>">Movimientos </label> 
@@ -88,7 +89,7 @@
                                             <td><?php echo $ord->CEDIS?></td>
                                             <td align="right"><?php echo $ord->PRODUCTOS?></td>
                                             <td align="right"><?php echo number_format($ord->PIEZAS,0)?></td>
-                                            <td><?php echo $ord->STATUS?></td>
+                                            <td><?php echo $ord->STATUS?> <br/> <font color="blue"><?php echo $ord->STA_INT?></font></td>
                                             
                                             <td><?php echo $ord->FECHA_ASIGNA?>
                                             <br/><font color="brown"><?php echo $ord->FECHA_ASIGNA_F?></font></td>
@@ -138,6 +139,25 @@
 <script type="text/javascript">
 
     var pred = <?php echo count($correos)?>;
+
+    $("document").ready(function(){
+        $(".orden").each(function (){
+            var doc = $(this).attr('ord')
+            //alert('Busca el detalle del documento' + doc )
+            $.ajax({
+                url:'index.wms.php',
+                type:'post',
+                dataType:'json',
+                data:{detOcInt:doc},
+                success:function(data){
+
+                }, 
+                error:function(){
+
+                }
+            })
+        })
+    })
 
     $(".correos").click(function(){
                 var datos=[];
