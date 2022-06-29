@@ -61,7 +61,7 @@ class wms_controller {
             }elseif (substr($opc, 0,6)=='detCom'){
                 $this->wms_detComp($op=substr($opc,7));die();
             }elseif (substr($opc, 0,6)=='detMov'){
-                $this->wms_detMov($op=substr($opc, 7));die();
+                $this->wms_detMov($op=substr($opc, 7), $t=$opc);die();
             }elseif(substr($opc, 0,1) =='r'){
                 $this->wms_report($opc='', $param='');
             }elseif (substr($opc,0,1)=='o'){
@@ -359,13 +359,14 @@ class wms_controller {
         }
     }
 
-    function wms_detMov($op){
+    function wms_detMov($op, $t){
         if (isset($_SESSION['user'])) {
             $data = new wms;
             $pagina = $this->load_templateL('Detalle del componente');
             $html = $this->load_page('app/views/pages/almacenes/p.detMov.php');
             ob_start();
-            $info = $data->detalleMov($op);
+            $t = explode(":",$op);
+            $info = $data->detalleMov($op=$t[0],$t = $t[1]);
             //$det = $data->detMov($opc);
             include 'app/views/pages/almacenes/p.detMov.php';
             $table = ob_get_clean();

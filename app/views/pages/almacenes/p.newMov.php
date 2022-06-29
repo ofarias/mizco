@@ -29,7 +29,7 @@
                                         <option value="none">Seleccione un tipo</option>
                                         <option value="e">Entrada</option>
                                         <option value="s">Salida</option>
-                                        <option value="r">Reacomodo</option>
+                                        <!--<option value="r">Reacomodo</option>-->
                                         <option value="d">Entrada Devolucion</option>
                                         <option value="m">Merma</option>
                                         <option value="t">Traspaso entre Almacenes</option>
@@ -102,7 +102,7 @@
                                         <tr>
                                             <th> Codigo de Barras</th>
                                             <th> Producto </th>
-                                            <th> Unidad </th>
+                                            <!--<th> Unidad </th>-->
                                             <th> Cantidad </th>
                                             <!--<th> Color </th>-->
                                             <th> Total Piezas </th>
@@ -125,13 +125,17 @@
                                             </select>
                                         -->
                                         </td>
-                                            <td><select class="uni total">
+                                        <input type="hidden" class="uni total" value="4" fact="1">
+                                        <!--
+                                        <td><select class="uni total">
                                                 <option>Unidades de Entrada</option>    
                                                 <?php foreach($uniE as $u):?>
                                                     <option value="<?php echo $u->ID_UNI?>" fact="<?php echo $u->FACTOR?>"><?php echo $u->FACTOR.'--'.$u->DESC.' -> Factor x '.$u->FACTOR.' En Palet caben: '.$u->PZS_PALET?></option>
                                                 <?php endforeach;?>
                                             </select> <a class= "newUE">+</a> 
                                         </td>
+                                        -->
+
                                             <td><input class="cant total" type="number" min="1" max="100"></td>
                                             <!--<td>
                                                 <select class="col">
@@ -354,6 +358,10 @@
         var col = ''//$(".col").val();
         var pza = document.getElementById("totPzas").innerHTML;
         var cat = $("#catProd").val();
+        if(compS == 'none'){
+            alert('Debe de colocar los datos del Almacen, Linea y Tarima, favor de revisar...')
+            return
+        }
         $.ajax({
             url:'index.wms.php',
             type:'post',
@@ -386,7 +394,8 @@
 
     function actualiza(){
         var cant = $(".cant").val();
-        var fact = $(".uni option:selected").attr('fact')
+        //var fact = $(".uni option:selected").attr('fact')
+        var fact =   $(".uni").attr('fact')
         var totPzas = '';
         if($.isNumeric(fact) && $.isNumeric(cant)){
             totPzas = cant * fact    

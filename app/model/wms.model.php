@@ -537,8 +537,11 @@ class wms extends database {
                                  PIEZAS,
                                  LINEA ||'-'|| TARIMA AS COMPONENTE
                           FROM FTC_ALMACEN_MOV_SALIDA $p order by id_ms desc";
-            echo 'Movimientos de salida: '.$this->query;
+            //echo 'Movimientos de salida: '.$this->query;
             $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)) {
+                $data[]=$tsArray;
+            }
         }else{
             $this->query="  SELECT first 50 
                                 mov, 
@@ -555,14 +558,36 @@ class wms extends database {
                                 cast( list(DISTINCT prod) as varchar (3000)) as prod, 
                                 (SELECT MAX(ETIQUETA) FROM FTC_ALMACEN_COMPONENTES AC WHERE AC.ID_COMP = max(AM.ID_compp) ) as componente 
                             FROM FTC_ALMACEN_MOVIMIENTO AM $op $p  group by mov order by mov desc";
-            echo 'Consulta de movimientos con filtro: '.$this->query;
-
-            $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA ";
-
-        }
-        $res=$this->EjecutaQuerySimple();
-        while ($tsArray=ibase_fetch_object($res)) {
-            $data[]=$tsArray;
+            //echo 'Consulta de movimientos con filtro: '.$this->query;
+            $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)) {
+                $data[]=$tsArray;
+            }
+            $this->query="SELECT first 50
+                            FOLIO AS MOV,
+                            IIF(max(ID_ORDD) IS NULL, 'Directa', 'Intelisis') as SIST_ORIGEN,
+                            (select max(NOMBRE) from FTC_ALMACEN a where A.ID = max(AM.ID_ALMACEN)) as ALMACEN,
+                             'Salida' as TIPO,
+                             max(FECHA) as FECHA,
+                             case max(STATUS)
+                                when 'F' then 'Finalizado'
+                                when 'C' then 'Cancelado'
+                                when 'P' then 'Pendiente'
+                                end as STATUS,
+                             '' as HORA_I,
+                             '' as HORA_F,
+                             sum(CANT) as CANT,
+                             sum(PIEZAS) as PIEZAS,
+                             max(USUARIO) as USUARIO,
+                             cast(list(distinct PROD) as varchar(3000)) as PROD,
+                            (select max(ETIQUETA) from FTC_ALMACEN_COMPONENTES AC where AC.ID_COMP = max(AM.ID_COMPP)) as COMPONENTE
+                        FROM FTC_ALMACEN_MOV_SALIDA AM $op $p
+                        group by FOLIO
+                        order by FOLIO desc";
+            $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)) {
+                $data[]=$tsArray;
+            }
         }
         //print_r($data);
         return $data;
@@ -609,14 +634,14 @@ class wms extends database {
     }
 
     function canMov($mov, $mot, $t){
-        $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = upper('$t'), piezas=0, cant=0 WHERE MOV = $mov and (select sum(salidas) from ftc_almacen_mov_det where mov = $mov) = 0";
+        $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = upper('$t'), piezas=0, cant=0 WHERE MOV = $mov and coalesce ((select sum(salidas) from ftc_almacen_mov_det where mov = $mov),0) = 0";
         $this->queryActualiza();
         $this->actStatus($tabla=4, $tipo='Eliminar', $sub='Movimiento', $ids=$mov, $obs=$mot);
         return array("msg"=>'Se ha cancelado el movimiento');
     }
 
     function cpLin($base, $cs){
-        $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, COLOR) SELECT NULL, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, current_timestamp, STATUS, USUARIO_ATT, current_time, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, '$cs', COLOR FROM FTC_ALMACEN_MOV WHERE ID_AM = $base and status='P' RETURNING ID_AM, MOV";
+        $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, COLOR, CATEGORIA) SELECT NULL, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, current_timestamp, STATUS, USUARIO_ATT, current_time, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, '$cs', COLOR, CATEGORIA FROM FTC_ALMACEN_MOV WHERE ID_AM = $base and status='P' RETURNING ID_AM, MOV";
         $res=$this->grabaBD();
         $res=ibase_fetch_object($res);
         if($res->ID_AM >0){
@@ -654,9 +679,10 @@ class wms extends database {
         return $data;
     }
 
-    function detalleMov($op){
-        $data=array();
-        $this->query="SELECT * FROM FTC_ALMACEN_MOVIMIENTO WHERE MOV= $op order by id_AM";
+    function detalleMov($op, $t){
+        $data=array(); 
+        $tabla = ($t == 'Salida')? 'FTC_ALMACEN_MOV_SALIDA':'FTC_ALMACEN_MOVIMIENTO';
+        $this->query="SELECT * FROM $tabla WHERE MOV= $op order by id_AM";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;

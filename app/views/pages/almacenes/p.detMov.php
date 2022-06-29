@@ -31,7 +31,6 @@
                                 <th>Cantidad</th>
                                 <th>Unidad</th>
                                 <th>Piezas</th>
-                                <th>Color</th>
                                 <th><font color="blue">Linea</font> /<font color="green"> Tarima</font> </th>
                                 
                             </tr>
@@ -60,7 +59,6 @@
                                 <td><?php echo $mov->CANT?></td>
                                 <td><?php echo $mov->UNIDAD?></td>
                                 <td><?php echo $mov->PIEZAS?></td>
-                                <td><?php echo $mov->COLOR?></td>
                                 <td><font color="blue"><?php echo $mov->COMPP?></font>
                                     <br/><font color="green"><?php echo $mov->SECUNDARIO?></font>
                                 </td>
