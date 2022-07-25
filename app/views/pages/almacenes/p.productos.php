@@ -157,7 +157,15 @@
     $(".posicion").click(function(){
         var prod = $(this).attr('prod')
         var nombre = $(this).attr('nom')
+        var almacenes = ''
+        var lineas = ''
+        var tarimas = ''
+        var cantidades = ''
+        var categorias = ''
+        var comps = ''
+        var movs  = ''
         var info = "El producto <b>"+ nombre +"</b> se encuenta en: <br/><br/>"
+        info += 'Ubicacion Actual:       Nueva Ubicacion <br/><br/>'
         $.ajax({
             url:'index.wms.php',
             type:'post',
@@ -169,13 +177,103 @@
                         if(k == 'LINEA'){var lin = val}
                         if(k == 'TARIMA'){var tar = val}
                         if(k == 'DISPONIBLE'){var disp = val}
+                        if(k == 'ID_COMPS'){ var idComps = val}
+                        if(k == 'CATEGORIA'){ var cat = val}
+                        if(k == 'ID_AM'){ var mov = val}
+                        if(k == 'ALMACEN'){var almacen = val}
                     }
                     if (parseFloat(disp) > 0){
-                        info += lin + ':' + tar + ', piezas: '+ disp + '  |  ' + '<input type="text" size="10" placeholder="Almacen">  '+ '<br/>'
+                        info += 'Almacen: <b>'+ almacen +'</b> : <b>' +lin + '</b> : <b><input type="hidden" value="'+idComps+'" class="comps"> <input type="hidden" value="'+mov+'" class="idmovs"> ' + tar + '</b>, piezas: <b><input type="hidden" value="'+disp+'" class= "disps" >'+ disp + '</b> Cat: <b>' + cat + '</b>  |  ' + 
+                        '<select class="alm">  '+
+                            '<option value="0">Almacen</option>'+
+                            '<option value="1">Almacen 1</option>'+
+                            '<option value="2">Almacen 2</option>'+
+                        '</select>' +
+                        ' | ' + '<input type="text" size="7" placeholder="Linea" class="lin">' +
+                        ' | ' + '<input type="text" size="7" placeholder="Tarima" class="tar">' +
+                        ' | ' + '<select class="cat">' +
+                                    '<option value="0"> Categoria</option>'+
+                                    '<option value="1"> Primera </option>'+
+                                    '<option value="2"> Segunda </option>'+
+                                    '<option value="3"> Tercera </option>'+
+                                '</select>'+
+                        ' | ' + '<input type="text" size="7" placeholder="Cantidad" class="cant">' +
+                        '<br/>'
                     }
                 }
                 if(data.status='ok'){
-                    $.alert(info + "<br/><div><input type='hidden' value='test' class='btn-sm btn-success imprimir'></div>")
+                    $.confirm({
+                        columnClass: 'col-md-12',
+                        title:'Cambio de ubicacion',
+                        content: '' + 
+                            '<form action="index.wms.php" type="post" name="reubicaCant" class="formName">'+
+                            '<div class="form-group">'+
+                            '<label> Reubicacion del producto </label> <br/>'+
+                            info +
+                            '</div>' +
+                            '</form>'
+                        ,
+                        buttons:{
+                            formSubmit:{
+                                text:'Mover',
+                                btnClass:'btn-green',
+                                keys:['enter'],
+                                action:function(){
+                                    $(".alm").each(function(){
+                                        almacenes += '|' + $(this).val()
+                                    })
+                                    $(".lin").each(function(){
+                                        lineas += '|' + $(this).val()
+                                    })
+                                    $(".tar").each(function(){
+                                        tarimas += '|' + $(this).val()
+                                    })
+                                    $(".cat").each(function(){
+                                        categorias += '|' + $(this).val()
+                                    })
+                                    $(".cant").each(function(){
+                                        cantidades += '|' + $(this).val()
+                                    })
+                                    $(".comps").each(function(){
+                                        comps += '|' + $(this).val()
+                                    })
+                                    $(".idmovs").each(function(){
+                                        movs += '|' + $(this).val()
+                                    })
+                                    //$.alert('Valor de los almacenes: ' + almacenes + '<br/> Lineas ' + lineas  + '<br/> Tarimas ' + tarimas  + '<br/> Categorias ' + categorias  + '<br/> Cantidades ' + cantidades + '<br/> Id producto: ' + prod + '<br/> Comps: ' + comps )
+                                    var datos = [almacenes, lineas, tarimas, categorias, cantidades, comps, movs, prod]
+                                    $.ajax({
+                                        url:'index.wms.php',
+                                        type:'post',
+                                        dataType:'json',
+                                        data:{reubPza:datos},
+                                        success:function(data){
+                                            if(data.status=='ok'){
+                                                $.alert(data.mensaje)
+                                            }
+                                        }, 
+                                        error:function(){
+                                        }
+                                    })
+                                }
+                            },
+                            Cerrar:{
+                                text:'Cerrar',
+                                btnClass:'btn-red',
+                                keys:['esc'],
+                                action:function(){
+                                    return
+                                }
+                            }
+                        }/*,
+                        onContentReady:function(){
+                            var jc = this;
+                            this.content.find('form').on('submit', function(e){
+                                e.preventDefault();
+                                jc.$$formSubmit.trigger('click');
+                            });
+                        }*/
+                    });
                 }
             },
             error:function(error){

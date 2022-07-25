@@ -1961,7 +1961,7 @@ class wms_controller {
                 ->setCellValue(++$col.$ln, $ent->MOV)
                 ->setCellValue(++$col.$ln, $ent->TIPO)
                 ->setCellValue(++$col.$ln, $ent->ALMACEN)
-                ->setCellValue(++$col.$ln, '')
+                ->setCellValue(++$col.$ln, $ent->COLOR)
                 ->setCellValue(++$col.$ln, $ent->INTELISIS)
                 ->setCellValue(++$col.$ln, $ent->PROD)
                 ->setCellValue(++$col.$ln, $ent->FECHA_INGRESO)
@@ -1998,6 +1998,7 @@ class wms_controller {
                 ->setCellValue(++$col.$ln, $sal->PIEZAS * -1)
                 ->setCellValue(++$col.$ln, 'Pieza')
                 ->setCellValue(++$col.$ln, $sal->PIEZAS *-1 )
+                ->setCellValue(++$col.$ln, '')
                 ->setCellValue(++$col.$ln, $sal->LINEA)
                 ->setCellValue(++$col.$ln, $sal->TARIMA)
                 ->setCellValue(++$col.$ln, $sal->CLIENTE)
@@ -2114,6 +2115,12 @@ class wms_controller {
     function pres($info){
         $data = new wms;
         $res = $data->pres($info);
+        return $res;
+    }
+
+    function reubPza($datos){
+        $data = new wms;
+        $res = $data->reubPza($datos);
         return $res;
     }
 }

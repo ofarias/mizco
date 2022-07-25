@@ -2506,7 +2506,7 @@ class wms extends database {
             $param2 = " WHERE ID_ORD = $ord ";
             /// cambiamos el status de la orden a Asignado. 
             $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 3, FECHA_ASIGNA_F = current_timestamp  WHERE STATUS = 1 AND ID_ORD = $ord";
-            echo $this->query;
+            //echo $this->query;
             $this->queryActualiza();
             $tabla = 1; $tipo='Orden';
         }elseif($t=='l'){
@@ -3263,8 +3263,59 @@ class wms extends database {
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
         }
-
         return $data;
+    }
+
+    function reubPza($datos){
+        //print_r($datos);
+        $usuario=$_SESSION['user']->ID;
+        $destino=array();
+        $almacenes= explode("|",substr($datos[0],1));
+        $lineas= explode("|",substr($datos[1],1));
+        $tarimas= explode("|",substr($datos[2],1));
+        $categorias= explode("|",substr($datos[3],1));
+        $piezas= explode("|",substr($datos[4],1));
+        $comps = explode("|",substr($datos[5],1));
+        $movs = explode("|",substr($datos[6],1));
+        $prod = $datos[7];
+        for ($i=0; $i < count($almacenes) ; $i++) { 
+            $origen=$comps[$i];
+            $almacen=$almacenes[$i]; $linea=$lineas[$i];  $tarima=$tarimas[$i]; $cant=$piezas[$i]; $categoria=$categorias[$i];$idmov=$movs[$i];
+            if(!empty($almacen) and !empty($linea) and !empty($tarima) and !empty($categoria)){   
+                /// revisar si el destino es valido.
+                $this->query = "SELECT * FROM FTC_ALMACEN_COMPS WHERE COMPP =(SELECT ID_COMP FROM FTC_ALMACEN_COMP c WHERE ALMACEN = $almacen and ETIQUETA = 'LINEA $linea' and status = 1 and compp is null) and replace(ETI, ' ', '') = 'T$tarima' ";
+                //echo $this->query;
+                $res=$this->EjecutaQuerySimple();
+                while($tsArray=ibase_fetch_object($res)){
+                    $destino[]=$tsArray;
+                }
+                if(count($destino) ==1){
+                    /// Valida cantidad
+                    $this->query="SELECT DISPONIBLE FROM FTC_ALMACEN_MOV_DET WHERE ID_AM = $idmov";
+                    $result=$this->EjecutaQuerySimple();
+                    $disp = ibase_fetch_object($result)->DISPONIBLE;
+                    if(($disp-$cant) >= 0){
+                        foreach ($destino as $k) {
+                            // hacemos la salida y la entrada, con la misma fecha, el movimiento de salida es una reubicacion del producto por la cantidad seleccionada.
+                            $idcomps = $k->ID_COMP;  $idcompp=$k->COMPP;
+                            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP, SERIE, FOLIO, ID_PROD, CATEGORIA) VALUES (null, (SELECT COMPS FROM FTC_ALMACEN_MOV WHERE ID_AM = $idmov), 0, null, $usuario, current_timestamp, 'F', $idmov, $cant, 1, (SELECT COMPP FROM FTC_ALMACEN_MOV WHERE ID_AM = $idmov), 'R', (SELECT coalesce(MAX(FOLIO), 0) + 1 FROM FTC_ALMACEN_MOV_SAL WHERE SERIE = 'R'), $prod, (SELECT CATEGORIA FROM FTC_ALMACEN_MOV WHERE ID_AM = $idmov) ) RETURNING FOLIO";
+                            //echo '<br/> Salida: '.$this->query;
+                            $res=$this->grabaBD();
+                            $folio = ibase_fetch_object($res)->FOLIO;
+                            $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, COLOR, CATEGORIA) VALUES (null, 'Reubicar', $almacen, 'e', $usuario, (select fecha from FTC_ALMACEN_MOV where id_am = $idmov), 'F', null, current_timestamp, current_timestamp, $cant, $prod, 4, $cant, (SELECT COALESCE(MAX(MOV),0 ) + 1 FROM FTC_ALMACEN_MOV), $idcompp, $idcomps, 'R-$folio', $categoria)";
+                            $this->grabaBD();
+                            //echo '<br/> Entrada: '.$this->query;
+                        }
+                    }else{
+                        echo 'La cantidad a reubicar es mayor que la dispobible, favor de revisar';
+                    }
+                }else{
+                    echo 'No se encontro el componente destino o se encontro mas de uno con los criterios de busqueda, favor de revisar la informacion';
+                }
+            }else{
+                echo 'NO se eligio el destino correcto.';
+            }
+        }
     }
 
 }?>

@@ -147,6 +147,7 @@
                                                 searchable: false
                                             }
                                         ],
+                                        "order": [[ 6, "asc"]],
                                         language: {
                                             lengthMenu: "Mostrando _MENU_ por pagina",
                                             zeroRecords: "No hay dato para mostrar",
