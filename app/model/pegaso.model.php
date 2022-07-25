@@ -12631,9 +12631,12 @@ where f.cve_doc = :cve_doc
         $path_o= "c:\\intelisis\\CFDI\\Comprobantes\\".$eje."\\".$per."\\".trim($cliente)."\\";
         $factPDF= $path_o."Factura Electronica ".$factura.'.pdf';
         $factXML= $path_o."Factura Electronica ".$factura.'.XML';
-        
+        //echo '<br/>'.$eje;
+        //echo '<br/>'.$path_o;
+        //echo '<br/>'.$factPDF;
         //$path_d = 'c:\\inetpub\\ftproot\\in\\';
-        $path_d = '\\\\192.168.2.23\\SFTP_Root\\Entregar\\';
+        //$path_d = '\\\\192.168.2.23\\SFTP_Root\\Entregar\\';
+        $path_d = '\\\\MIZCO-APOLLO\\SFTP_Root\\Entregar\\';
         $filePDF = substr($inf->ARCHIVO,0, strlen($inf->ARCHIVO)-4).'_'.$uuid.'.PDF'; 
         copy ($factPDF, $path_d.$filePDF);
         $fileXML = substr($inf->ARCHIVO,0, strlen($inf->ARCHIVO)-4).'_'.$uuid.'.xml'; 

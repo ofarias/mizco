@@ -60,7 +60,7 @@ if (isset($_POST['usuario'])) {
 }elseif (isset($_POST['chgProd'])){
     $res=$controller_wms->chgProd($_POST['p'], $_POST['nP'], $_POST['oc'], $_POST['t']);echo json_encode($res);exit();
 }elseif (isset($_POST['asigCol'])){
-    $res=$controller_wms->asigCol($_POST['nP'], $_POST['ln'], $_POST['col']);echo json_encode($res);exit();
+    $res=$controller_wms->asigCol($_POST['ln'], $_POST['col']);echo json_encode($res);exit();
 }elseif (isset($_POST['finA'])){
     $res=$controller_wms->finA($_POST['p'], $_POST['ord'], $_POST['t']);echo json_encode($res);exit();
 }elseif (isset($_POST['delOc'])){
@@ -115,6 +115,10 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->desc($_POST['desc']);echo json_encode($res);exit();
 }elseif(isset($_POST['detOcInt'])){
     $res=$controller_wms->detOcInt($_POST['detOcInt']);echo json_encode($res);exit();
+}elseif(isset($_POST['sincPres'])){
+    $res=$controller_wms->sincPres($_POST['sincPres']);echo json_encode($res);exit();
+}elseif(isset($_POST['pres'])){
+    $res=$controller_wms->pres($_POST['pres']);echo json_encode($res);exit();
 }
 else{
     switch ($_GET['action']) {

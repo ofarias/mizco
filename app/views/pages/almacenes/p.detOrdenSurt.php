@@ -66,7 +66,9 @@ foreach($orden as $od){
                                        <tr class="odd gradeX color" <?php echo $color?>>
                                             <td><?php echo $ln?></td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
-                                            <td><b><?php echo $ord->PROD?></b>
+
+                                            <td><input type="hidden" value="<?php echo $ord->PROD.'|'.$id_o?>" class="asignado"><b><?php echo $ord->PROD?><br/><p id="<?php echo $ord->PROD.'|'.$id_o?>"></p></b>
+
                                             <br/> <?php if($ord->PROD != $ord->PROD_SKU):?>
                                                 <font color="purple" > <?php echo $ord->PROD_SKU ?></font>
                                                 <?php endif;?>
@@ -81,8 +83,8 @@ foreach($orden as $od){
                                                 <label class="infoComp<?php echo $ln?>"></label>
 
                                             </td>
+                                            <td><?php echo $ord->PZAS/$ord->CAJAS ?>
                                             <td><?php echo $ord->CAJAS?></td>
-                                            <td><?php echo $ord->UNIDAD?></td>
                                             <td align="center">
                                                     <text id="act_<?php echo $ord->ID_ORDD?>">
                                                         <b><?php echo $ord->PZAS_SUR ?></b> / 
@@ -109,6 +111,35 @@ foreach($orden as $od){
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
     var ord = <?php echo $id_o?>;
+
+    $(document).ready(function(){
+        $(".asignado").each(function(){
+            var valor = $(this).val()
+            var label = ''
+            //console.log(valor)
+            $.ajax({
+                url:'index.wms.php',
+                type:'post',
+                dataType:'json', 
+                data:{pres:valor}, 
+                success:function(data){
+                    for (const [key, value] of Object.entries(data.datos)){
+                        for (const [k, val] of Object.entries(value)){
+                            if(k == 'NUEVO'){ var nuevo = val;}
+                            if(k == 'CANT'){ var cantidad = val;}
+                            if(k == 'IDPROD'){ var idProd = val;}
+                        }
+                        label += '<br/> Asignado <a class="posicion" prod="' + idProd + '" nom="'+ idProd +'">' + nuevo + '</a> : ' + cantidad + '<a class="movs" prod="'+nuevo+'"> xls </a>';
+                    }
+                    document.getElementById(valor).innerHTML = label
+                }, 
+                error:function(){
+
+                }
+            })
+        })    
+    })
+    
 
     $(".factor").change(function(){
         var ordd= $(this).attr('ordd')
@@ -258,16 +289,22 @@ foreach($orden as $od){
                 success:function(data){
                     if(data.status== 'ok'){
                         if(data.posiciones.length > 0){
+                            //$.alert('Posiciones del ' + ordd + ' : '+ data.posiciones.length)
                             for(const [key, value] of Object.entries(data.posiciones)){
                                 for(const [k,val] of Object.entries(value)){
                                     if(k=='LINEA'){var s_lin=val}
                                     if(k=='TARIMA'){var s_tar=val}
                                     if (k=='PIEZAS'){ var s_cant=val}    
                                     if (k=='ID_MS'){ var movs=val}    
+                                    if (k == 'CATEGORIA'){ var s_cat = val}
+                                    if (k == 'PRODUCTO'){ var s_prod = val}
+
                                 }
                                 pos.innerHTML+="<b>Lin: </b> " + s_lin
                                 pos.innerHTML+="<b> Tar: </b> " + s_tar
-                                pos.innerHTML+="<b> Pzas: </b> <a class='liberar' id='ms_"+movs+"' npnd='' ln='"+ln+"'><font color='green'>" + s_cant +"</font></a><br/>"
+                                pos.innerHTML+="<b> Pzas: </b> <a class='liberar' id='ms_"+movs+"' npnd='' ln='"+ln+"'><font color='green'>" + s_cant +"</font></a>"
+                                pos.innerHTML+="<b> " + s_prod + "<b/><br/>"
+                                pos.innerHTML+="<b> Cat: </b> " + s_cat + "<br/>"
                             }
                         }
                     }else{
@@ -421,6 +458,55 @@ foreach($orden as $od){
         info.empty()
         info.append('<font color="red">+ / -</font>')
 
+    })
+
+    $("body").on("click", ".posicion", function (e){
+            e.preventDefault();
+            var prod = $(this).attr('prod')
+            var nombre = $(this).attr('nom')
+            var info = "El producto <b>"+ nombre +"</b> se encuenta en: <br/><br/>"
+            //info += "Posicion 1<br/>"
+            //info += "Posicion 2<br/>"
+            $.ajax({
+                url:'index.wms.php',
+                type:'post',
+                dataType:'json',
+                data:{posiciones:prod},
+                success:function(data){
+                    for(const [key, value] of Object.entries(data.datos)){
+                        for(const[k,val] of Object.entries(value)){
+                            if(k == 'LINEA'){var lin = val}
+                            if(k == 'TARIMA'){var tar = val}
+                            if(k == 'DISPONIBLE'){var disp = val}
+                            if(k == 'CATEGORIA'){var cat = val}
+                        }
+                        info += lin + ':' + tar + ', piezas: '+ disp +':' + cat+ '<br/>'
+                    }
+                    if(data.status='ok'){
+                        $.alert(info + "<br/><div><input type='hidden' value='test' class='btn-sm btn-success imprimir'></div>")
+                    }
+                },
+                error:function(error){
+                }
+            })
+    })
+    
+    $("body").on("click", ".movs", function (e){
+         e.preventDefault();
+            var prod = $(this).attr('prod')
+            $.ajax({
+                url:'index.wms.php',
+                type:'post',
+                dataType:'json', 
+                data:{movsProd:prod},
+                success:function(data){
+                    window.open(data.completa, 'download')
+                }, 
+                error:function(){
+                    $.alert('no encontre informacion')
+                }
+            })
+        
     })
     
 </script>

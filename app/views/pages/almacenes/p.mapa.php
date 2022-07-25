@@ -97,8 +97,12 @@
                         if(k == 'CANT'){var cant = val}
                         if(k == 'UNIDAD'){var uni = val}
                         if(k == 'PIEZAS'){var pzas = val}
+                        if(k == 'PIEZAS_SAL'){var pzaSal = val}
+                        if(k == 'SALIDAS'){var salidas = val}
+                        if(k == 'PIEZAS_SURT'){var surtidas = val}
                     }
-                    contenido += cant + ' ' + uni  + ' ' + prod + ', piezas ' + pzas + ' \n'
+                        var totSal = parseFloat(pzaSal)+ parseFloat(surtidas);
+                    contenido += cant + ' ' + uni  + ' ' + prod + 'Salidas: '+ totSal + ', Disponibles: ' + disp + ' \n'
                 }
                 comp.prop('title', contenido)
             },

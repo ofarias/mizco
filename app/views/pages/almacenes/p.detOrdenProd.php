@@ -21,7 +21,7 @@
 
 <div class="row">
     <div class="col-lg-12">
-        <div>Detalles del Archivo: <label><?php echo $cabecera->ARCHIVO?> </label><br/>Para el Cliente: <label><?php echo $cabecera->CLIENTE?></label>  <?php echo !empty($cabecera->ORDEN)? '<br/>Incluye las ordenes:<label>'.$cabecera->ORDEN.'</label>':''?></label></div>
+        <div>Detalles del Documento: <label><?php echo $cabecera->ARCHIVO?> </label><br/>Para el Cliente: <label><?php echo $cabecera->CLIENTE?></label>  <?php echo !empty($cabecera->ORDEN)? '<br/>Incluye las ordenes:<label>'.$cabecera->ORDEN.'</label>':''?></label><br/>Usuario: <label><?php echo $_SESSION['user']->NOMBRE?></label></div>
             <br/>
             <div class="row">
                 <div class="col-lg-12">
@@ -102,12 +102,22 @@
                                                 <br/>
                                                 <a title="Actualizar" class="actProd"  prod="<?php echo htmlspecialchars($ord->PROD)?>" prodn="<?php echo $ord->PROD_SKU?>"><font color="purple" > <?php echo $ord->PROD_SKU ?></font> </a>
                                                 <?php if($ord->PZAS <> $ord->ASIG){?>
+
                                                     <input type="text" id="rem_<?php echo htmlspecialchars($ord->PROD)?>" class="chgProd hidden" placeholder="Remplazar" prod="<?php echo htmlspecialchars($ord->PROD)?>" ln="<?php echo $ln?>">
+                                                    
+                                                    <select class="hidden chgProd" id="pres_<?php echo htmlspecialchars($ord->PROD)?>" prod="<?php echo htmlspecialchars($ord->PROD)?>">
+                                                            <option>Seleccione la presentacion</option>
+                                                    </select>
+                                                    
                                                     <br/>
-                                                    <a title="Reemplazar el producto" class="reemp" p="<?php echo htmlspecialchars($ord->PROD)?>">Remplazar</a>
+                                                    <!--<a title="Reemplazar el producto" class="reemp" p="<?php echo htmlspecialchars($ord->PROD)?>" art="<?php echo htmlspecialchars($ord->PROD)?>" >Remplazar</a>-->
+
                                                 <?php }?>
 
                                             </td>
+
+
+
                                             <td id="det_<?php echo $ln?>"><b><text id="newD_<?php echo htmlspecialchars($ord->PROD)?>"><?php echo $ord->DESCR?></text></b>
                                                 <label class="det" 
                                                     prod="<?php echo htmlspecialchars($ord->PROD)?>" 
@@ -115,6 +125,9 @@
                                                     id="det+_<?php echo $ln?>">+</label>
                                                 <label class="detm hidden" ln="<?php echo $ln?>" id="det-_<?php echo $ln?>">-</label>
                                             </td>
+
+
+
                                             <td align="right" ><b><?php echo number_format($ord->PZAS)?></b>&nbsp;&nbsp;&nbsp;
                                             </td>
                                             <td><?php echo $ord->CEDIS?></td>
@@ -134,6 +147,8 @@
                                                     s="<?php echo $ord->ASIG?>" 
                                                     t="q">
                                                 <?php }?>
+                                                <p id="<?php echo $ord->PROD.'|'.$ord->ID_ORD?>" class="asigProd" asig="<?php echo $ord->ASIG?>"> <?php echo $ord->ID_ORD?></p>
+
                                             </td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
                                             <td>
@@ -173,10 +188,11 @@
                             url:'index.wms.php',
                             type:'post',
                             dataType:'json',
-                            data:{finA:1, ord, t:'1', p}, 
+                            data:{finA:1, ord, t:'l', p}, 
                             success:function(data){
                                 if(data.status == 'ok'){
                                     /// marcar como cerrada y bloquear uso.
+                                    $.alert(data.msg)
                                 }else{
                                     $.alert(data.msg)
                                 }
@@ -240,16 +256,28 @@
             }
         })
     })
+
+    /*
+    $(".chgProd").autocomplete({
+        source: "index.wms.php?producto=1",
+        minLength: 2,
+        select: function(event, ui){
+        }
+    })
+    */
     
     $(".chgProd").change(function(){
-        var a = $(this)
-        var ln = $(this).attr('ln')
-        var nP = $(this).val()
         var p = $(this).attr('prod')
-        nP = nP.split(":")
+        var nP = $(this).val()
+        var descr = $('select[id="pres_'+p+'"] option:selected').text()
+        //var a = $(this)
+        //var ln = $(this).attr('ln')
+        //var nP = $(this).val()
+        //var p = $(this).attr('prod')
+        //nP = nP.split(":")
         $.confirm({
             title: 'Cambio de producto',
-            content: 'Desea Cambiar el producto ' + p+ ' por el producto '+ nP[0] ,
+            content: 'Desea Cambiar el producto ' + p+ ' por el producto '+ nP ,
             buttons:{
                 Si:{
                     text:"Si",
@@ -259,12 +287,12 @@
                             url:'index.wms.php',
                             type:'post',
                             dataType:'json',
-                            data:{chgProd:1, p, nP:nP[0], oc:ord, t:'p'}, 
+                            data:{chgProd:1, p, nP, oc:ord, t:'p'}, 
                             success:function(data){
                                 if(data.status=='ok'){
-                                    document.getElementById('new_'+p).innerHTML=nP[0]
-                                    document.getElementById('newD_'+p).innerHTML=nP[1]
-                                    document.getElementById('det+_'+ln).setAttribute('prod', nP[0])
+                                    document.getElementById('new_'+p).innerHTML=nP
+                                    document.getElementById('newD_'+p).innerHTML=descr
+                                    document.getElementById('det+_'+ln).setAttribute('prod', nP)
                                     a.val('')
                                     a.attr('class', 'chgProd hidden')
                                 }
@@ -288,9 +316,30 @@
 
     $(".reemp").click(function(){
         var p = $(this).attr('p')
-        var ln = document.getElementById("rem_"+p)
-        ln.classList.remove('hidden')
-        ln.focus()        
+        //var ln = document.getElementById("rem_"+p)
+        var lnS = document.getElementById("pres_" + p) // este es el selector
+        //ln.classList.remove('hidden')
+        lnS.classList.remove('hidden')
+        lnS.focus()        
+        var art = $(this).attr('art')
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{sincPres:art},
+            success:function(data){
+                for(const [key, value] of Object.entries(data.datos)){
+                        for (const [k, val] of Object.entries(value)){
+                            if(k == 'presentacion'){var art = val;}
+                            if(k == 'descripcion1'){var descr = val;}
+                        }
+                        $("#pres_"+ p).prepend("<option value='"+ art +"'>"+ art +" - "+descr+"</option>");
+                }
+            },
+            error:function(){
+            }
+        })
+        
     })
 
     $(".asg").click(function(){    
@@ -443,8 +492,8 @@
                             if(k == 'ASIG'){var asigC=val;}
                         }
                         det.innerHTML += '<br/>Cedis '+ nomC +': '+ pzasC +
-                        '&nbsp;&nbsp; <input type="text" placeholder="Cantidad" size="6" class="asgLn" idOC="'+idOC+'" value="'+asigC+'" id="asl'+idOC+'" org="'+asigC+'" >'+
-                        '&nbsp;&nbsp; <a class="chgLin" idOC="'+idOC+'" c="'+pzasC+'" > + </a> '+
+                        '&nbsp;&nbsp; <input type="text" placeholder="Cantidad" size="6" class="asgLn" prod="'+prod+'" idOC="'+idOC+'" value="'+asigC+'" id="asl'+idOC+'" org="'+asigC+'" >'+
+                        '&nbsp;&nbsp; <a class="chgLin" prod="'+prod+'" idOC="'+idOC+'" c="'+pzasC+'" > + </a> '+
                         '<a title="No Surtir" class="ns" idOC="'+idOC+'" prod= "'+prod+'">N.S.</a>'
                     }
                 document.getElementById("det+_"+ln).classList.add('hidden')
@@ -456,12 +505,6 @@
         })
     })
 
-    $(".chgProd").autocomplete({
-        source: "index.wms.php?producto=1",
-        minLength: 2,
-        select: function(event, ui){
-        }
-    })
 
     $("body").on("change",".asgLn", function(e){
             e.preventDefault();
@@ -549,103 +592,165 @@
             
         })  
 
-        $("body").on("click",".chgLin", function(e){
+    $("body").on("click",".chgLin", function(e){
         e.preventDefault();
         var ln =$(this).attr('idOC')
         var c = $(this).attr('c')
+        var p = 0;
+        var art = $(this).attr('prod')
+        var opc = ''
         //var c = $(this).val()
         //var org =$(this).attr('org')
-        $.confirm({
-            columnClass: 'col-md-8',
-            title: 'Titulo',
-            content: 'Desea Cambiar el producto de cedis' + ln + ' por el producto '+
-            '<form action="index.php" class="formName">' +
-            '<div class="form-group">'+
-            '<br/> <label>Producto: </label><input type="text" size="25" class="chgProd2">' +
-            '<br>Si no requiere cambio dejar en blanco.'+
-            '<br/><br/> <label>Asignar Colores a '+c+' piezas: </label>'+
-            '<br/><br/><p class="hidden" id="colAsig">Asignado:  <label id="cntCol"></label></p>'+ 
-            '<br>La Cantidad deber ser la exacta para poder asignar los colores.'+
-            '<br/><br/> <font color="blue">Azul</font>: &nbsp;&nbsp;&nbsp; <input type="text" placeholder="Cantidad" class="colores az" col="azul">'+
-            '<br/><br/> Blanco: <input type="text" placeholder="Cantidad"  class="colores bl" col="blanco">'+
-            '<br/><br/> Negro:&nbsp; <input type="text" placeholder="Cantidad"  class="colores ng" col="negro">'+
-            '<br/><br/> <font color="#FD95FB ">Rosa:</font>&nbsp; <input type="text" placeholder="Cantidad"  class="colores ro" col="rosa">'+
-            '<br/><br/> <font color="red">Rojo</font>:&nbsp;&nbsp;&nbsp; <input type="text" placeholder="Cantidad" class="colores rj" col="rojo">'+
-            '<br/><br/> <font color="gray">Gris</font>:&nbsp;&nbsp;&nbsp;&nbsp; <input type="text" placeholder="Cantidad" class="colores gr" col="gris">'+
-            '<br/><br/> <font color="#009F0E">Verde</font>:&nbsp;&nbsp;&nbsp;&nbsp; <input type="text" placeholder="Cantidad" class="colores vd" col="verde">'+
-            '</form>',
-            buttons: {
-            formSubmit: {
-            text: 'Asignar',
-            btnClass: 'btn-blue',
-            action: function () {
-                    var prodN = this.$content.find('.chgProd2').val();
-                    var az = parseFloat(this.$content.find('.az').val());
-                    var bl = parseFloat(this.$content.find('.bl').val());
-                    var ng = parseFloat(this.$content.find('.ng').val());
-                    var ro = parseFloat(this.$content.find('.ro').val());
-                    var rj = parseFloat(this.$content.find('.rj').val());
-                    var gr = parseFloat(this.$content.find('.gr').val());
-                    var vd = parseFloat(this.$content.find('.vd').val());
-                    if(typeof az === "undefined" || isNaN(az)){az = 0;}
-                    if(typeof bl === "undefined" || isNaN(bl)){bl = 0;}
-                    if(typeof ng === "undefined" || isNaN(ng)){ng = 0;}
-                    if(typeof ro === "undefined" || isNaN(ro)){ro = 0;}
-                    if(typeof rj === "undefined" || isNaN(rj)){rj = 0;}
-                    if(typeof gr === "undefined" || isNaN(gr)){gr = 0;}
-                    if(typeof vd === "undefined" || isNaN(vd)){vd = 0;}
-                    var t = az+bl+ng+ro+rj+gr+vd;
-                    if(t<c){
-                        $.alert('Debe de colocar el total de colores faltan ' + (c-t) + ' piezas por asignar color.');
-                        return false;
-                    }else if(t>c){
-                        $.alert('Se estan asignando mas piezas de las necesarias favor de revisar ' );
-                        return false;
-                    }else{
-                        var col=["az:"+az,"bl:"+bl,"ng:"+ng,"ro:"+ro,"rj:"+rj,"gr:"+gr,"vd:"+vd];
-                        $.ajax({
-                            url:'index.wms.php',
-                            type:'post',
-                            dataType:'json',
-                            data:{asigCol:1, ln, col, nP:prodN},
-                            success:function(data){
-                                //alert(data.msg);
-                                //location.reload(true)
-                                if(data.status =='ok'){
-                                // actualizar el valor de los asignados
-                                // quitar el select 
-                                
-
+            $.ajax({
+                url: 'index.wms.php',
+                type: 'post',
+                dataType: 'json',
+                data:{sincPres:art},
+                success:function(data){
+                    //$.alert('Se obtiene las presentaciones')
+                        p=parseFloat(data.datos.length)
+                        if(p>0){
+                            for(const [key, value] of Object.entries(data.datos)){
+                                for (const [k, val] of Object.entries(value)){
+                                    if(k == 'presentacion'){var pst = val;}
+                                    if(k == 'descripcion1'){var descr = val;}
                                 }
+                                opc += "<br/><br/>" +pst + ': ' + descr + ' :  <input type="text" placeholder="0" size="3" class="cant" value="0" press="' +pst + '">'
                             }
-                        });
-                    }
-                   }
-            },
-            cancelar: function () {
-            },
-        },
-        onContentReady: function () {
-            // bind to events
-            var jc = this;
-            //alert(jc);
-            this.$content.find('form').on('submit', function (e) {
-                // if the user submits the form by pressing enter in the field.
-                e.preventDefault();
-                jc.$$formSubmit.trigger('click'); // reference the button and click it
-            });
-            $(".chgProd2").autocomplete({
-                source: "index.wms.php?producto=1",
-                minLength: 2,
-                select: function(event, ui){
+                            presentaciones(ln, c, art, data.datos, opc)
+                        }else{
+                            $.alert("NO hay presentaciones del producto")        
+                        }
+                },
+                error:function(){
+                    $.alert("NO hay presentaciones del producto")
                 }
             })
-        }
-        });
         })
-
-
     })
 
+    function presentaciones(ln, c, prod, datos, opc){
+        //$.alert(opc)
+        var total = 0 
+        var dist = ''
+            $.confirm({
+                columnClass: 'col-md-8',
+                title: 'Cambio de presentacion',
+                content: 'Definir el color de los productos: '+
+                '<form action="index.php" class="formName">' +
+                '<div class="form-group">'+
+                '<br/> <label>Producto: '+ prod + '</label>' +
+                '<br/><br/> <label>Asignar Colores a '+ c +' piezas: </label>'+
+                + "'" +
+                    opc
+                +"" +
+                '<br/><br/><p class="hidden" id="colAsig">Asignado:  <label id="cntCol"></label></p>'+ 
+                //'<br>La Cantidad deber ser la exacta para poder asignar los colores.'+
+                '</form>',
+                buttons: {
+                formSubmit: {
+                text: 'Asignar',
+                btnClass: 'btn-blue',
+                action: function () {
+                        //var prodN = this.$content.find('.chgProd2').val();
+                        $(".cant").each(function (){
+                            var valor = $(this).val()
+                            if($.isNumeric(valor)){
+                                if(valor > 0){
+                                    total += parseFloat($(this).val())
+                                }else if(valor < 0){
+                                    $.alert('Error en la asignacion, favor de revisar')
+                                    return false
+                                }
+                            }else{
+                                $.alert('Hay un valor invalido o en blanco, favor de revisar')
+                                return false
+                            }
+                        })
+                        //alert("Total : "+ total );
+                        /* Asignacion parcial
+                        if(total < parseFloat(c)){
+                            $.alert('Debe de colocar el total de colores faltan ' + (c-total) + ' piezas por asignar color.');
+                            return false;
+                        }else 
+                        */
+                        if(total>c){
+                            $.alert('Se estan asignando mas piezas de las necesarias favor de revisar ' );
+                            return false;
+                        }else{
+                            $(".cant").each(function (){
+                                dist += $(this).attr('press') + ':' + $(this).val() + '|'
+                            })  
+                            $.ajax({
+                                url:'index.wms.php',
+                                type:'post',
+                                dataType:'json',
+                                //data:{asigCol:1, ln, col, nP:prodN},
+                                data:{asigCol:1, ln, col:dist},
+                                success:function(data){
+                                    alert(data.msg);
+                                    //location.reload(true)
+                                    if(data.status =='ok'){
+                                    // actualizar el valor de los asignados
+                                    // quitar el select 
+                                    }
+                                }
+                            });
+                        }
+                       }
+                },
+                cancelar: function () {
+                },
+            },
+                onContentReady: function () {
+                    // bind to events
+                    var jc = this;
+                    //alert(jc);
+                    this.$content.find('form').on('submit', function (e) {
+                        // if the user submits the form by pressing enter in the field.
+                        e.preventDefault();
+                        jc.$$formSubmit.trigger('click'); // reference the button and click it
+                    });
+                    $(".chgProd2").autocomplete({
+                        source: "index.wms.php?producto=1",
+                        minLength: 2,
+                        select: function(event, ui){
+                        }
+                    })
+                }
+            });
+
+    }
     
+    $("document").ready(function(){
+        $(".asigProd").each(function(){
+            var info = $(this).attr('id')
+            var asig = parseInt($(this).attr('asig'))
+            var label = ''
+            console.log(info)
+            if (asig > 0 ){
+                $.ajax({
+                    url:'index.wms.php',
+                    type:'post', 
+                    dataType:'json',
+                    data:{pres:info},
+                    success:function(data){
+                        //console.log(data.inf)
+                        for (const [key, value] of Object.entries(data.datos)){
+                            for (const [k, val] of Object.entries(value)){
+                                if(k == 'NUEVO'){ var nuevo = val;}
+                                if(k == 'CANT'){ var cantidad = val;}
+                            }
+                            label += "<br/> Asignado " + nuevo + " : " + cantidad;
+                        }
+                        document.getElementById(info).innerHTML = label
+                    }, 
+                    error:function(){
+
+                    }
+                })
+            }
+        })
+    })
+
 </script>

@@ -59,7 +59,8 @@
 
                             ?>
                             <tr class=" <?php echo $row->STATUS?>" id="linc<?php echo $i?>" <?php echo $color;?> <?php echo $row->STATUS=='Alta'? '':'hidden'?> >
-                                <td><a class="posicion" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"><?php echo $row->ID_INT;?></a><br/><a class="movs" prod="<?php echo $row->ID_INT;?>">Movs a Excel</a>
+                                <td>
+                                    <a class="posicion" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"><?php echo $row->ID_INT;?></a><br/><a class="movs" prod="<?php echo $row->ID_INT;?>">Movs a Excel</a>
                                     <br/>
                                     <input type="checkbox" name="desc" class="desc" <?php echo $row->STATUS == 'Alta'? '':'checked' ?> prod = "<?php echo $row->ID_PINT?>"> desc
                                 </td>
@@ -157,8 +158,6 @@
         var prod = $(this).attr('prod')
         var nombre = $(this).attr('nom')
         var info = "El producto <b>"+ nombre +"</b> se encuenta en: <br/><br/>"
-        //info += "Posicion 1<br/>"
-        //info += "Posicion 2<br/>"
         $.ajax({
             url:'index.wms.php',
             type:'post',
@@ -171,7 +170,9 @@
                         if(k == 'TARIMA'){var tar = val}
                         if(k == 'DISPONIBLE'){var disp = val}
                     }
-                    info += lin + ':' + tar + ', piezas: '+ disp + '<br/>'
+                    if (parseFloat(disp) > 0){
+                        info += lin + ':' + tar + ', piezas: '+ disp + '  |  ' + '<input type="text" size="10" placeholder="Almacen">  '+ '<br/>'
+                    }
                 }
                 if(data.status='ok'){
                     $.alert(info + "<br/><div><input type='hidden' value='test' class='btn-sm btn-success imprimir'></div>")

@@ -226,10 +226,10 @@
                             datatType:'json',
                             data:{canMov:1, mov, mot, t}, 
                             success:function(data){
-                                location.reload(true)
+                                //location.reload(true)
                             },
                             error:function(data){
-                                location.reload(true)
+                                //location.reload(true)
                             }
                         })
                     },

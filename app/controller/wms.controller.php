@@ -427,7 +427,7 @@ class wms_controller {
                 $res=$this->repPdfPC($info, $delim);
                 return array('status' => 'ok', 'completa'=>'..\\..\\Reportes_Almacen\\Reporte Productos del Componente'.$delim.'.pdf' );
             }elseif ($out=='x' and $t=='pp'){
-                $res=$this->repXlsPP($info, $delim);
+                $res=$this->repXlsPP_v2($info, $delim);
                 return $res;
             }elseif ($out=='p' and $t=='pp'){
                 $res=$this->repPdfPP($info, $delim);
@@ -771,6 +771,7 @@ class wms_controller {
         $pdf->Output($ruta.'Reporte Productos del Componente'.$delim.'.pdf', 'f');
     }
 
+    //// Degradado el 18 de Julio del 2022
     function repXlsPP($info){
         $usuario = $_SESSION['user']->NOMBRE;   
         $xls= new PHPExcel();
@@ -881,6 +882,164 @@ class wms_controller {
                         ->setCellValue('A'.$ln,"No se encontraron componentes secundarios de este componente")
                     ;
                     $col="A";
+                }
+            }
+            
+            $xls->setActiveSheetIndex()
+                ->setCellValue('A1', "IMPORTADORA MIZCO SA DE CV")
+                ->setCellValue('A2', "Reporte de Posición de productos ")
+                //->setCellValue('A3',  "")
+                ->setCellValue('A4', "Elaborado por: ")
+                ->setCellValue('B4', $usuario)
+                ->setCellValue('A5', "Fecha de Elaboracion: ")
+                ->setCellValue('B5', date("d-m-Y H:i:s" ) )
+                ->setCellValue('A6', "Total Componentes Primarios:")
+                ->setCellValue('B6', count($info['primary']))
+                ->setCellValue('A7', "Total Componentes Secundarios:")
+                ->setCellValue('B7', count($info['secondary']))
+                
+            ;
+            /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+            $col = 'A';
+            $xls->getActiveSheet()->getColumnDimension($col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(25);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+
+            $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+            /// Unir celdas
+            $xls->getActiveSheet()->mergeCells('A1:O1');
+            // Alineando
+            $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+            /// Estilando
+            $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+                array('font' => array(
+                        'size'=>20,
+                    )
+                )
+            );
+            $xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+            $xls->getActiveSheet()->mergeCells('A3:F3');
+            $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
+                array('font' => array(
+                        'size'=>15,
+                    )
+                )
+            );
+
+            $xls->getActiveSheet()->getStyle('A3:D3')->applyFromArray(
+                array(
+                    'font'=> array(
+                        'bold'=>true
+                    ),
+                    'borders'=>array(
+                        'allborders'=>array(
+                            'style'=>PHPExcel_Style_Border::BORDER_THIN
+                        )
+                    )
+                )
+            );
+            $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
+                if(!file_exists($ruta) ){
+                    mkdir($ruta);
+                }
+                $nom='Posición de productos '.date("d-m-Y H_i_s").'_'.$usuario.'.xlsx';
+                $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+            /// salida a descargar
+                $x->save($ruta.$nom);
+                ob_end_clean();
+                return array("status"=>'ok',"nombre"=>$nom, "ruta"=>$ruta, "completa"=>'..\\..\\Reportes_Almacen\\'.$nom, "tipo"=>'x');
+                
+    }
+
+    function repXlsPP_v2($info){
+        $usuario = $_SESSION['user']->NOMBRE;   
+        $xls= new PHPExcel();
+        $data = new wms;
+        $col='A';$ln=10; $i=0;
+        $ln++;
+        $xls->setActiveSheetIndex()
+            ->setCellValue($col.$ln,"")
+            ->setCellValue(++$col.$ln,"Almacen")
+            ->setCellValue(++$col.$ln,"Linea")
+            ->setCellValue(++$col.$ln,"Tarima")
+            ->setCellValue(++$col.$ln,"Modelo")
+            ->setCellValue(++$col.$ln,"UPC")
+            ->setCellValue(++$col.$ln,"Existencias")
+            ->setCellValue(++$col.$ln,"Reservado")
+            ->setCellValue(++$col.$ln,"Disponible")
+            ->setCellValue(++$col.$ln,"Descripción")
+        ;
+            foreach ($info['primary'] as $row) {
+                $i++;
+                //$ln++;
+                $col= 'A';
+                
+                //// Almacen / Linea / Tarima / Modelo.
+                $det=0;
+                foreach ($info['secondary'] as $key){
+
+                    if($key->ID_PROD == $row->ID_PINT){
+                        $det++;
+                        $ln++;
+                        $in=0;$out=0;$ex=0;
+                        $exist=$key->ENTRADAS-$key->SALIDAS;
+                        $disp =$exist - $key->PENDIENTES;
+                        if($exist!=0){
+
+                            $xls->setActiveSheetIndex()
+                                    ->setCellValue($col.$ln,$i)
+                                    ->setCellValue(++$col.$ln,$key->ALMACEN)
+                                    ->setCellValue(++$col.$ln,$key->PRIMARIO)
+                                    ->setCellValue(++$col.$ln,$key->SECUNDARIO)
+                                    ->setCellValue(++$col.$ln,$row->ID_INT)
+                                    //->setCellValue(++$col.$ln,$row->LARGO.' x '.$row->ANCHO.' x '.$row->ALTO)
+                                    ->setCellValue(++$col.$ln,$row->UPC)
+                                    //->setCellValue(++$col.$ln,'Master: '.$row->UNIDAD_ORIG)
+                                    //->setCellValue(++$col.$ln,$row->STATUS)
+                                    //->setCellValue(++$col.$ln,$key->ENTRADAS)
+                                    //->setCellValue(++$col.$ln,$key->SALIDAS)
+                                    ->setCellValue(++$col.$ln,number_format($exist))
+                                    ->setCellValue(++$col.$ln,number_format($key->PENDIENTES)) /// Reservado
+                                    ->setCellValue(++$col.$ln,number_format($disp)) /// Disponible
+                                    ->setCellValue(++$col.$ln,$row->DESC)
+                            ;
+                            /*
+                            $xls->getActiveSheet()->getStyle("B".$ln.':'.$col.$ln)->applyFromArray(
+                            array(
+                                    'font'=> array(
+                                        'bold'=>true
+                                    ),
+                                    'borders'=>array(
+                                        'allborders'=>array(
+                                            'style'=>PHPExcel_Style_Border::BORDER_THIN
+                                        )
+                                    ), 
+                                    'fill'=>array( 
+                                            'type' => PHPExcel_Style_Fill::FILL_SOLID,             
+                                            'color'=> array('rgb' => dbfbff  )
+                                    )   
+                                )
+                            );
+                            */       
+                        }else{
+                            $ln--;
+                        }
+                        $col="A";
+                    }
+                }
+                if($det== 0){
+                    //$ln++;
+                    //$xls->setActiveSheetIndex()
+                    //   ->setCellValue('A'.$ln,"No se encontraron componentes secundarios de este componente")
+                    //;
+                    //$col="A";
                 }
             }
             
@@ -1246,7 +1405,6 @@ class wms_controller {
                 $this->view_page($pagina); 
                 die;
             }
-            
             $ordenes = $data->ordenes($op = ' and id_status != 9', $param);
             //$a = $data->actualizaCodigo();
             $correos= $data->correos2('A', 't');
@@ -1277,7 +1435,7 @@ class wms_controller {
     function detOrden($id_o, $t, $param, $out){
         if($_SESSION['user']){
             $data = new wms;
-            if($t=='p'){
+            if($t=='p'){/// que es t? 
                 $p = 'app/views/pages/almacenes/p.detOrdenProd.php';
             }elseif($t=='s'){
                 $p = 'app/views/pages/almacenes/p.detOrdenSurt.php';
@@ -1287,8 +1445,7 @@ class wms_controller {
             $pagina = $this->load_templateL('Reportes');
             $html = $this->load_page($p);
             ob_start();
-            $actDesc= $data->actDescr($id_o);
-            $act = $data->actProdSku($id_o);
+            //$actDesc= $data->actDescr($id_o);  /// Depreciado por que se sincroniza con Intelisis 12 07 2022
             $cabecera =$data->datOrden($id_o);
             $orden = $data->orden($id_o, $t, $param);
             $persona = $data->perSurt($id_o, $t, $param);
@@ -1428,10 +1585,10 @@ class wms_controller {
         }    
     }
 
-    function asigCol($nP, $ln, $col){
+    function asigCol($ln, $col){
         if($_SESSION['user']){
             $data= new wms;
-            $res=$data->asigCol($nP, $ln, $col);
+            $res=$data->asigCol($ln, $col);
             return $res;
         }       
     }
@@ -1500,14 +1657,12 @@ class wms_controller {
         $pdf = new FPDF('L', 'mm', 'Letter');
         $pdf->AddPage();
         $pdf->Image('app/views/images/LOGOSELECT.jpg', 5, 5, 30, 28);
-        $pdf->SetFont('Arial', 'BI', 8);
-            
+        $pdf->SetFont('Arial', 'BI', 8);   
         if($param == ''){
             $cedis = substr(utf8_decode($cabecera->CEDIS),0,100);
         }elseif(!empty($param)){
             $cedis = $param;
         }
-
         $pdf->Ln(5);
         $pdf->SetX(40);
         $pdf->write(5, "Cliente : ". $cabecera->CLIENTE."");
@@ -1527,81 +1682,91 @@ class wms_controller {
         $pdf->Ln(8);
         $pdf->SetFont('Arial', 'B', 8);
 
-        $pdf->Cell(35, 4, 'UPC','LRT');
-        $pdf->Cell(25, 4, 'Modelo','LRT');
-        $pdf->Cell(25, 4, 'Sustituto','LRT');
-        $pdf->Cell(25, 4, 'Surtir','LRT',0,'C');
+        $pdf->Cell(28, 4, 'UPC','LRT');
+        $pdf->Cell(20, 4, 'Modelo','LRT');
+        $pdf->Cell(20, 4, 'Sustituto','LRT');
+        $pdf->Cell(20, 4, 'Surtir','LRT',0,'C');
         $pdf->Cell(20, 4, 'Piezas x','LRT',0,'C');
         //$pdf->Cell(25, 4, 'Cajas','LRT');
         $pdf->Cell(20, 4, 'Total de cajas','LRT',0,'C');
-        $pdf->Cell(55, 4, 'Ubicacion ','LRT',0,'C');
-        //$pdf->Cell(40, 4, 'Etiqueta','LRT');
+        $pdf->Cell(70, 4, 'Ubicacion ','LRT',0,'C');
+        $pdf->Cell(40, 4, 'Etiqueta','LRT');
         $pdf->Ln();
         
-        $pdf->Cell(35, 4, '','LRB');
-        $pdf->Cell(25, 4, 'Original','LRB');
-        $pdf->Cell(25, 4, '','LRB');
+        $pdf->Cell(28, 4, '','LRB');
+        $pdf->Cell(20, 4, 'Original','LRB');
+        $pdf->Cell(20, 4, '','LRB');
         $pdf->SetTextColor(30,117,0);
-        $pdf->Cell(25, 4, '','LRB',0,'C');
+        $pdf->Cell(20, 4, '','LRB',0,'C');
         $pdf->SetTextColor(0,0,0);
         $pdf->Cell(20, 4, 'Caja ','LRB',0,'C');
         //$pdf->Cell(25, 4, '','LRB');
         $pdf->Cell(20, 4, '','LRB',0,'C');
-        $pdf->Cell(55, 4, 'Cantidad en Piezas','LRB',0,'C');
-        //$pdf->Cell(40, 4, '','LRB');
+        $pdf->Cell(70, 4, 'Cantidad en Piezas','LRB',0,'C');
+        $pdf->Cell(40, 4, '','LRB');
         $pdf->Ln();
        
         foreach ($orden as $ord) {
-            $componentes=array();$pos= array();$ubicacion='';$ubi=array();
-            $componentes=$data->comPro($ord->PROD, $ord->ID_ORDD);
-            $pos = $data->posImp($ord->ID_ORDD);
-            $surt= count($pos);$cmpt=count($componentes['datos']);
-            //$pdf->Cell(50, 6, $ord->CEDIS, 'LRT');
-            $m = (count($pos)>1)? 'LRT':'LRTB';
-            $pdf->Cell(35, 6, $ord->UPC, 'LRTB');
-            $pdf->Cell(25, 6, $ord->PROD_SKU, 'LRTB');/// Producto de la Orden
-            $pdf->Cell(25, 6, $ord->PROD_SKU == $ord->PROD? '':$ord->PROD, 'LRTB');// Sustituto 
-            $pdf->Cell(25, 6, number_format($ord->ASIG,0), 'LRTB',0,'R');
-            $pdf->Cell(20, 6, number_format($ord->UNIDAD,0), 'LRTB',0,'R');
-
-            $uni = $ord->UNIDAD;
-            $asig = $ord->ASIG;
-            $residuo = fmod($asig,$uni);
-            $resi = '';
-            $total = bcdiv($asig,$uni,0);
-            if($residuo > 0 ){
-                $resi= " + 1C/".$residuo." ";
-                $total +=1;
-            }
-            //$pdf->Cell(25, 6, number_format($ord->CAJAS,0)."C/".$ord->UNIDAD.$resi , 'LRTB',0,'R');
-
-            $i=0;
-            foreach($pos as $pst){
-                $i++;
-                if($pst->COMPONENTES > 1){
-                    $ubicacion = ' Lin:  '.$pst->LINEA.'  Cant:  '.number_format($pst->PIEZAS,0)."\n";
+            if($ord->ASIG > 0){
+                $componentes=array();$pos= array();$ubicacion='';$ubi=array();
+                $componentes=$data->comPro($ord->PROD, $ord->ID_ORDD);
+                $pos = $data->posImp($ord->ID_ORDD); /// Obtiene las posiciones de los productos.
+                $pres = $data->sustitutos($ord->ID_ORDD);
+                $surt= count($pos);$cmpt=count($componentes['datos']);$sust=count($pres);
+                //$pdf->Cell(50, 6, $ord->CEDIS, 'LRT');
+                $m = (count($pos)>1)? 'LRT':'LRTB';
+                $pdf->Cell(28, 6, $ord->UPC, 'LRTB');
+                $pdf->Cell(20, 6, $ord->PROD, 'LRTB');/// Producto de la Orden
+                if($sust == 0 ){
+                    $pdf->Cell(20, 6,'' , 'LRTB'); // Sustituto 
+                    $pdf->Cell(20, 6, number_format($ord->ASIG,0), 'LRTB',0,'R');
+                    $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
+                    $asig = $ord->ASIG;
                 }else{
-                    $ubicacion = ' Lin:  '.$pst->LINEA.'  Tar: '.$pst->TARIMA.'  Cant:  '.number_format($pst->PIEZAS,0)."\n";
+                    foreach ($pres as $ss) {
+                        $pdf->Cell(20, 6, $ss->NUEVO , 'LRTB'); // Sustituto 
+                        $pdf->Cell(20, 6, number_format($ss->CANT,0), 'LRTB',0,'R');
+                        $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
+                        $asig = $ss->CANT;
+                    }
                 }
-                if($i >=1){
-                    $ubi[] = ($ubicacion);
+                $uni = $ord->CAJAS;
+                $residuo = fmod($asig,$uni);
+                $resi = '';
+                $total = bcdiv($asig,$uni,0);
+                if($residuo > 0 ){
+                    $resi= " + 1C/".$residuo." ";
+                    $total +=1;
                 }
-            }
-            $pdf->Cell(20, 6, number_format($total,0), 'LRTB',0,'R');
-            $pdf->Cell(55, 6, utf8_decode($ubicacion), $m,0,'R');
-            //$pdf->Cell(40, 6, utf8_decode($ord->ETIQUETA) , 'LRTB');
-            $pdf->Ln();
-            if($i >= 2){
-                for($l=0; $l < count($ubi)-1 ; $l++) { 
-                    $pdf->Cell(35, 4,"",'LB',0,'R');
-                    $pdf->Cell(25, 4,"",'B',0,'R');
-                    $pdf->Cell(25, 4,"",'B',0,'R');
-                    $pdf->Cell(20, 4,"",'B',0,'R');
-                    $pdf->Cell(25, 4,"",'B',0,'R');
-                    $pdf->Cell(20, 4,"",'B',0,'R');
-                    $pdf->Cell(55, 4,$ubi[$l],'B',0,'R');
-                    //$pdf->Cell(40, 4,"",'RB',0,'R');
-                    $pdf->Ln();
+                //$pdf->Cell(25, 6, number_format($ord->CAJAS,0)."C/".$ord->UNIDAD.$resi , 'LRTB',0,'R');
+                $i=0;
+                foreach($pos as $pst){
+                    $i++;
+                    if($pst->COMPONENTES > 1){
+                        $ubicacion = ' Lin:  '.$pst->LINEA.'  Cant:  '.number_format($pst->PIEZAS,0).' - '.$pst->PRODUCTO.''."\n";
+                    }else{
+                        $ubicacion = ' Lin:  '.$pst->LINEA.'  Tar: '.$pst->TARIMA.'  Cant:  '.number_format($pst->PIEZAS,0).' - '.$pst->PRODUCTO.''."\n";
+                    }
+                    if($i >=1){
+                        $ubi[] = ($ubicacion);
+                    }
+                }
+                $pdf->Cell(20, 6, number_format($total,0), 'LRTB',0,'R');
+                $pdf->Cell(70, 6, utf8_decode($ubicacion), $m,0,'R');
+                $pdf->Cell(40, 6, utf8_decode($ord->ETIQUETA) , 'LRTB');
+                $pdf->Ln();
+                if($i >= 2){
+                    for($l=0; $l < count($ubi)-1 ; $l++) { 
+                        $pdf->Cell(28, 4,"",'LB',0,'R');
+                        $pdf->Cell(20, 4,"",'B',0,'R');
+                        $pdf->Cell(20, 4,"",'B',0,'R');
+                        $pdf->Cell(20, 4,"",'B',0,'R');
+                        $pdf->Cell(20, 4,"",'B',0,'R');
+                        $pdf->Cell(20, 4,"",'B',0,'R');
+                        $pdf->Cell(70, 4,$ubi[$l],'LBR',0,'R');
+                        //$pdf->Cell(40, 4,"",'RB',0,'R');
+                        $pdf->Ln();
+                    }
                 }
             }
         }
@@ -1764,7 +1929,8 @@ class wms_controller {
         ;
 
         $xls->setActiveSheetIndex()
-            ->setCellValue($col.$ln, 'Num')
+            ->setCellValue($col.$ln,   'Num')
+            ->setCellValue(++$col.$ln, 'Estado')
             ->setCellValue(++$col.$ln, 'Movimiento')
             ->setCellValue(++$col.$ln, 'Tipo' )
             ->setCellValue(++$col.$ln, 'Almacen')
@@ -1776,11 +1942,12 @@ class wms_controller {
             ->setCellValue(++$col.$ln, 'Cantidad')
             ->setCellValue(++$col.$ln, 'Unidad')
             ->setCellValue(++$col.$ln, 'Piezas')
+            ->setCellValue(++$col.$ln, 'Disponible')            
             ->setCellValue(++$col.$ln, 'Linea')
             ->setCellValue(++$col.$ln, 'Tarima')
             ->setCellValue(++$col.$ln, 'Cliente')
             ->setCellValue(++$col.$ln, 'Cedis')
-            
+            ->setCellValue(++$col.$ln, 'Categoria')
             ;
         $col= 'A';
         foreach($info['entradas'] as $ent){
@@ -1790,6 +1957,7 @@ class wms_controller {
 
             $xls->setActiveSheetIndex()
                 ->setCellValue($col.$ln, $i )
+                ->setCellValue(++$col.$ln, $ent->STATUS)
                 ->setCellValue(++$col.$ln, $ent->MOV)
                 ->setCellValue(++$col.$ln, $ent->TIPO)
                 ->setCellValue(++$col.$ln, $ent->ALMACEN)
@@ -1801,8 +1969,12 @@ class wms_controller {
                 ->setCellValue(++$col.$ln, $ent->CANT)
                 ->setCellValue(++$col.$ln, $ent->UNIDAD)
                 ->setCellValue(++$col.$ln, $ent->PIEZAS)
+                ->setCellValue(++$col.$ln, $ent->DISPONIBLE)
                 ->setCellValue(++$col.$ln, $ent->LINEA)
                 ->setCellValue(++$col.$ln, $ent->TARIMA)
+                ->setCellValue(++$col.$ln, '')
+                ->setCellValue(++$col.$ln, '')
+                ->setCellValue(++$col.$ln, $ent->CATEGORIA)
                 ;
             $col='A';
         }
@@ -1814,6 +1986,7 @@ class wms_controller {
 
             $xls->setActiveSheetIndex()
                 ->setCellValue($col.$ln, $i )
+                ->setCellValue(++$col.$ln, $sal->STATUS)
                 ->setCellValue(++$col.$ln, $sal->SERIE.'-'.$sal->FOLIO)
                 ->setCellValue(++$col.$ln, 'S')
                 ->setCellValue(++$col.$ln, $sal->ID_ALMACEN)
@@ -1829,7 +2002,7 @@ class wms_controller {
                 ->setCellValue(++$col.$ln, $sal->TARIMA)
                 ->setCellValue(++$col.$ln, $sal->CLIENTE)
                 ->setCellValue(++$col.$ln, $sal->CEDIS)
-
+                ->setCellValue(++$col.$ln, $sal->CATEGORIA)
                 ;
             $col='A';
         }
@@ -1930,6 +2103,18 @@ class wms_controller {
         $datos = $data_i->detDoc($doc);
         $inserta = $data->insDetOcInt($datos);
         return $inserta;
+    }
+
+    function sincPres($prod){
+        $data_i = new intelisis;
+        $datos= $data_i->sincPres($prod);
+        return $datos;
+    }
+
+    function pres($info){
+        $data = new wms;
+        $res = $data->pres($info);
+        return $res;
     }
 }
 ?>

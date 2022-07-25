@@ -6,7 +6,7 @@
 </style>
 <div class="row">
     <div class="col-lg-12">
-        <div>Detalles del Archivo: <label><?php echo $cabecera->ARCHIVO?> </label><br/>Para el Cliente: <label><?php echo $cabecera->CLIENTE?></label>  <?php echo !empty($cabecera->ORDEN)? '<br/>Incluye las ordenes:<label>'.$cabecera->ORDEN.'</label>':''?></label></div>
+        <div>Detalles del Pedido: <label><?php echo $cabecera->ARCHIVO?> </label><br/>Para el Cliente: <label><?php echo $cabecera->CLIENTE?></label>  <?php echo !empty($cabecera->ORDEN)? '<br/>Incluye las ordenes:<label>'.$cabecera->ORDEN.'</label>':''?></label></div>
             <a class="btn-sm btn-success fin">Finalizar</a>&nbsp;&nbsp;&nbsp; <a class="btn-sm btn-danger hidden" id="close">Cerrar</a>
             <br/>
             <br/>

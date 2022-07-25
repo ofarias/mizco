@@ -19,19 +19,24 @@ class wms extends database {
     }
 
     function refresh($intelisis){
-        $i=0; $n=0;
+        $i=0; $n=0;$a=0;
         foreach($intelisis as $int){
-            $data = array(); $i++;
+            $data = array(); $i++;$upc = $int['DESACodigoBarras'];
             $this->query="SELECT * FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$int[0]'";
             $res=$this->EjecutaQuerySimple();
             while($tsarray=ibase_fetch_object($res)){$data[]=$tsarray;}
             if(count($data)==0){
                 $n++;
-                $this->query="INSERT INTO FTC_ALMACEN_PROD_INT (ID_PINT, ID_INT, DESC, PZS_ORIG, LARGO, ANCHO, ALTO, PZS_PALET_O, UNIDAD_ORIG, TIPO_INT, STATUS) VALUES (null, '$int[0]','$int[2]', null, null, null, null, null, null, '$int[24]', 'Alta')";
+                $this->query="INSERT INTO FTC_ALMACEN_PROD_INT (ID_PINT, ID_INT, DESC, PZS_ORIG, LARGO, ANCHO, ALTO, PZS_PALET_O, UNIDAD_ORIG, TIPO_INT, STATUS, UPC) VALUES (null, '$int[0]','$int[2]', null, null, null, null, null, null, '$int[24]', 'Alta', '$upc')";
                 $this->grabaBD();
+            }else{
+                $a++;
+                $this->query="UPDATE FTC_ALMACEN_PROD_INT SET UPC = '$upc' where id_int = '$int[0]'";
+                $this->queryActualiza();
             }
         }
         echo '<b>Se detectan '.$i.', analizan '.$i.' ingresa '.$n.'</b>';
+        echo '<br/><b> Se actualizan: '.$a;
         return;
     }
 
@@ -95,19 +100,12 @@ class wms extends database {
             }
             if($i > 0){$p=' Where id_comp > 0 '.$p;}
         }
-        //$this->query="SELECT $f c.*,   
-        //    (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 1 ) AS entradasS, 
-        //    (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 1) AS salidasS, 
-        //    (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP, 
-        //    (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='s' and am.status='F' and c.id_tipo = 2) AS salidasP
-        //FROM FTC_ALMACEN_COMPONENTES c $op $p order by id_comp desc";
-        //echo '<p>'.$this->query.'</p>';
         $this->query="SELECT $f c.*,
         (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPS = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 1 ) AS entradasS, 
         (SELECT coalesce(SUM(piezas),0) FROM FTC_ALMACEN_MOV AM WHERE AM.COMPP = c.ID_COMP and am.tipo='e' and am.status='F' and c.id_tipo = 2) AS entradasP , 
         v.dispONIBLE AS DISP
         FROM FTC_ALMACEN_COMPONENTES c left join ftc_alm_comp_disp v on v.id_c = c.id_comp $op $p order by id_comp desc";
-       //echo $this->query;
+        //echo $this->query;
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -180,7 +178,7 @@ class wms extends database {
             $cs=$info[5];
             $cp=$info[7];
             $mov=$info[9];
-            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP, FOLIO, SERIE, ID_PROD) VALUES (NULL, $cs, 0, null, $usuario, current_timestamp, 'P', '$mov', $cant, 1, $cp, $fol, '$ser', (select m.prod from ftc_almacen_mov m where m.id_am = $mov))";
+            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP, FOLIO, SERIE, ID_PROD, categoria) VALUES (NULL, $cs, 0, null, $usuario, current_timestamp, 'P', '$mov', $cant, 1, $cp, $fol, '$ser', (select m.prod from ftc_almacen_mov m where m.id_am = $mov), (SELECT CATEGORIA FROM FTC_ALMACEN_MOV m where m.ID_AM = $mov))";
             $this->grabaBD();
         }
         return array("folio"=>$fol);
@@ -634,7 +632,11 @@ class wms extends database {
     }
 
     function canMov($mov, $mot, $t){
+
+        /// Hay que hacer una distincion de para saber que tipo de movimiento es el que se va a eliminar. 
+
         $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = upper('$t'), piezas=0, cant=0 WHERE MOV = $mov and coalesce ((select sum(salidas) from ftc_almacen_mov_det where mov = $mov),0) = 0";
+        //echo $this->query;
         $this->queryActualiza();
         $this->actStatus($tabla=4, $tipo='Eliminar', $sub='Movimiento', $ids=$mov, $obs=$mot);
         return array("msg"=>'Se ha cancelado el movimiento');
@@ -849,8 +851,12 @@ class wms extends database {
                         where id_comps=$id and id_status='F' group by m.id_comps, m.prod, m.id_tipo, m.almacen";
                         //echo $this->query;
         }elseif($tipo == 'pp'){
-            $this->query="SELECT m.almacen, m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, iif(m.id_tipo = 'e' or m.id_tipo = 'E', sum(piezas), 0) as entradas, 
-                        (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps )  as salidas
+            $this->query="SELECT m.almacen, m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo,
+                                max(PRIMARIO) as primario, 
+                                max(secundario) as secundario, 
+                                iif(m.id_tipo = 'e' or m.id_tipo = 'E', sum(piezas), 0) as entradas, 
+                                (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'F' )  as salidas,
+                                (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'P' )  as pendientes
                         from FTC_ALMACEN_MOVimiento m
                         where id_status='F' group by m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, m.almacen order by m.id_comps asc ";
         }
@@ -863,16 +869,18 @@ class wms extends database {
 
     function ordenes($op, $param){
         $data=array(); $p='';
+        if($_SESSION['user']->NUMERO_LETRAS==9){$p = " and id_status = 3 ";
+        }elseif($_SESSION['user']->NUMERO_LETRAS== 1){$p = " and id_status <= 1 ";// Antes de utilizaba para Claudia pero se degrado con la sincronizacion con Intelisis.
+        }elseif($_SESSION['user']->NUMERO_LETRAS== 2){$p = " and (id_status <= 1) ";}/// Antes tenia el valor 2 ya que era cuando Claudia los validaba.
         if(empty($param)){
-            if($_SESSION['user']->NUMERO_LETRAS==9){$p = " and id_status = 3 ";
-            }elseif($_SESSION['user']->NUMERO_LETRAS== 1){$p = " and id_status <= 1 ";
-            }elseif($_SESSION['user']->NUMERO_LETRAS== 2){$p = " and (id_status = 2) ";}
-        }else{
+        }else{ 
             $param = explode(":", $param);$op = "";
-            if(!empty($param[1])){$p.= " and fecha_carga >= '". $param[1]."'";}
-            if(!empty($param[2])){$p.= " and fecha_carga <= '". $param[2]."'";}
-            $p.= ($param[3]==0)? " ":" and id_status = ". $param[3];
+            if(!empty($param[1])){$p.= " and dia_carga >= '". $param[1]."'";}
+            if(!empty($param[2])){$p.= " and dia_carga <= '". $param[2]."'";}
+            //$p.= ($param[3]==0)? " ":" and id_status = ". $param[3];
+            $p.= ($param[3]=='')? " and archivo starting with 'Pedido' ":" and archivo starting with '$param[3]' "; /// Forzando a que siempre jale pedidos
         }
+
         $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD >0 $op $p";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
@@ -1904,11 +1912,14 @@ class wms extends database {
         foreach($info as $i){
             $n++;
             $usuario=$_SESSION['user']->ID;
-            $id = $i['ID']; $cliente = $i['Cliente']; $mov = trim($i['Mov']); $movId = $i['MovID']; $oc = $i['OrdenCompra'];$nombre=$i['nombre']; $staInt=$i['Estatus'];
+            $id = $i['ID']; $cliente = $i['Cliente']; $mov = trim($i['Mov']); $movId = $i['MovID']; $oc = $i['OrdenCompra'];$nombre=$i['nombre']; $staInt=$i['Estatus']; $suc = $i[1]; $idInt = $i['ID'];
+            //echo 'Sucursal: '.$suc;
+            //print_r($i); 
+            //die; 
             $this->query="SELECT * FROM FTC_ALMACEN_ORDEN WHERE ID_ORD = $id";
             $res=$this->EjecutaQuerySimple();
             if(!ibase_fetch_row($res)){
-                $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD, idCliente, CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL, MOV, Movid, STA_INT) VALUES ($id, '$cliente', '$nombre', '',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$mov'||'$movId', '$usuario', '$oc', '$mov','$movId', '$staInt' ) returning ID_ORD ";
+                $this->query="INSERT INTO FTC_ALMACEN_ORDEN (ID_ORD, idCliente, CLIENTE,CEDIS,FECHA_CARGA,FECHA_ASIGNA,FECHA_ALMACEN,FECHA_CARGA_F,FECHA_ASIGNA_F,FECHA_ALMACEN_F,STATUS,NUM_PROD,CAJAS,PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL, MOV, Movid, STA_INT, ID_INT) VALUES ($id, '$cliente', '$nombre', '$suc',current_timestamp, null, null, null, null, null, 1, 0, 0, 0, '$mov'||'$movId', '$usuario', '$oc', '$mov','$movId', '$staInt', $idInt ) returning ID_ORD ";
                     $res=$this->grabaBD();
                 if(ibase_fetch_object($res)){
                     /// insertamos los detalles del documento;
@@ -1922,11 +1933,11 @@ class wms extends database {
 
     function insDetOcInt($datos){
         foreach($datos as $d){
-            $id = $d['ID']; $prod=trim($d['Articulo']);$desc=trim($d['descr']); $cant=$d['Cantidad']; $part=$d['Renglon']; $upc=trim($d['upc']); 
+            $id = $d['ID']; $prod=trim($d['Articulo']);$desc=trim($d['descr']); $cant=$d['CantidadInventario']; $part=$d['Renglon']; $upc=trim($d['upc']); $caja = $d['Factor'];
             $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $id and PARTIDA =$part";
             $res=$this->EjecutaQuerySimple();
             if(!ibase_fetch_object($res)){
-                $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PARTIDA, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $id, $part,'$prod', '$desc', $cant, 0, '', '', 0, 0, 1, '', '','$upc','','', 1) returning ID_ORDD";
+                $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PARTIDA, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD) VALUES (NULL, $id, $part,'$prod', '$desc', $cant, $caja, '', (select cedis from FTC_ALMACEN_ORDEN where id_ord = $id ), 0, 0, 1, '', '','$upc','','', 1) returning ID_ORDD";
                 $res=$this->grabaBD();
                 $res=ibase_fetch_object($res);
                 $res=$res->ID_ORDD;
@@ -1944,12 +1955,12 @@ class wms extends database {
 
     function orden($id_o, $t, $param){
         $data= array(); $p=''; $pnd =array();
-        $this->query="UPDATE FTC_ALMACEN_ORDENES_DETALLES o set o.descr = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = o.PROD) where o.descr='' ";
-        $this->queryActualiza();
+        //$this->query="UPDATE FTC_ALMACEN_ORDENES_DETALLES o set o.descr = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = o.PROD) where o.descr='' ";
+        //$this->queryActualiza();
         if($t == 'd'){
             $this->query="SELECT * FROM FTC_ALMACEN_ORDENES_DETALLES where id_ord=$id_o";
         }elseif($t == 'p'){
-            $this->query="SELECT prod, descr, sum(pzas) as pzas, count(cedis) as cedis, max(orden) as orden, max(upc) as upc, max(item) as item, max(PROD_SKU) as PROD_SKU, CAST(LIST( DISTINCT color) AS varchar(200)) AS COLOR, sum(PZAS_SUR) as pzas_sur, avg(id_status) as status, sum(asig) as asig
+            $this->query="SELECT max(id_ord) as id_Ord, prod, descr, sum(pzas) as pzas, max(cedis) as cedis, max(orden) as orden, max(upc) as upc, max(item) as item, max(PROD_SKU) as PROD_SKU, CAST(LIST( DISTINCT color) AS varchar(200)) AS COLOR, sum(PZAS_SUR) as pzas_sur, avg(id_status) as status, sum(asig) as asig
                 from ftc_almacen_ordenes_detalles where id_ord = $id_o 
                 group by prod, descr";
         }elseif($t == 's'){
@@ -1970,41 +1981,75 @@ class wms extends database {
             while($tsArray=ibase_fetch_object($rs)){
                 $pnd[]=$tsArray;
             }
+
             foreach($pnd as $d){
                 //$res=$this->surteAuto($d);
+                $dataOCCHG = array();
                 $st = array();
                 $usuario = $_SESSION['user']->ID;
                 $prod = $d->PROD;
-                $surt = $d->PZAS_SUR;
-                $asig = $d->ASIG - $surt;
-                if(($asig-$surt) <= 0 ){
-                    $s++;
-                }else{
-                    $i++;
-                    $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE INTELISIS = '$prod' and disponible > 0 order by fecha_ingreso asc";
-                    $res=$this->EjecutaQuerySimple();
-                    while($tsArray=ibase_fetch_object($res)){
-                        $st[]=$tsArray;
-                    }
-                    if(count($st)>0){
-                        foreach($st as $ms){
-                            $disp=$ms->DISPONIBLE; 
-                            if($disp >= $asig){ 
-                                $pzas = $asig;    
-                            }else{
-                                $pzas = $disp;    
+                $this->query = "SELECT * FROM FTC_ALMACEN_OC_CHG WHERE id_ordd = $d->ID_ORDD and base = '$prod'";
+                $res=$this->EjecutaQuerySimple();
+                while($tsArray=ibase_fetch_object($res)){
+                    $dataOCCHG[] = $tsArray;
+                }
+                if(count($dataOCCHG > 0)){
+                    foreach ($dataOCCHG as $k){
+                        $surt = $k->SURTIDAS; /// hay que revisar este impacto
+                        $asig = $k->CANT - $surt;
+                        $prodS = $k->NUEVO; // Producto a surtir.
+                        //$prod
+                        if(($asig-$surt) <= 0 ){ /// lo asignado menos lo surtido nos da 0 quiere decir que ya se surtio o no hay nada que hacer.
+                            $s++;
+                        }else{ /// aqui si tenemos que aisgnar el producto a la linea.
+                            $i++;
+                            $categoria = 'Primera'; /// hay que hacer una funcion que traiga la categoria segun el cliente. pero la debemos de pasar al inicio de esta funcion.
+                            $cat = 1;
+                            $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE INTELISIS = '$prodS' and disponible > 0 and categoria = '$categoria' order by fecha_ingreso asc, ID_AM ASC";
+                            $res=$this->EjecutaQuerySimple();
+                            while($tsArray=ibase_fetch_object($res)){
+                                $st[]=$tsArray;
                             }
-                            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP, ID_PROD) VALUES (NULL, $ms->ID_COMPS, 0, $d->ID_ORDD, $usuario, current_timestamp, 'P', $ms->ID_AM, $pzas, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $ms->ID_COMPS), (select m.prod from ftc_almacen_mov m where m.id_am = $ms->ID_AM))";
-                            $this->grabaBD();
-                            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = (PZAS_SUR + $pzas) where id_ordd = $d->ID_ORDD";
-                            $this->queryActualiza();
-                            $asig=$asig-$pzas;
-                            if($asig == 0){
-                                break;
+                            if(count($st)>0){ /// si hay producto disponible.
+                                foreach($st as $ms){
+                                    $disp=$ms->DISPONIBLE; 
+                                    if($disp >= $asig){ 
+                                        $pzas = $asig;    
+                                    }else{
+                                        $pzas = $disp;    
+                                    }
+                                    $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP, ID_PROD, categoria) VALUES (NULL, $ms->ID_COMPS, 0, $d->ID_ORDD, $usuario, current_timestamp, 'P', $ms->ID_AM, $pzas, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $ms->ID_COMPS), (select m.prod from ftc_almacen_mov m where m.id_am = $ms->ID_AM), $cat)";
+                                    //echo '<br/> Insercion del movimiento de Salida: '.$this->query;
+                                    $this->grabaBD();
+                                    $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = (PZAS_SUR + $pzas) where id_ordd = $d->ID_ORDD";
+                                    //echo '<br/> Actualizacion del detalle de la orden: '.$this->query;
+                                    $this->queryActualiza();
+                                    $this->query="UPDATE FTC_ALMACEN_OC_CHG SET SURTIDAS = SURTIDAS + $pzas where id_chg = $k->ID_CHG";
+                                    //echo '<br/> Actualizacion en la tabla de cambios(Asignaciones): '.$this->query;
+                                    $this->queryActualiza();
+                                    $asig=$asig-$pzas;
+                                    if($asig == 0){
+                                        break;
+                                    }
+                                }
+                            }else{
+                                echo 'No hay producto Disponible';
                             }
                         }
                     }
                 }
+                unset($dataOCCHG);
+            }
+        }
+        if($t=='s'){
+            $data=array();
+            if(!empty($param)){
+                $p= " and cedis = '".$param."'";
+            }
+            $this->query="SELECT ID_ORDD,UPC, ITEM, PROD, DESCR, PZAS, ASIG, CAJAS, UNIDAD, PROD_SKU, orden, cedis,PZAS_SUR, CAJAS_SUR, status, ETIQUETA, id_status FROM FTC_ALMACEN_ORDENES_DETALLES WHERE ID_ORD = $id_o and id_status >=3 $p";
+            $res=$this->EjecutaQuerySimple();
+            while($tsArray=ibase_fetch_object($res)){
+                $data[]=$tsArray;
             }
         }
         return $data;
@@ -2110,10 +2155,6 @@ class wms extends database {
         return;
     }
 
-    function actProdSku($id_o){
-        $this->query="UPDATE FTC_ALMACEN_ORDENES_DETALLES SET PROD = (SELECT ID_INT FROM FTC_ALMACEN_PROD_INT WHERE )";
-    }
-
     function asgProd($ord, $prod, $pza, $t, $c, $s){
         if($t=='m'){
             $res=$this->asgMultiple($ord, $prod);
@@ -2121,13 +2162,21 @@ class wms extends database {
         }
         $data=array();$msg='Se han asignado '.$pza.' del producto '.$prod;
         if($t=='q'){
-            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = 0, status=1 where PROD = trim('$prod') and id_ord = $ord";
-            echo $this->query;
+            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $ord and PROD = trim('$prod') and status < 5";
+            $res=$this->EjecutaQuerySimple();
+            while($tsArray=ibase_fetch_object($res)){
+                $data[]=$tsArray;
+            }
+            foreach ($data as $k) {
+                $this->limpiaAsig($k->ID_ORDD);               
+            }
+            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = 0, status=1 where PROD = trim('$prod') and id_ord = $ord and status < 5";
             $this->queryActualiza();
         }
-        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE PROD = '$prod' and id_ord = $ord";
+        unset($data);
+        $data = array();
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE PROD = '$prod' and id_ord = $ord and status < 5";
         $res=$this->EjecutaQuerySimple();
-        //echo $this->query;
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;            
         }        
@@ -2158,11 +2207,57 @@ class wms extends database {
     }
 
     function asgMultiple($ord, $prod){
-        $prod = explode(":", $prod);
-        for ($i=0; $i < count($prod); $i++) { 
-            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = PZAS, status= 2 WHERE ID_ORD = $ord and PROD = '$prod[$i]'";
-            $this->queryActualiza();
+        $prod = explode(":", $prod);$usuario=$_SESSION['user']->ID;
+        for ($i=0; $i < count($prod); $i++){ 
+            $data=array();
+            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $ord and PROD = '$prod[$i]' and status < 5";
+            $res=$this->EjecutaQuerySimple();
+            while($tsArray=ibase_fetch_object($res)){
+                $data[]=$tsArray;
+            }
+                foreach ($data as $k){
+                    $id_ordd = $k->ID_ORDD; $cant = $k->PZAS; $ln = $k->ID_ORDD; $c=$k->PZAS;
+                    $this->limpiaAsig($id_ordd);
+
+                    $this->query="SELECT * FROM FTC_ALMACEN_OC_CHG WHERE id_ordd = $ln and nuevo = (SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln)";
+                    $res=$this->EjecutaQuerySimple();
+
+                    if($row=ibase_fetch_object($res)){
+                        $this->query="UPDATE FTC_ALMACEN_OC_CHG SET CANT = $c , FECHA = current_timestamp, tipo = 'A' where id_ordd = $ln and nuevo = (SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln) RETURNING id_chg ";
+                        $res=$this->grabaBD();
+                        $idchg = ibase_fetch_object($res)->ID_CHG; $tipo = ' Actualización ';
+                    }else{
+                        $this->query = "INSERT INTO FTC_ALMACEN_OC_CHG (id_chg, id_ord, id_ordd, BASE, NUEVO, CANT, FECHA, USUARIO, STATUS, TIPO) 
+                                    VALUES (null, (select id_ord from FTC_ALMACEN_ORDEN_DET where id_ordd = $ln), $ln ,(select prod from FTC_ALMACEN_ORDEN_DET where id_ordd = $ln),(select prod from FTC_ALMACEN_ORDEN_DET where id_ordd = $ln), $c, current_timestamp, '$usuario',0, 'D' )";
+                        $res=$this->grabaBD();
+                        $idchg = ibase_fetch_object($res)->ID_CHG; $tipo = ' Creación ';
+                    }
+                    
+                    $this->query="INSERT INTO FTC_ALMACEN_LOG (id_log, usuario, tipo, subtipo, tabla, fecha, status, id, Obs) 
+                                    VALUES (null, $usuario, 'Orden Detalle', 'Cambio Presentacion'||'$tipo', 1, current_timestamp, 0, $ln, 'Asignacion de Colores del Producto '||(SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln)||' -- '||(SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln)||' cant: '||$c)";
+                    $this->grabaBD();
+                    $this->query="UPDATE FTC_ALMACEN_ORDEN_DET d SET ASIG = (SELECT SUM(ch.CANT) FROM FTC_ALMACEN_OC_CHG ch WHERE ch.ID_ORDD = d.id_ordd) where d.ID_ORDD = $ln";
+                    $res=$this->queryActualiza();
+                    /*
+                    $this->query="INSERT INTO FTC_ALMACEN_OC_CHG (id_chg, id_ord, id_ordd, BASE, NUEVO, CANT, FECHA, USUARIO, STATUS, TIPO) 
+                                VALUES (null, $ord, $id_ordd, '$prod[$i]', '$prod[$i]', $cant, current_timestamp, $usuario, 0, 'M')";
+                    $this->grabaBD();
+                    
+                    $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = PZAS, status= 2 WHERE ID_ORD = $ord and PROD = '$prod[$i]'";
+                    $this->queryActualiza();
+                    */
+                }
+            unset($data);
         }
+        return;
+    }
+
+    function limpiaAsig($ordd){
+
+        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = 0 WHERE ID_ORDD = $ordd";
+        $this->queryActualiza();
+        $this->query="UPDATE FTC_ALMACEN_OC_CHG SET CANT = 0 WHERE ID_ORDD = $ordd";
+        $this->queryActualiza();
         return;
     }
 
@@ -2187,16 +2282,36 @@ class wms extends database {
         return array("status"=>'ok', "prod"=>$data->ID_INT, "desc"=>$data->DESC);
     }
 
-    function actDescr($id_o){
+    /// depreciada el 12 07 2022 por la sincronizacion de Intelisis
+    function actDescr($id_o){ 
         $this->query="UPDATE FTC_ALMACEN_ORDEN_DET O SET DESCR = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = O.PROD) WHERE DESCR IS NULL AND ID_ORD = $id_o";
         $this->queryActualiza();
         return;
     }
 
     function asgLn($ln, $c){
-        $sta='ok'; $msg="Se actualizo correctamente";
-        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET ASIG = $c where id_ordd = $ln and pzas >= $c";
-        $res= $this->queryActualiza();
+        $sta='ok'; $msg="Se actualizo correctamente"; $data=array();
+        $usuario= $_SESSION['user']->ID;
+        $this->limpiaAsig($ln);
+        $this->query="SELECT * FROM FTC_ALMACEN_OC_CHG WHERE id_ordd = $ln and nuevo = (SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln)";
+        $res=$this->EjecutaQuerySimple();
+        if($row=ibase_fetch_object($res)){
+            $this->query="UPDATE FTC_ALMACEN_OC_CHG SET CANT = $c , FECHA = current_timestamp, tipo = 'A' where id_ordd = $ln and nuevo = (SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln) RETURNING id_chg ";
+            $res=$this->grabaBD();
+            $idchg = ibase_fetch_object($res)->ID_CHG; $tipo = ' Actualización ';
+        }else{
+            $this->query = "INSERT INTO FTC_ALMACEN_OC_CHG (id_chg, id_ord, id_ordd, BASE, NUEVO, CANT, FECHA, USUARIO, STATUS, TIPO) 
+                        VALUES (null, (select id_ord from FTC_ALMACEN_ORDEN_DET where id_ordd = $ln), $ln ,(select prod from FTC_ALMACEN_ORDEN_DET where id_ordd = $ln),(select prod from FTC_ALMACEN_ORDEN_DET where id_ordd = $ln), $c, current_timestamp, '$usuario',0, 'D' )";
+            $res=$this->grabaBD();
+            $idchg = ibase_fetch_object($res)->ID_CHG; $tipo = ' Creación ';
+        }
+        
+        $this->query="INSERT INTO FTC_ALMACEN_LOG (id_log, usuario, tipo, subtipo, tabla, fecha, status, id, Obs) 
+                        VALUES (null, $usuario, 'Orden Detalle', 'Cambio Presentacion'||'$tipo', 1, current_timestamp, 0, $ln, 'Asignacion de Colores del Producto '||(SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln)||' -- '||(SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln)||' cant: '||$c)";
+        $this->grabaBD();
+
+        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET d SET ASIG = (SELECT SUM(ch.CANT) FROM FTC_ALMACEN_OC_CHG ch WHERE ch.ID_ORDD = d.id_ordd) where d.ID_ORDD = $ln";
+        $res=$this->queryActualiza();
         if ($res != 1){
             $sta='no'; $msg="No se actualizo correctamente, quizas la cantidas excede a lo requerido";
         }
@@ -2205,38 +2320,41 @@ class wms extends database {
     }
 
     function actStaOD($ln, $prod, $oc, $t, $m){
+        $data=array();
         if($t == 'l' and $m == 'a'){
-            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln";
+            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln and status < 5";
             $res=$this->EjecutaQuerySimple();
             $res=ibase_fetch_object($res);
-            if($res->PZAS == $res->ASIG){
-                $status = 2;
-            }elseif ($res->PZAS > $res->ASIG AND $res->ASIG > 0){
-                $status = 5;
-            }elseif ($res->ASIG == 0) {
-                $status = 1;
+            if(count($data)>0 ){
+                if($res->PZAS == $res->ASIG){
+                    $status = 2;
+                }elseif ($res->PZAS > $res->ASIG AND $res->ASIG > 0){
+                    $status = 5;
+                }elseif ($res->ASIG == 0) {
+                    $status = 1;
+                }
+                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET STATUS = $status where id_ordd = $ln";
+                $this->EjecutaQuerySimple();
             }
-            $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET STATUS = $status where id_ordd = $ln";
-            $this->EjecutaQuerySimple();
         }
-
         if($t == 'm' and $m == 'a'){
-            $data=array();
-            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $oc and prod = '$prod'";
+            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $oc and prod = '$prod' and status < 5";
             $res=$this->EjecutaQuerySimple();
             while ($tsArray=ibase_fetch_object($res)) {
                 $data[]=$tsArray;
             }
-            foreach($data as $inf){
-                if($inf->PZAS == $inf->ASIG){
-                    $status = 2;
-                }elseif ($inf->PZAS > $inf->ASIG AND $inf->ASIG > 0){
-                    $status = 5;
-                }elseif ($inf->ASIG == 0) {
-                    $status = 1;
+            if(count($data)>0){
+                foreach($data as $inf){
+                    if($inf->PZAS == $inf->ASIG){
+                        $status = 2;
+                    }elseif ($inf->PZAS > $inf->ASIG AND $inf->ASIG > 0){
+                        $status = 5;
+                    }elseif ($inf->ASIG == 0) {
+                        $status = 1;
+                    }
+                    $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET STATUS = $status where id_ordd = $inf->ID_ORDD";
+                    $this->EjecutaQuerySimple();   
                 }
-                $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET STATUS = $status where id_ordd = $inf->ID_ORDD";
-                $this->EjecutaQuerySimple();   
             }
         }
         return;
@@ -2262,10 +2380,13 @@ class wms extends database {
         }
         return array("msg"=>$msg, "status"=>$sta);
     }
-
-    function asigCol($nP, $ln, $col){
+    /* depreciada el 06 de Julio del 2022
+    function asigCol($ln, $col){
         $usuario=$_SESSION['user']->ID;
         /// obtenemos los datos originales de la linea.
+        echo 'Ln' . $ln . ' Colores : '. print_r($col);
+        die();
+
         $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln";
         $r = $this->EjecutaQuerySimple();
         $row=ibase_fetch_object($r);
@@ -2288,7 +2409,6 @@ class wms extends database {
                     }
             }
         }
-
         $c=0;$pzas=0;
         for ($i=0; $i < count($col) ; $i++){ 
             $val=explode(":", $col[$i]);
@@ -2335,6 +2455,47 @@ class wms extends database {
         }
 
         return array("status"=>'ok', "msg"=>'Se ha actualizado la informacion');
+    }*/
+
+    function asigCol($ln, $col){
+        $usuario=$_SESSION['user']->ID;
+        $col= substr($col, 0 , -1);
+            $info = explode("|",$col);
+            $this->limpiaAsig($ln);
+            for ($i=0; $i < count($info) ; $i++){
+                @$inf=explode(":",$info[$i]);
+                if(isset($inf)){
+                    $np = trim($inf[0]); $cant = $inf[1];
+
+                    /// validamos si existe para hacer los cambios 
+                    $this->query="SELECT * FROM FTC_ALMACEN_OC_CHG WHERE id_ordd = $ln and nuevo = '$np'";
+                    $res=$this->EjecutaQuerySimple();
+                    if($row=ibase_fetch_object($res)){
+                        $this->query="UPDATE FTC_ALMACEN_OC_CHG SET CANT = $cant , FECHA = current_timestamp, tipo = 'A' where id_ordd = $ln and nuevo = '$np' RETURNING id_chg ";
+                        $this->queryActualiza();
+                        $idchg = ibase_fetch_object($res)->ID_CHG; $tipo = ' Actualización ';
+                    }else{
+                        $this->query="INSERT INTO FTC_ALMACEN_OC_CHG (id_chg, id_ord, id_ordd, BASE, NUEVO, CANT, COLOR, FECHA, USUARIO, STATUS, TIPO) 
+                                        VALUES (NULL, (SELECT ID_ORD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln) , $ln, (SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln), '$np', $cant, '', current_timestamp, $usuario, 0, 'P') RETURNING id_chg";
+                        $res=$this->grabaBD();
+                        $idchg = ibase_fetch_object($res)->ID_CHG; $tipo = ' Creación ';
+                    }
+
+                    $this->query="INSERT INTO FTC_ALMACEN_LOG (id_log, usuario, tipo, subtipo, tabla, fecha, status, id, Obs) 
+                                    values (null, $usuario, 'Orden Detalle', 'Cambio Presentacion'||'$tipo', 1, current_timestamp, 0, $ln, 'Asignacion de Colores del Producto '||(SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln)||' -- '||'$np'||' cant: '||$cant)";
+                    $this->grabaBD();
+
+                    $this->query="UPDATE FTC_ALMACEN_ORDEN_DET d SET ASIG = (SELECT SUM(ch.CANT) FROM FTC_ALMACEN_OC_CHG ch WHERE ch.ID_ORDD = d.id_ordd) where d.ID_ORDD = $ln";
+                    $this->queryActualiza();
+                }
+            }
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln";
+        $r = $this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($r);
+        $data =array();
+        if(!empty($nP)){
+        return array("status"=>'ok', "msg"=>'Se ha actualizado la informacion');
+       }
     }
 
     function finA($p, $ord, $t){
@@ -2344,7 +2505,8 @@ class wms extends database {
             //$campos = " sum(pzas) as piezas, sum(asig) as asignado ";
             $param2 = " WHERE ID_ORD = $ord ";
             /// cambiamos el status de la orden a Asignado. 
-            $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 3, FECHA_ASIGNA_F = current_timestamp  WHERE STATUS = 2 AND ID_ORD = $ord";
+            $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 3, FECHA_ASIGNA_F = current_timestamp  WHERE STATUS = 1 AND ID_ORD = $ord";
+            echo $this->query;
             $this->queryActualiza();
             $tabla = 1; $tipo='Orden';
         }elseif($t=='l'){
@@ -2451,7 +2613,19 @@ class wms extends database {
     }
 
     function comPro($prod, $ordd){
-        $data=array();
+        $data=array(); $dataChg=array();
+        //echo '<br/> Producto: '.$prod.' ordd: '.$ordd;
+        $this->query="SELECT * FROM FTC_ALMACEN_OC_CHG WHERE BASE = '$prod' and id_ordd = $ordd";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $dataChg= $tsArray;
+        }
+        if(count($dataChg)>0){
+
+        }else{
+            //echo 'Viene directo';
+        }
+
         $this->query="SELECT first 2 m.ID_AM, m.SIST_ORIGEN, m.ID_ALMACEN, m.ALMACEN, m.ID_TIPO, m.TIPO, m.ID_USUARIO, m.FECHA, m.ID_STATUS, m.STATUS, m.USUARIO_ATT, m.HORA_I, m.HORA_F, m.CANT, m.ID_PROD, m.ID_UNIDAD, m.UNIDAD, m.PIEZAS, m.MOV, m.ID_COMPP, m.COMPP, m.ID_COMPS, m.COMPS, m.COLOR, m.PRIMARIO, m.SECUNDARIO
         , (select
                 coalesce( sum(ms.piezas), 0) from ftc_almacen_mov_sal ms where ms.id_mov = m.id_am
@@ -2483,19 +2657,21 @@ class wms extends database {
                     )
                 )
             > 0 
-            order by m.fecha asc";
+            order by M.HORA_F asc, ID_AM ASC";
+        //echo 'Busca el producto en el almacen: '.$this->query; // solo enuentra las 2 primeras lineas donde hay producto obtiene las posiciones
+        //die;
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
         }
         $sta= count($data)>0? 'ok':'no';
-
         $pos=array();
-        $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and (status= 'P' or status = 'F')";
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and (status= 'P' or status = 'F')"; /// obtiene las posiciones del surtido de productos.
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $pos[]=$tsArray;
         }
+        $sta= count($pos)>0? 'ok':'no';
         //$pos= $this->posiciones($ordd);
         return array("status"=>$sta,"datos"=>$data, "posiciones"=>$pos);
     }
@@ -2512,7 +2688,7 @@ class wms extends database {
 
     function posImp($ordd){
         $data=array();
-        $this->query="SELECT LINEA, SUM(PIEZAS) as piezas, MAX(TARIMA) as tarima, COUNT(*) AS COMPONENTES FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and (status= 'P' or status = 'F') group by LINEA";
+        $this->query="SELECT LINEA, PRODUCTO, SUM(PIEZAS) as piezas, MAX(TARIMA) as tarima, COUNT(*) AS COMPONENTES FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and (status= 'P' or status = 'F') group by LINEA,  PRODUCTO";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -2945,7 +3121,7 @@ class wms extends database {
 
     function posiciones($prod){
         $data=array();
-        $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE id_PROD = $prod";
+        $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE id_PROD = $prod order by fecha_ingreso asc, id_am asc ";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -3050,7 +3226,7 @@ class wms extends database {
             $valor = $val->UNIDAD;
         }
         $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET UNIDAD = $valor, CAJAS=(ASIG / $valor) WHERE ID_ORDD = $ordd";
-        $this->queryActualiza();
+        //$this->queryActualiza();
         return array("sta"=>'ok', "valor"=>$valor);
     }
 
@@ -3060,6 +3236,36 @@ class wms extends database {
 
         return array("status"=>'ok');
     }
-}
-?>
+
+    function pres($info){
+        $data=array(); $inf = explode("|", $info); $prod = $inf[0]; $ord = $inf[1]; $origen = 'chg';
+        $this->query="SELECT c.*, (select id_pint from FTC_ALMACEN_PROD_INT WHERE ID_INT = '$prod') as idProd FROM FTC_ALMACEN_OC_CHG c WHERE c.BASE ='$prod' and c.id_ord = $ord";
+        //echo $this->query;
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        if(empty($data)){
+            $origen = 'Orden';
+            $this->query="SELECT prod as nuevo, asig as cant FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $ord and prod =TRIM('$prod')";
+            $res=$this->EjecutaQuerySimple();
+            while($tsArray=ibase_fetch_object($res)){
+                $data[]=$tsArray;
+            }    
+        }
+        return array("inf"=>'ok', "origen"=>$origen, "datos"=>$data);
+    }
+
+    function sustitutos($ordd){
+        $data= array();
+        $this->query = "SELECT * FROM FTC_ALMACEN_OC_CHG WHERE id_ordd = $ordd and BASE != TRIM(NUEVO) and cant > 0 ";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+
+        return $data;
+    }
+
+}?>
 

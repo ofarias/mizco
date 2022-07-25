@@ -268,6 +268,7 @@ class intelisis extends sqlbase {
 			$oc = $inf->OC;
 		}
 		$this->query="SELECT DESACFDIUUID, MOVID, Cliente, Ejercicio, Periodo from venta where OrdenCompra = '$oc' and OrigenTipo ='VTAS' and Origen = 'Pedido Web' and OrigenID = $pedido and estatus = 'CONCLUIDO' and CFDFlexEstatus = 'CONCLUIDO' and CFDTimbrado = 1 and DESACFDIUUID != ''";
+		//echo $this->query;
 		$res=$this->Ejecutaquerysimple();
 		$row = sqlsrv_fetch_array($res);
 		if(isset($row)){
@@ -387,12 +388,15 @@ class intelisis extends sqlbase {
 		$ini = empty($ini)?  date("d.m.Y", strtotime($hoy."- 1 days")):date("d.m.Y", strtotime($ini));
 		$fin = empty($fin)?  date("d.m.Y"):date("d.m.Y", strtotime($fin));
 		if($op0 == '0'){
-			$this->query="SELECT mov, count(*) as cant FROM VENTA  where fechaemision between '$ini' and '$fin' GROUP BY MOV";
+			$this->query="SELECT mov, count(*) as cant FROM VENTA  where fechaemision between '$ini' and '$fin' and (mov = 'Pedido' or Mov = 'Factura Electronica') and estatus = 'PENDIENTE' GROUP BY MOV";
 		}else{
-			$this->query="SELECT (SELECT c.NOMBRE FROM cte c where c.cliente = v.cliente) as nombre,  v.* FROM VENTA v WHERE 
-						v.FECHAEMISION between '$ini' and '$fin' 
-						and v.estatus !='CANCELADO' 
-						and v.mov = '$op1'";	
+			$this->query="SELECT (SELECT c.NOMBRE FROM cte c where c.cliente = v.cliente) as nombre,  
+								 (SELECT s.nombre from cteEnviarA s where s.cliente = v.cliente and s.id = v.enviarA ) as Sucursal,
+								 v.* 
+						  FROM VENTA v WHERE 
+							v.FECHAEMISION between '$ini' and '$fin' 
+							and v.estatus ='PENDIENTE'
+							and v.mov = '$op1'";	
 		}
 		$res=$this->Ejecutaquerysimple();	
 			while($tsarray=sqlsrv_fetch_array($res)){
@@ -405,7 +409,7 @@ class intelisis extends sqlbase {
 	function detDoc($doc){
 		$data=array();
 		$this->query="SELECT (SELECT a.DESCRIPCION1 FROM art a where a.Articulo = d.Articulo) as descr, 
-							(SELECT l.DESACodigoBarras from ListaPreciosD l where lista = v.ListaPreciosEsp and d.Articulo = l.articulo) as upc , 
+							(SELECT l.DESACodigoBarras from ListaPreciosD l where lista = v.ListaPreciosEsp and d.Articulo = l.articulo and l.Moneda = 'Pesos') as upc , 
 							d.* 
 							FROM VENTAD d
 								LEFT JOIN VENTA v on v.id = d.id 
@@ -415,5 +419,15 @@ class intelisis extends sqlbase {
 			$data[]=$tsArray;
 		}
 		return $data;
+	}
+
+	function sincPres($prod){
+		$data = array();
+		$this->query="SELECT p.articulo as presentacion , p.presentacion as articulo, (SELECT a.Descripcion1 FROM ART a WHERE p.Presentacion = a.articulo) as descripcion1 from artPresenta p where presentacion = '$prod'";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=sqlsrv_fetch_array($res)) {
+			$data[]=$tsArray;
+		}
+		return array("status"=>'ok', "datos"=>$data);
 	}
 }
