@@ -3033,7 +3033,7 @@ class wms extends database {
 
     function finSurtOrd($ord){
         $data=array();
-        $this->query="SELECT STATUS FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $ord";
+        $this->query="SELECT STATUS, id_ordd FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $ord";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -3044,6 +3044,8 @@ class wms extends database {
             if($d->STATUS == 7){
                 $fin++;
             }
+            $this->query="UPDATE FTC_ALMACEN_MOV_SAL SET STATUS = 'F' WHERE ID_ORDD = $d->ID_ORDD and status = 'P'";
+            $this->queryActualiza();
         }
         if($fin == $ordenes){
             $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 5, fecha_almacen_F = current_timestamp WHERE ID_ORD = $ord";

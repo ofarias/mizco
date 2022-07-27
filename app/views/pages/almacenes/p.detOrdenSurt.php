@@ -30,7 +30,7 @@ foreach($orden as $od){
             <p><input type="text" placeholder="Persona Asignada" class="asignar" size="80" cedis="<?php echo (isset($param)? $param:'todos')?>" value="<?php echo $pers?>"></p>
             <?php echo (!empty(@$param))? '<b>Cedis: '.$param.'</b><br/>':''?>
             <input type="button" name="" value="Imprimir" class="btn-sm btn-primary imp" p="<?php echo $param?>"> &nbsp;&nbsp;&nbsp;
-            <input type="button" value="<?php echo $status==7? 'Finalizado':'Finalizar' ?>" <?php echo $status==7? 'disabled':'' ?> cedis="<?php echo (!empty(@$param))? $param:''?>" class="finSurt" >
+            <input type="button" value="<?php echo $status==7? 'Finalizado':'Finalizar' ?>" <?php echo $status==7? 'disabled':'' ?> cedis="<?php echo $cabecera->CEDIS?>" class="finSurt" >
         </div>
             <br/>
             <div class="row">
