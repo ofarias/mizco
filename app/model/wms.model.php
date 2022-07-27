@@ -855,8 +855,8 @@ class wms extends database {
                                 max(PRIMARIO) as primario, 
                                 max(secundario) as secundario, 
                                 iif(m.id_tipo = 'e' or m.id_tipo = 'E', sum(piezas), 0) as entradas, 
-                                (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'F' )  as salidas,
-                                (SELECT SUM(PIEZAS) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'P' )  as pendientes
+                                (SELECT coalesce (SUM(PIEZAS), 0) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'F' and ms.id_prod = m.id_prod)  as salidas,
+                                (SELECT coalesce (SUM(PIEZAS), 0) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'P' and ms.id_prod = m.id_prod)  as pendientes
                         from FTC_ALMACEN_MOVimiento m
                         where id_status='F' group by m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, m.almacen order by m.id_comps asc ";
         }
