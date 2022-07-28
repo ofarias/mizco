@@ -972,6 +972,7 @@ class wms_controller {
             ->setCellValue(++$col.$ln,"Modelo")
             ->setCellValue(++$col.$ln,"UPC")
             ->setCellValue(++$col.$ln,"Existencias")
+            ->setCellValue(++$col.$ln,"Asignado")
             ->setCellValue(++$col.$ln,"Reservado")
             ->setCellValue(++$col.$ln,"Disponible")
             ->setCellValue(++$col.$ln,"Descripción")
@@ -980,10 +981,10 @@ class wms_controller {
                 $i++;
                 //$ln++;
                 $col= 'A';
-                
+                $tot_asig=$row->ASIG; /// el producto 1 ves 
                 //// Almacen / Linea / Tarima / Modelo.
                 $det=0;
-                foreach ($info['secondary'] as $key){
+                foreach ($info['secondary'] as $key){ /// secondary es la linea por lo cual vuelve a traer el producto
 
                     if($key->ID_PROD == $row->ID_PINT){
                         $det++;
@@ -992,7 +993,14 @@ class wms_controller {
                         $exist=$key->ENTRADAS-$key->SALIDAS;
                         $disp =$exist - $key->PENDIENTES;
                         if($exist!=0){
-
+                            if($disp > 0 and $tot_asig > 0 ){
+                                if ($tot_asig <= $disp){
+                                    $asig=$tot_asig; 
+                                }else{
+                                    $asig = $disp;
+                                }
+                                $tot_asig = $tot_asig - $asig;
+                            }else{ $asig = 0;}
                             $xls->setActiveSheetIndex()
                                     ->setCellValue($col.$ln,$i)
                                     ->setCellValue(++$col.$ln,$key->ALMACEN)
@@ -1005,9 +1013,10 @@ class wms_controller {
                                     //->setCellValue(++$col.$ln,$row->STATUS)
                                     //->setCellValue(++$col.$ln,$key->ENTRADAS)
                                     //->setCellValue(++$col.$ln,$key->SALIDAS)
-                                    ->setCellValue(++$col.$ln,number_format($exist))
-                                    ->setCellValue(++$col.$ln,number_format($key->PENDIENTES)) /// Reservado
-                                    ->setCellValue(++$col.$ln,number_format($disp)) /// Disponible
+                                    ->setCellValue(++$col.$ln,($exist))
+                                    ->setCellValue(++$col.$ln,($asig))
+                                    ->setCellValue(++$col.$ln,($key->PENDIENTES)) /// Reservado
+                                    ->setCellValue(++$col.$ln,($disp - $asig)) /// Disponible
                                     ->setCellValue(++$col.$ln,$row->DESC)
                             ;
                             /*

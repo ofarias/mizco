@@ -830,7 +830,7 @@ class wms extends database {
                 $secondary[] =$tsArray; 
             }
         }elseif($t='pp'){
-            $this->query="SELECT * FROM FTC_ALMACEN_PROD_INT WHERE TIPO_INT='Lote'";
+            $this->query="SELECT * FROM FTC_ALMACEN_PRODUCTOS ";
             $res=$this->EjecutaQuerySimple();
             while ($tsArray=ibase_fetch_object($res)){
                 $primary[]=$tsArray;
@@ -858,7 +858,7 @@ class wms extends database {
                                 (SELECT coalesce (SUM(PIEZAS), 0) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'F' and ms.id_prod = m.id_prod)  as salidas,
                                 (SELECT coalesce (SUM(PIEZAS), 0) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'P' and ms.id_prod = m.id_prod)  as pendientes
                         from FTC_ALMACEN_MOVimiento m
-                        where id_status='F' group by m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, m.almacen order by m.id_comps asc ";
+                        where id_status='F' group by m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, m.almacen, m.fecha, m.secundario order by m.id_comps asc, m.fecha asc, m.secundario asc   ";
         }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
@@ -3131,13 +3131,16 @@ class wms extends database {
         return array("status"=>'ok', "datos"=>$data);
     }
 
-    function liberar($movs){
+    function liberar($movs){ /// Hacer pruebas de la liberacion 
         $movs = substr($movs, 3);
         $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = PZAS_SUR - (SELECT PIEZAS FROM FTC_ALMACEN_MOV_SAL WHERE ID_MS=$movs and (status ='P' or STATUS ='F')) WHERE ID_ORDD = (SELECT ID_ORDD FROM FTC_ALMACEN_MOV_SAL WHERE ID_MS=$movs and (STATUS ='P' OR STATUS='F'))";
         $res=$this->queryActualiza();
 
         $this->query="UPDATE FTC_ALMACEN_MOV_SAL SET STATUS='C' WHERE ID_MS=$movs and (STATUS ='P' OR STATUS='F')";
         $res=$this->queryActualiza();
+
+        $this->query="UPDATE FTC_ALMACEN_OC_CHG SET PZAS_SUR = 0  WHERE ID_ORDD = (SELECT ID_ORDD FROM FTC_ALMACEN_MOV_SAL WHERE ID_MS=$movs and (STATUS ='P' OR STATUS='F')s) ";
+        $this->queryActualiza();
 
         if($res == 1){
             $this->actStatus($tabla=6, $tipo='Salida', $sub='Cancelacion', $ids=','.$movs, $obs='Cancelacion de Surtido '.$movs);
