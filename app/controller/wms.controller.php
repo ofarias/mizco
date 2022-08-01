@@ -985,7 +985,6 @@ class wms_controller {
                 //// Almacen / Linea / Tarima / Modelo.
                 $det=0;
                 foreach ($info['secondary'] as $key){ /// secondary es la linea por lo cual vuelve a traer el producto
-
                     if($key->ID_PROD == $row->ID_PINT){
                         $det++;
                         $ln++;
@@ -1829,10 +1828,10 @@ class wms_controller {
         }
     }
 
-    function ingMap($comps, $prod, $uni, $cant, $pzas, $ft, $t){
+    function ingMap($comps, $prod, $uni, $cant, $pzas, $ft, $t, $cat){
         if($_SESSION['user']){
             $data = new wms;
-            $res=$data->ingMap($comps, $prod, $uni, $cant, $pzas, $ft, $t);
+            $res=$data->ingMap($comps, $prod, $uni, $cant, $pzas, $ft, $t, $cat);
             return $res;
         }   
     }

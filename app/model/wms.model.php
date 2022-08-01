@@ -855,10 +855,10 @@ class wms extends database {
                                 max(PRIMARIO) as primario, 
                                 max(secundario) as secundario, 
                                 iif(m.id_tipo = 'e' or m.id_tipo = 'E', sum(piezas), 0) as entradas, 
-                                (SELECT coalesce (SUM(PIEZAS), 0) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'F' and ms.id_prod = m.id_prod)  as salidas,
-                                (SELECT coalesce (SUM(PIEZAS), 0) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'P' and ms.id_prod = m.id_prod)  as pendientes
+                                (SELECT coalesce (SUM(PIEZAS), 0) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'F' and ms.id_prod = m.id_prod and m.color != '')  as salidas,
+                                (SELECT coalesce (SUM(PIEZAS), 0) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'P' and ms.id_prod = m.id_prod and m.color != '')  as pendientes
                         from FTC_ALMACEN_MOVimiento m
-                        where id_status='F' group by m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, m.almacen, m.fecha, m.secundario order by m.id_comps asc, m.fecha asc, m.secundario asc   ";
+                        where id_status='F' group by m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, m.almacen, m.fecha, m.secundario, m.color order by  m.fecha asc, m.id_comps asc, m.secundario asc";
         }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
@@ -2831,7 +2831,7 @@ class wms extends database {
         return array("datos"=>$data, "tarimas"=>$row->TARIMAS, "sec"=>$sec);
     }
 
-    function ingMap($comps, $prod, $uni, $cant, $pzas, $ft , $t){
+    function ingMap($comps, $prod, $uni, $cant, $pzas, $ft , $t, $cat){
         $mov='nuevo';
         $folio=$this->folioMov($mov);
         if($t=='l'){
@@ -2853,24 +2853,24 @@ class wms extends database {
                 }else{
                     $cant=$cxt;
                 }
-                $res=$this->ingMapTar($d->ID_COMP, $prod, $uni, $cant, $pzas, $folio);
+                $res=$this->ingMapTar($d->ID_COMP, $prod, $uni, $cant, $pzas, $folio, $cat);
             }
         }elseif($t=='t'){
-            $res=$this->ingMapTar($comps, $prod, $uni, $cant, $pzas, $folio);
+            $res=$this->ingMapTar($comps, $prod, $uni, $cant, $pzas, $folio, $cat);
         }
         $this->query="DELETE FROM FTC_ALMACEN_MOV WHERE MOV = $folio[0] and prod is null ";
         $this->grabaBD();
         return $res;
     }
 
-    function ingMapTar($comps, $prod, $uni, $cant, $pzas, $folio){
+    function ingMapTar($comps, $prod, $uni, $cant, $pzas, $folio, $cat){
         $val = $this->dispComps($comps);
         if($val == 'no'){
             return array("status"=>'no', "msg"=>'No esta dispobible la tarima, favor de actualizar');            
         }    
         $usuario=$_SESSION['user']->ID;$sist='php';$prod = explode(":",$prod );$sta='ok';
         $prod = $prod[0]; $id=$folio[1]; $mov=$folio[0];
-        $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, COLOR) VALUES (
+        $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, COLOR, CATEGORIA) VALUES (
             null, 
             '$sist', 
             (SELECT ALMACEN FROM FTC_ALMACEN_COMP WHERE ID_COMP = $comps), 
@@ -2884,11 +2884,12 @@ class wms extends database {
             $cant,
             (SELECT ID_PINT FROM FTC_ALMACEN_PROD_INT where ID_INT ='$prod'), 
             $uni, 
-            $cant * (SELECT FACTOR FROM FTC_ALMACEN_UNIDADES WHERE ID_UNI = $uni),
+            $cant * $uni,
             $mov, 
             (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $comps), 
             $comps, 
-            '') returning id_am";
+            '',
+            $cat) returning id_am";
             $res=$this->grabaBD();
             @$mov= ibase_fetch_object($res)->ID_AM;
             if(@$mov > 0){$sta=='ok';}
@@ -3139,7 +3140,7 @@ class wms extends database {
         $this->query="UPDATE FTC_ALMACEN_MOV_SAL SET STATUS='C' WHERE ID_MS=$movs and (STATUS ='P' OR STATUS='F')";
         $res=$this->queryActualiza();
 
-        $this->query="UPDATE FTC_ALMACEN_OC_CHG SET PZAS_SUR = 0  WHERE ID_ORDD = (SELECT ID_ORDD FROM FTC_ALMACEN_MOV_SAL WHERE ID_MS=$movs and (STATUS ='P' OR STATUS='F')s) ";
+        $this->query="UPDATE FTC_ALMACEN_OC_CHG SET SURTIDAS = 0  WHERE ID_ORDD = (SELECT ID_ORDD FROM FTC_ALMACEN_MOV_SAL WHERE ID_MS=$movs and STATUS ='C') ";
         $this->queryActualiza();
 
         if($res == 1){

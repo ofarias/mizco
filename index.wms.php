@@ -76,7 +76,7 @@ if (isset($_POST['usuario'])) {
 }elseif (isset($_POST['reasig'])){
     $res=$controller_wms->reasig($_POST['reasig'], $_POST['compp'], $_POST['comps'], $_POST['it']);echo json_encode($res);exit();
 }elseif (isset($_POST['ingMap'])){
-    $res=$controller_wms->ingMap($_POST['ingMap'], $_POST['prod'], $_POST['uni'], $_POST['cant'], $_POST['pzas'], $_POST['ft'], $_POST['t']);echo json_encode($res);exit();
+    $res=$controller_wms->ingMap($_POST['ingMap'], $_POST['prod'], $_POST['uni'], $_POST['cant'], $_POST['pzas'], $_POST['ft'], $_POST['t'], $_POST['cat']);echo json_encode($res);exit();
 }elseif (isset($_POST['dispLin'])){
     $res=$controller_wms->dispLin($_POST['dispLin']);echo json_encode($res);exit();
 }elseif (isset($_POST['prods'])){

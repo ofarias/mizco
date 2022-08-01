@@ -171,7 +171,7 @@
                 titulo = 'Cambio de uso del componente'
                 tituloR = 'Cambio de uso de la tarima '
                 tipo = 'Linea'
-                xtar = '<br/><br/>Cantidad por tarima <input type="text" size="5" class="ft">'+
+                xtar = '<br/><br/>Cajas por tarima <input type="text" size="5" class="ft">'+
                         '<br/><br/> Tarimas disponibles = ' + tarDisp;
                 disp = 'si'
             }else{
@@ -309,7 +309,7 @@
             titulo = 'Entrada al almacen por linea.'
             tituloR = 'Reubicacion por linea'
             tipo = 'Linea'
-            xtar = '<br/><br/>Cantidad por tarima <input type="text" size="5" class="ft">'+
+            xtar = '<br/><br/>Cajas por tarima <input type="text" size="5" class="ft">'+
                     '<br/><br/> Tarimas disponibles = ' + tarDisp;
             disp = 'si'
         }else{
@@ -395,11 +395,20 @@
             '<br/> Almacen: ' + alm +
             '<br/> '+ tipo +':' + desc +
             '<br/>Seleccione el producto a ingresar: <input type="text" placeholder="Producto" class="prod chgProd" size="100">' + 
-            '<br/><br/>Unidad: <select class="uni">'+
+            '<br/><br/>Caja Master:'+
+            /*' <select class="uni">'+
             <?php foreach($uni as $u):?>
                '<option value="<?php echo $u->ID_UNI?>" factor="<?php echo $u->FACTOR?>"><?php echo $u->FACTOR."-->".$u->DESC?></option>'+
             <?php endforeach;?>
             '</select>'+
+            */
+            '<input type="text" class="uni" size="5" >'+
+            'Categoria: <select class="cat" >'+
+                '<option value="0"> Categoria </option>' +
+                '<option value="1"> Primera </option>' +
+                '<option value="2"> Segunda </option>' +
+                '<option value="3"> Tercera </option>' +
+                '</select>'+
             '<br/><br/>Cantidad (Cajas): <input type="text" size="5" class="cant" >'+
              xtar +
             '<br/><br/> Piezas totales: <label class="pzas"></label>' 
@@ -436,10 +445,19 @@
                         var uni = this.$content.find('.uni').val()
                         var cant = this.$content.find('.cant').val()
                         var pzas = this.$content.find('.pzas').html()
+                        var cat = this.$content.find('.cat').val()
                         var ft = this.$content.find('.ft').val()
-                        if(!$.isNumeric(ft) || !$.isNumeric(cant)){
+                        if(!$.isNumeric(ft) || !$.isNumeric(cant) || !$.isNumeric(uni) || !$.isNumeric(pzas)){
                             $.alert("Coloque un número valido")
                             return false
+                        }
+                        if(cat == 0){
+                            $.alert("Categoria no válida!!!")
+                            return false   
+                        }
+                        if(!$.isNumeric(pzas)){
+                            $.alert("Numero de piezas no válida!!!")
+                            return false   
                         }
                         if( t=='l' && ((parseFloat(cant) / parseFloat(ft)) > parseFloat(tarDisp)) ){
                             this.$content.find('.ft').focus()
@@ -451,7 +469,7 @@
                                 url:'index.wms.php',
                                 type:'post',
                                 dataType:'json',
-                                data:{ingMap:idc, prod, cant, uni, pzas, ft, t},
+                                data:{ingMap:idc, prod, cant, uni, pzas, ft, t, cat},
                                 success:function(data){
                                     if(data.status=='ok'){
                                         $.alert('Se ingresa el producto' + prod)
@@ -494,7 +512,7 @@
 
         $(".cant").change(function(){
             var cant = $(this).val()
-            var fact = $("option:selected", ".uni").attr('factor')
+            var fact = $(".uni").val()
             var piezas = cant * fact;
             $(".pzas").html(piezas)
         })
