@@ -665,20 +665,13 @@ class wms extends database {
         return $res;
     }
 
-    function movimiento($op){
+    function movimiento($op, $tipo){
         $data=array();
-        $this->query="SELECT * FROM FTC_ALMACEN_MOVIMIENTO WHERE MOV= $op and status != 'Baja' order by id_AM";
+        $this->query=$tipo=='Entrada'? "SELECT * FROM FTC_ALMACEN_MOVIMIENTO WHERE MOV= $op and status != 'Baja' order by id_AM":"SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE SERIE = 'A' and FOLIO= $op and status != 'Baja' order by id_ms";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
         }
-
-        $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE id_MS= $op and status != 'Baja' order by id_ms";
-        $res=$this->EjecutaQuerySimple();
-        while ($tsArray=ibase_fetch_object($res)) {
-            $data[]=$tsArray;
-        }
-
         return $data;
     }
 
@@ -693,7 +686,7 @@ class wms extends database {
         return $data;
     }
 
-    function delMov($idMov, $tp){
+    function delMov($idMov, $tp, $e){
         $status = $tp=='del'? 'B':'F';
         if($tp=='del'){
             $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status', cant=0, piezas=0 where id_AM = $idMov and status='P'";
@@ -704,14 +697,21 @@ class wms extends database {
             }else{
                 $msg= 'El movimiento parece estar Finalizado y no permite la edicion de lineas.';
             }    
-        }elseif ($tp=='end') {
-            $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status', HORA_F = current_timestamp  where MOV = (select mov from FTC_ALMACEN_MOV where id_AM = $idMov) and status='P'";
-            $res= $this->queryActualiza();
-            if($res>=1){
-                /// $this->creaSalida($idMov); comentada el 14 de junio del 2022, ya que al parecer no debe de hacer ninguna salida.... 
+        }elseif ($tp=='end'){
+            if($e == 'Entrada'){
+                $this->query="UPDATE FTC_ALMACEN_MOV SET STATUS = '$status', HORA_F = current_timestamp  where MOV = (select mov from FTC_ALMACEN_MOV where id_AM = $idMov) and status='P'";
+                $res= $this->queryActualiza();
+                if($res>=1){
+                    /// $this->creaSalida($idMov); comentada el 14 de junio del 2022, ya que al parecer no debe de hacer ninguna salida.... 
+                    $msg='Se ha finalizado el Momiemiento, ya puede imprimir el QR';
+                }else{
+                    $msg='Se ha finalizado el Momiemiento de Salida, ya puede imprimir el QR';
+                }
+                    
+            }elseif($e=='Salida'){
+                $this->query="UPDATE FTC_ALMACEN_MOV_SAL SET STATUS = '$status', FECHA = current_timestamp  where FOLIO = $idMov  and Serie = 'A' and status='P'";
+                $res= $this->queryActualiza();
                 $msg='Se ha finalizado el Momiemiento, ya puede imprimir el QR';
-            }else{
-                $msg='Surgio un inconveniente favor de actulizar';
             }
         }
         return array("msg"=>$msg);

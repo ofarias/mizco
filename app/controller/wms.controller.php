@@ -212,6 +212,7 @@ class wms_controller {
 
     function wms_newMov($op, $ver){
         $a='';$datos=array();$compA=array();$p='';$param='';$fa='';
+    
         if (isset($_SESSION['user'])) {
             $data = new wms;
             $pagina = $this->load_templateL('Componentes');
@@ -220,16 +221,19 @@ class wms_controller {
             $partidas=array();
             $mov=$op; 
             if($mov!=''){
-                $partidas=$data->movimiento($mov);
+                $tipo = strrpos($op,":")? explode(":",$op):'';
+                $mov = $tipo[0];
+                $tipo = $tipo[1];
+                $partidas=$data->movimiento($mov, $tipo);
                 $compA = $data->componentes($op=" WHERE STATUS = 'Activo' and ID_TIPO=1 and id_compp = (select max(compp) from ftc_almacen_mov amov where amov.mov =".$mov." ) ", $param='');
             }
             if (substr($ver,0,2)=="v2"){/// se trae solo la relacion de componente primario con componente secundario. Array ( [0] => v2 [1] => t [2] => e [3] => a [4] => 1 [5] => compp [6] => 1 )
                 $p=explode(":", $ver); $ver=$p[0];$t=$p[2];$al=$p[4];$c=$p[6];
                 //echo 'tamaño de p:'. count($p);
-                if($t=='s'){
-                    $this->wms_newMovSalMan($p);
-                    exit();
-                }
+            if($t=='s'){
+                $this->wms_newMovSalMan($p);
+                exit();
+            }
                 $fa=' and ID_ALM = '.$al;
                 if(!empty($c)){
                     $a= ' and ID_compP = '.$c.$fa;
@@ -318,10 +322,10 @@ class wms_controller {
         }
     }
 
-    function delMov($idMov, $tp){
+    function delMov($idMov, $tp, $e){
         if($_SESSION['user']){
             $data = new wms;
-            $exec = $data->delMov($idMov, $tp);
+            $exec = $data->delMov($idMov, $tp, $e);
             return $exec;
         }   
     }

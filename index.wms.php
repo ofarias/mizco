@@ -20,7 +20,7 @@ if (isset($_POST['usuario'])) {
 }elseif (isset($_POST['addMov'])) {
     $res=$controller_wms->addMov($_POST['tipo'], $_POST['alm'],$_POST['compP'],$_POST['compS'],$_POST['prod'],$_POST['uni'],$_POST['cant'],$_POST['col'],$_POST['mov'], $_POST['pza'], $_POST['cat']);echo json_encode($res);exit();
 }elseif (isset($_POST['delMov'])) {
-    $res=$controller_wms->delMov($_POST['delMov'], $_POST['tp']); echo json_encode($res);exit();
+    $res=$controller_wms->delMov($_POST['delMov'], $_POST['tp'], $_POST['e']); echo json_encode($res);exit();
 }elseif (isset($_POST['asocia'])) {
     $res=$controller_wms->asocia($_POST['asocia'], $_POST['cp'], $_POST['t'], $_POST['e']); echo json_encode($res);exit();
 }elseif (isset($_POST['cpLin'])){

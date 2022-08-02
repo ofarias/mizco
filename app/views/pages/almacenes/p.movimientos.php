@@ -128,7 +128,7 @@
                                 <td><?php echo $r->PIEZAS?></td>
                                 <td><?php echo $r->COMPONENTE?></td>
                                 <td><?php if($sta==0){?>
-                                    <input type="button" value="Editar" mov="<?php echo $r->MOV?>" class="btn-sm btn-info movDet"><br/>
+                                    <input type="button" value="Editar" mov="<?php echo $r->MOV?>" class="btn-sm btn-info movDet" tipo = "<?php echo $r->TIPO?>"><br/>
                                     <input type="button" value="Cancelar" mov="<?php echo $r->MOV?>" class="btn-sm btn-danger delMov" tipo="c"><?php }elseif($sta == 1){?>
                                         <a href="index.wms.php?action=wms_menu&opc=detMov:<?php echo $r->MOV.':'.$r->TIPO?>" target="popup" class="btn-sm btn-warning" onclick="window.open(this.href, this.target, 'width=1600, height=1000'); return false;">Detalle</a><br/><br/><input type="button" value="Eliminar" mov="<?php echo $r->MOV?>" class="btn-sm btn-danger delMov" tipo="b">
                                     <?php }elseif($sta == 3){?>
@@ -199,7 +199,8 @@
 
     $(".movDet").click(function(){
         var mov = $(this).attr('mov');
-        window.open('index.wms.php?action=wms_menu&opc=newMov&opc=ediMov:'+mov, "_blank")
+        var tipo = $(this).attr('tipo');
+        window.open('index.wms.php?action=wms_menu&opc=newMov&opc=ediMov:'+mov+':'+tipo, "_blank")
     })
   
     $(".delMov").click(function(){

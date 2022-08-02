@@ -86,7 +86,7 @@
                              </label>
                             <br/><br/>
                             <?php if($mov>=1){?>
-                            &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" name="" value="<?php echo $m->STATUS=='Finalizado'? 'Finalizado':'Finalizar'.$m->COMPS?>" class="btn-sm btn-primary execMov" tipo="end" idMov="<?php echo $m->ID_AM?>" <?php echo $m->STATUS=='Finalizado'? 'disabled':''?>>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" name="" value="<?php echo ($m->STATUS=='Finalizado' or $m->STATUS=='F')? 'Finalizado':'Finalizar: '.$m->COMPS?>" class="btn-sm btn-primary execMov" tipo="end" idMov="<?php echo $m->ID_AM?>" <?php echo ($m->STATUS=='Finalizado' or $m->STATUS=='F')? 'disabled':''?> e="<?php echo $tipo?>" movs="<?php echo $mov?>">
                             <?php if($m->STATUS == 'Finalizado'):?>
                             &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Imprimir" class="btn-sm btn-warning" >
                             &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Genera QR" class="btn-sm btn-success" >
@@ -406,6 +406,10 @@
     $(".execMov").click(function(){
         var idMov = $(this).attr('idMov')
         var tp = $(this).attr('tipo')
+        var e = $(this).attr('e')
+        if(e == 'Salida'){
+            idMov = $(this).attr('movs')
+        }
         var mensaje = ""
         if(tp == 'end'){
             mensaje = "Desea finalizar el Movimiento? ya no se podra agregar o quitar lineas?";
@@ -423,7 +427,7 @@
                         url:'index.wms.php',
                         type:'post',
                         dataType:'json',
-                        data:{delMov:idMov, tp}, 
+                        data:{delMov:idMov, tp, e}, 
                         success:function(data){
                             $.alert(data.msg)
                             setTimeout(function(){
