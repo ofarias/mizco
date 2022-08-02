@@ -46,19 +46,19 @@
                         </tfoot>
                         <tbody>
                             <?php $i=0;foreach($info as $row): $i++;
-                            $vol=0; $volT = 960000; $volm = 0;
-                            $dif=$row->DISP-$row->DISP_ALM;
-                            $color='';
-                            if($dif > 0 ){
-                                $color = "style=background-color:#ffbcc3;";
-                            }elseif($dif<0){
-                                $color = "style=background-color:#eaf5fa;";
-                            }
-                            $vol = $row->ANCHO * $row->ALTO * $row->LARGO;
-                            $volm = ($row->UNIDAD_ORIG>0 and $row->PZS_PALET_O > 0)? $vol*$row->UNIDAD_ORIG:0;
+                                $vol=0; $volT = 960000; $volm = 0;
+                                $dif=$row->DISP-$row->DISP_ALM;
+                                $color='';
+                                if($dif > 0 ){
+                                    $color = "style=background-color:#ffbcc3;";
+                                }elseif($dif<0){
+                                    $color = "style=background-color:#eaf5fa;";
+                                }
+                                $vol = $row->ANCHO * $row->ALTO * $row->LARGO;
+                                $volm = ($row->UNIDAD_ORIG>0 and $row->PZS_PALET_O > 0)? $vol*$row->UNIDAD_ORIG:0;
 
                             ?>
-                            <tr class=" <?php echo $row->STATUS?>" id="linc<?php echo $i?>" <?php echo $color;?> <?php echo $row->STATUS=='Alta'? '':'hidden'?> >
+                            <tr class=" <?php echo $row->STATUS?>" id="linc<?php echo $i?>" <?php echo $color;?> <?php echo trim($row->STATUS)=='Alta'? '':'hidden'?> >
                                 <td>
                                     <a class="posicion" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"><?php echo $row->ID_INT;?></a><br/><a class="movs" prod="<?php echo $row->ID_INT;?>">Movs a Excel</a>
                                     <br/>

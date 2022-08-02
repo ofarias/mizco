@@ -21,17 +21,18 @@ class wms extends database {
     function refresh($intelisis){
         $i=0; $n=0;$a=0;
         foreach($intelisis as $int){
+            $prod=strtoupper($int[0]);
             $data = array(); $i++;$upc = $int['DESACodigoBarras'];
-            $this->query="SELECT * FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$int[0]'";
+            $this->query="SELECT * FROM FTC_ALMACEN_PROD_INT WHERE upper(ID_INT) = '$prod'";
             $res=$this->EjecutaQuerySimple();
             while($tsarray=ibase_fetch_object($res)){$data[]=$tsarray;}
             if(count($data)==0){
                 $n++;
-                $this->query="INSERT INTO FTC_ALMACEN_PROD_INT (ID_PINT, ID_INT, DESC, PZS_ORIG, LARGO, ANCHO, ALTO, PZS_PALET_O, UNIDAD_ORIG, TIPO_INT, STATUS, UPC) VALUES (null, '$int[0]','$int[2]', null, null, null, null, null, null, '$int[24]', 'Alta', '$upc')";
+                $this->query="INSERT INTO FTC_ALMACEN_PROD_INT (ID_PINT, ID_INT, DESC, PZS_ORIG, LARGO, ANCHO, ALTO, PZS_PALET_O, UNIDAD_ORIG, TIPO_INT, STATUS, UPC) VALUES (null, '$prod' ,'$int[2]', null, null, null, null, null, null, '$int[24]', 'Alta', '$upc')";
                 $this->grabaBD();
             }else{
                 $a++;
-                $this->query="UPDATE FTC_ALMACEN_PROD_INT SET UPC = '$upc' where id_int = '$int[0]'";
+                $this->query="UPDATE FTC_ALMACEN_PROD_INT SET UPC = '$upc' where upper(id_int) = '$prod'";
                 $this->queryActualiza();
             }
         }
