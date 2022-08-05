@@ -375,7 +375,7 @@
                         dataType:'json',
                         data:{addMov:1, tipo, alm, compP, compS, prod:data.prod, uni, cant, col, mov, pza, cat},
                         success:function(data){
-                            window.open('index.wms.php?action=wms_menu&opc=ediMov:'+ data.mov, "_self")
+                            window.open('index.wms.php?action=wms_menu&opc=ediMov:'+ data.mov+':Entrada', "_self")
                         }
                     })
                 }

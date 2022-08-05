@@ -212,7 +212,6 @@ class wms_controller {
 
     function wms_newMov($op, $ver){
         $a='';$datos=array();$compA=array();$p='';$param='';$fa='';
-    
         if (isset($_SESSION['user'])) {
             $data = new wms;
             $pagina = $this->load_templateL('Componentes');
