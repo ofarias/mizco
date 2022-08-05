@@ -430,4 +430,51 @@ class intelisis extends sqlbase {
 		}
 		return array("status"=>'ok', "datos"=>$data);
 	}
+
+	function infoInt($doc){
+		$cabecera=array(); $detalle=array();
+		$this->query="SELECT * FROM VENTA WHERE ID = $doc";
+		$res=$this->Ejecutaquerysimple();
+		while($tsArray=sqlsrv_fetch_array($res)){
+			$cabecera[]=$tsArray;
+		}
+		$this->query="SELECT * FROM VENTAD WHERE ID = $doc";
+		//$res=$this->Ejecutaquerysimple();
+		while($tsArray=sqlsrv_fetch_array($res)){
+			$partidas[]=$tsArray;
+		}
+		//echo 'Cabecera: '.count($cabecera).' partidas '.count($partidas); 
+		return array("cabecera"=>$cabecera, "partidas"=>$partidas);
+	}
+
+	function asgLn($info){
+		$data=array();$asig=0;$base=''; $i=0;
+		foreach ($info as $inf){
+			$id = $inf->ID_ORD; 
+			if($i==0){
+				$base= $inf->RENGLON;
+			}
+			$renglon=$inf->RENGLON;  ///1 
+			if($renglon == $base){ /// SIEMPRE ES IGUAL LA PRIMERA VES aqui base no esta definida
+				$base = $inf->RENGLON;   /// ESTABLECEMOS LA BASE 1
+				$asig+=$inf->CANT; 	/// SUMAMOS 0  + CANTIDAD INICIAL.
+			}else{
+				$asig=$inf->CANT;
+			}
+				$this->query="SELECT * FROM VENTAD WHERE ID = $id and renglon =$renglon";
+				//$res=$this->Ejecutaquerysimple();
+				while($tsArray=sqlsrv_fetch_array($res)){
+					$data[]=$tsArray;
+				}
+				if(count($data)>0){
+					foreach($data as $d){
+						$this->query="UPDATE VENTAD set UltimoReservadoCantidad=($asig/factor), CantidadReservada= ($asig/factor) where ID = $id and renglon = $renglon";
+						echo '<br/>Consulta: '.$this->query;
+						//$this->Ejecutaquerysimple();
+					}
+					unset($data);
+				}
+			$i++;
+		}
+	}
 }

@@ -31,6 +31,7 @@ foreach($orden as $od){
             <?php echo (!empty(@$param))? '<b>Cedis: '.$param.'</b><br/>':''?>
             <input type="button" name="" value="Imprimir" class="btn-sm btn-primary imp" p="<?php echo $param?>"> &nbsp;&nbsp;&nbsp;
             <input type="button" value="<?php echo $status==7? 'Finalizado':'Finalizar' ?>" <?php echo $status==7? 'disabled':'' ?> cedis="<?php echo $cabecera->CEDIS?>" class="finSurt" >
+            &nbsp;&nbsp;&nbsp;<input type="checkbox" <?php echo $cabecera->CAJAS ==0? 'checked':''?> class="surtAuto"> <label>Surtido Automatico </label>
         </div>
             <br/>
             <div class="row">
@@ -111,6 +112,29 @@ foreach($orden as $od){
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
     var ord = <?php echo $id_o?>;
+
+    $(".surtAuto").change(function(){
+        //var tipo = $(this).prop('checked')
+        if($(this).prop('checked')  == true){
+            var tipo= 1;
+        }else{
+            var tipo =2;
+        }
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{surtAuto:ord, tipo},
+            success:function(data){
+                if(data.status == 'ok'){
+                    $.alert(data.msg)
+                }
+            },
+            error:function(){
+
+            }
+        })
+    })
 
     $(document).ready(function(){
         $(".asignado").each(function(){

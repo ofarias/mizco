@@ -1397,6 +1397,16 @@ class wms_controller {
             $pagina = $this->load_template('Reportes');
             $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenes.php');
             ob_start();
+            /*if($op == 'all'){
+                $pagina = $this->load_template('Reportes');
+                $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenesAll.php');
+                $ordenes = $data->ordenesAll();
+                include 'app/views/pages/almacenes/p.monitorOrdenesAll.php';
+                $table = ob_get_clean();
+                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+                $this->view_page($pagina); 
+                die();
+            }*/
             $opc = explode(":", $op);
             if(count($opc)> 1){
                 if($opc[3] != '0'){
@@ -1556,14 +1566,7 @@ class wms_controller {
         }   
     }
 
-    function asgProd($ord, $prod, $pza, $t, $c, $s){
-        if($_SESSION['user']){
-            $data= new wms;
-            $res=$data->asgProd($ord, $prod, $pza, $t, $c, $s);
-            return $res;
-        }
-
-    }
+    
 
     function detLinOrd($ord, $prod){
         if($_SESSION['user']){
@@ -1581,14 +1584,35 @@ class wms_controller {
         }
     }
 
-    function asgLn($ln, $c){
+    function asgProd($ord, $prod, $pza, $t, $c, $s){
         if($_SESSION['user']){
             $data= new wms;
-            $res=$data->asgLn($ln, $c);
+            $data_i= new intelisis;
+            $res=$data->asgProd($ord, $prod, $pza, $t, $c, $s);
+            //$sincInt =$data_i->asgLn($res['infoAsig']);
             return $res;
         }
     }
 
+    function asgLn($ln, $c){
+        if($_SESSION['user']){
+            $data= new wms;
+            $data_i= new intelisis;
+            $res=$data->asgLn($ln, $c);
+            //$sincInt =$data_i->asgLn($res['infoAsig']);
+            return $res;
+        }
+    }
+
+    function asigCol($ln, $col){
+        if($_SESSION['user']){
+            $data= new wms;
+            $data_i= new intelisis;
+            $res=$data->asigCol($ln, $col);
+            //$sincInt =$data_i->asgLn($res['infoAsig']);
+            return $res;
+        }       
+    }
     function chgProd($p, $nP, $o, $t){
         if($_SESSION['user']){
             $data= new wms;
@@ -1597,13 +1621,6 @@ class wms_controller {
         }    
     }
 
-    function asigCol($ln, $col){
-        if($_SESSION['user']){
-            $data= new wms;
-            $res=$data->asigCol($ln, $col);
-            return $res;
-        }       
-    }
 
     function finA($p, $ord, $t){
         if($_SESSION['user']){
@@ -1755,7 +1772,7 @@ class wms_controller {
                 foreach($pos as $pst){
                     $i++;
                     if($pst->COMPONENTES > 1){
-                        $ubicacion = ' Lin:  '.$pst->LINEA.'  Cant:  '.number_format($pst->PIEZAS,0).' - '.$pst->PRODUCTO.''."\n";
+                        $ubicacion = ' Lin:  '.$pst->LINEA.'  Tar: '.$pst->TARIMA.'  Cant:  '.number_format($pst->PIEZAS,0).' - '.$pst->PRODUCTO.''."\n";
                     }else{
                         $ubicacion = ' Lin:  '.$pst->LINEA.'  Tar: '.$pst->TARIMA.'  Cant:  '.number_format($pst->PIEZAS,0).' - '.$pst->PRODUCTO.''."\n";
                     }
@@ -1775,8 +1792,8 @@ class wms_controller {
                         $pdf->Cell(20, 4,"",'B',0,'R');
                         $pdf->Cell(20, 4,"",'B',0,'R');
                         $pdf->Cell(20, 4,"",'B',0,'R');
-                        $pdf->Cell(70, 4,$ubi[$l],'LBR',0,'R');
-                        //$pdf->Cell(40, 4,"",'RB',0,'R');
+                        $pdf->Cell(70, 4,$ubi[$l],'LR',0,'R');
+                        $pdf->Cell(40, 4,"",'RBT',0,'R');
                         $pdf->Ln();
                     }
                 }
@@ -2115,7 +2132,10 @@ class wms_controller {
         $data = new wms;
         $datos = $data_i->detDoc($doc);
         $inserta = $data->insDetOcInt($datos);
-        return $inserta;
+        //$infoWms = $data->orden($doc); no es necesario por que ya tenemos la orden de compra.
+        $infoInt = $data_i->infoInt($doc);
+        //$sinc = $data->sincOrd($infoInt);
+        return $sinc;
     }
 
     function sincPres($prod){

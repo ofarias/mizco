@@ -4,7 +4,6 @@
         width: 5em;
     }
 </style>
-<?php echo $_SESSION['user']->NOMBRE?>
 <div class="row">
     <div class="col-lg-12">
             <div tyle="color: blue;"> 
@@ -35,7 +34,6 @@
                         <option value="<?php echo $k['mov']?>"><?php echo $k['mov'].'('.$k['cant'].')'?></option>
                     <?php } ?>
                 </select>
-
                 Fecha inicial:&nbsp;&nbsp;<input type="date" class="ini" value="<?php echo date('d/m/Y')?>" > Fecha Final:&nbsp;&nbsp;<input type="date" class="fin" value="<?php echo date('d/m/Y')?>" >&nbsp;&nbsp;<button class="btn-sm btn-info filtro">Ir</button>
                 Todos <input type="button" value="Todos" class="btn-sm btn-primary all">
             </p>

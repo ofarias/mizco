@@ -224,7 +224,7 @@
                                             }
                                         }
                                     })
-                                    window.close()
+                                    //window.close()
                                 }else{
                                     $.alert({
                                         title: 'Al parecer hay productos pendientes por Asignar',
