@@ -3383,5 +3383,24 @@ class wms extends database {
         return array("errores"=>$errores);
     }
 
+    function ordenesAll($param){
+        echo '<br/>Debemos traer el filtro de fechas: '.$param;
+        $data = array();
+        if($param != 'all'){
+            /// sacamos los parametros de las fechas.
+            $param = explode(":", substr($param,1));
+            $fi = $param[0];
+            $ff = $param[1];
+            $i = !empty($fi)? " and dia_carga >= '".$fi."'":'';
+            $f = !empty($ff)? " and dia_carga <= '".$ff."'":'';
+            $this->query="SELECT * from FTC_ALMACEN_ORDENES WHERE ID_ORD > 0 $i $f";
+            $res=$this->EjecutaQuerySimple();
+            while($tsArray=ibase_fetch_object($res)){
+                $data[]=$tsArray;
+            }
+            return $data;
+        }
+    }
+
 }?>
 

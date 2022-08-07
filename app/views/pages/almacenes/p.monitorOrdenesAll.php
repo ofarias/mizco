@@ -7,35 +7,10 @@
 <div class="row">
     <div class="col-lg-12">
             <div tyle="color: blue;"> 
-                    <?php $lt=$_SESSION['user']->NUMERO_LETRAS; if($lt==1){?>
-                <p>
-                    <div class="col-lg-12">
-                        <div class="col-lg-6">
-                        <label>Carga el el Layout para la carga de Ordenes de compra en excel.</label>
-                        <form action="index.wms.php" method="post" enctype="multipart/form-data">
-                            <input type="file" name="files[]" multiple="" onchange="makeFileList()" id="filesToUpload" accept=".xls, .csv, .txt, .xlsx">
-                            <input type="hidden" name="upload_ordenes" value="upload_ordenes" />
-                            <input type="hidden" name="files2upload" value="" />
-                            <input type="submit" value="Cargar Orden" >
-                        </form>
-                        <ul id="fileList">
-                            <li>No hay archivos seleccionados</li>        
-                        </ul>
-                        </div>
-                        <div class="col-lg-6">
-                           <a class="correos"> Correos Predeterminados.</a>
-                        </div>
-                    </div>
-                </p>
-                    <?php }?>
-                    <br/>
-                <p>Ver: <select class="status">
-                    <?php foreach ($docs as $k){?>
-                        <option value="<?php echo $k['mov']?>"><?php echo $k['mov'].'('.$k['cant'].')'?></option>
-                    <?php } ?>
-                </select>
-                Fecha inicial:&nbsp;&nbsp;<input type="date" class="ini" value="<?php echo date('d/m/Y')?>" > Fecha Final:&nbsp;&nbsp;<input type="date" class="fin" value="<?php echo date('d/m/Y')?>" >&nbsp;&nbsp;<button class="btn-sm btn-info filtro">Ir</button>
-                Todos <input type="button" value="Todos" class="btn-sm btn-primary all">
+                <br/>
+                Fecha inicial:&nbsp;&nbsp;<input type="date" class="ini" value="<?php echo date('d/m/Y')?>" > Fecha Final:&nbsp;&nbsp;<input type="date" class="fin" value="<?php echo date('d/m/Y')?>" >&nbsp;&nbsp;<button class="btn-sm btn-info filtro" tipo='normal'>Ir</button>
+                Todos <input type="button" value="Todos" class="btn-sm btn-primary filtro" tipo="all">
+                <br/><label>Pedidos:</label><?php echo $lt?>
             </p>
             </div>
             <br/>
@@ -44,10 +19,10 @@
                     <div class="panel panel-default">
             <div class="panel-body">
                             <div class="table-responsive">                            
-                                <table class="table table-striped table-bordered table-hover" id="dataTables-monitorOC">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-monitorOCAll">
                                     <thead>
                                         <tr>
-                                            <th> Ln <br/><input type="checkbox" name="selAll" class="selAll"></th>
+                                            <th> Ln</th>
                                             <th> Cliente </th>
                                             <th> Orden </th>
                                             <th> Fecha de Carga <br/> <font color="blue">Final</font> </th>
@@ -61,9 +36,7 @@
                                             <th> Usuario </th>
                                             <th> Prioridad </th>
                                             <th> Trabajar </th>
-                                            <?php if($lt==1){?>
-                                            <th> Eliminar </th>
-                                            <?php }?>
+                                            
                                         </tr>
                                     </thead>
                                   <tbody>
@@ -86,7 +59,7 @@
 
                                         ?>
                                        <tr class="odd gradeX" <?php echo $color?> id="lin_<?php echo $ln?>" title="<?php echo $ord->ID_INT?>">
-                                            <th><input type="checkbox" name="sel" value="<?php echo $ord->ARCHIVO?>" ids="<?php echo $ord->ID_ORD?>"></th>
+                                            <td><?php echo $ln?></td>
                                             <input type="hidden" name="" class="orden" ord="<?php echo $ord->ID_ORD?>">
                                             <td><?php echo $ord->CLIENTE?><br/>
                                                 <?php if($ord->LOGS > 0 or $ord->LOGS_DET > 0){?>
@@ -101,20 +74,19 @@
                                             <td align="right"><?php echo number_format($ord->PIEZAS,0)?></td>
                                             <td><?php echo $ord->ARCHIVO?></td>
                                             <td><b><?php echo $ord->STATUS?></b> <br/> <font color="blue"><?php echo $ord->STA_INT?></font></td>
-                                            
                                             <td><?php echo $ord->FECHA_ASIGNA?>
                                             <br/><font color="brown"><?php echo $ord->FECHA_ASIGNA_F?></font></td>
-
                                             <td><?php echo $ord->FECHA_ALMACEN?><br/><font color="green"><?php echo $ord->FECHA_ALMACEN_F?></font></td>
                                             <td><?php echo $ord->USUARIO?></td>
-
-
                                             <td><?php echo $ord->PRIORIDAD?></td>
                                             <td>
                                                 <br/>
                                                 <?php if($lt==1){?>
-                                                <a class="envio"> Enviar Correo</a>
-                                                <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=d" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;" class="marca" lin="<?php echo $ln?>"> Detalles</a>
+                                                    <select class="tAsig" title="Limp Asi">
+                                                        <option value="0" title="Limp As">Opciones:</option>
+                                                        <option value="1" title="Limp A">Regresar a Asignación:</option>
+                                                        <option value="2" title="Limp ">Limpia Asignación</option>
+                                                    </select>
                                                 <?php }?>
                                                 <br/>
                                                 <?php if($lt==2){?>
@@ -125,10 +97,6 @@
                                                 <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=s" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;" class="marcar" lin="<?php echo $ln?>">Surtir Orden</a>
                                                 <?php }?>
                                                 </td>
-                                            <?php if($lt==1){?>
-                                            <td><input type="button" value="Eliminar" class="btn-sm btn-danger del" oc="<?php echo $ord->ID_ORD?>"><br/>
-                                                <a class="remp" ido="<?php echo $ord->ID_ORD?>" logs="<?php echo $ord->LOGS + $ord->LOGS_DET?>">Remplazar Archivo</a></td>
-                                            <?php }?>
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>
@@ -148,7 +116,6 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
-    var pred = <?php echo count($correos)?>;
 
     $(".all").click(function(){
         window.open("index.wms.php?action=wms_menu&opc=oall", "_self")
@@ -161,117 +128,12 @@
         linea.style.background="#ffbcc3";
     })
 
-    $("document").ready(function(){
-        $(".orden").each(function (){
-            var doc = $(this).attr('ord')
-            //alert('Busca el detalle del documento' + doc )
-            $.ajax({
-                url:'index.wms.php',
-                type:'post',
-                dataType:'json',
-                data:{detOcInt:doc},
-                success:function(data){
-
-                }, 
-                error:function(){
-
-                }
-            })
-        })
-    })
-
-    $(".correos").click(function(){
-                var datos=[];
-                $.confirm({
-                        columnClass: 'col-md-8',
-                        title: 'Correos',
-                        content: 'Lista de correos para el envio de Ordenes de compra:' +
-                        '<br/><label><font size="1.5">Pred: Se envia siempre a esta dirección.</font></label>'+
-                        '<br/><label><font size="1.5">Opc: Aparece en la lista de correos opcionales.</font></label>'+
-                        '<br/><label><font size="1.5">Quitar: Se elimina de la lista de direcciones.</font></label>'+
-                        '<br/><b>Correos predeterminados:</b><br/><br/>'+
-                        '<ul>'+
-                        <?php foreach($correos as $c):?>
-                            <?php if($c->TIPO == 'P'):?>
-                                '<li class="opc" id_e="<?php echo $c->ID_EMAIL?>"> <?php echo $c->NOMBRE.'--'.$c->CORREO?>&nbsp;&nbsp; <b>Tipo:</b>&nbsp;&nbsp;<font color="green"><b>Pred:</b></font><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="P"> <b>Opc:</b><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="O">&nbsp;&nbsp;<font color="red"> <b>Quitar:</b></font><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="B"> <input type="radio" class="hidden"  name="tipo_<?php echo $c->ID_EMAIL?>" value="Z" checked></li>'+
-                            <?php endif;?>
-                        <?php endforeach;?>
-                        '</ul>'+
-                        '<br/><b>Otros correos:</b><br/>'+
-                        '<ul>'+
-                        <?php foreach($correos as $c):?>
-                            <?php if($c->TIPO != 'P' and $c->TIPO !='B'):?>
-                                '<li class="opc" id_e="<?php echo $c->ID_EMAIL?>"> <?php echo htmlspecialchars_decode($c->NOMBRE).' <font color="blue"><b>'.$c->CORREO.'</b></font>'?>&nbsp;&nbsp; <b>Tipo:</b>&nbsp;&nbsp;<font color="green"><b>Pred:</b></font><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="P"> <b>Opc:</b><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="O">&nbsp;&nbsp; <font color="red"> <b>Quitar:</b></font><input type="radio"  name="tipo_<?php echo $c->ID_EMAIL?>" value="B"><input type="radio" class="hidden"  name="tipo_<?php echo $c->ID_EMAIL?>" value="Z" checked> </li>'+
-                            <?php endif;?>
-                        <?php endforeach;?>
-                        '</ul>'+
-                        ''+
-                        '<br/><label>Nuevo destinatario:</label><br/>'+
-                        '<input type="text" class="name" placeholder="Nombre" size="35" >&nbsp;&nbsp;&nbsp;<input type="email" value="" placeholder="Correo electrónico" size="35" class="mail"> <a class="addMail">+</a>'+
-                        '<br/><label><font size="1.5pxs">Por default el tipo es opcional</label>'
-                        ,
-                        buttons: {
-                            Aceptar: function () {
-                                $(".opc").each(function(index){
-                                    var ln = $(this).attr("id_e")
-                                    var opc = $('input:radio[name=tipo_'+ln+']:checked').val()
-                                    //if(opc.is(':checked')){
-                                        datos.push (ln, opc)
-                                    //}
-                                })
-                                $.ajax({
-                                    url:'index.wms.php',
-                                    type:'post',
-                                    dataType:'json',
-                                    data:{actCorreo:1, datos}, 
-                                    success:function(data){
-                                        $.alert(data.msg)
-                                    }, 
-                                    error:function(error){
-
-                                    }
-                                })
-                            }
-                        ,
-                        cancelar: function () {
-                        },
-                        },
-                });
-    })
-
-    $("body").on("click",".name", function(e){
-        e.preventDefault()
-        $(".addMail").click(function (){
-            var nom=$(".name").val()
-            var mail=$(".mail").val()
-            if(nom != '' && mail !=''){
-                var datos=["add",nom ,mail]
-                $.ajax({
-                    url:'index.wms.php',
-                    type:'post',
-                    dataType:'json',
-                    data:{actCorreo:1, datos},
-                    success:function(data){
-                        if(data.sta=='ok'){
-                            $.alert(data.msg)
-                            $(".name").val("")
-                            $(".mail").val("")
-                        }
-                    }, 
-                    error:function(error){
-
-                    }
-                })
-            }
-        })
-    })
-
-
     $(".filtro").click(function(){
         var ini = $(".ini").val()
         var fin = $(".fin").val()
         var sta = $(".status").val()
-        window.open("index.wms.php?action=wms_menu&opc=o:"+ini+":"+fin+":"+sta, "_self")
+        var tipo= $(this).attr('tipo')
+        window.open("index.wms.php?action=wms_menu&opc=o:"+ini+":"+fin+":"+sta+":"+tipo, "_self")
     })
     /*
     $(".marca").click(function(){
@@ -279,40 +141,7 @@
         document.getElementById("lin_"+lin).style.background='#DCF0F9';
     })
     */
-    $(".remp").click(function(){
-        var m = $(this).attr('logs')
-        var ord = $(this).attr('ido')
-            $.confirm({
-                columnClass: 'col-md-8',
-                title: 'Reemplazar archivo de Orden de compra',
-                content: 'Desea reemplazar el archivo con ' + m + ' movimientos?' +
-                '<form action="upload_reemp.php" method="post" enctype="multipart/form-data" class="formName">' +
-                '<div class="form-group">'+
-                '<br/>Archivo nuevo: '+
-                '<input type="file" name="fileToUpload" class="file" accept=".xls, .csv, .txt, .xlsx"><br/>'+
-                '<input type="hidden" name="ido" value="'+ord+'">'+
-                '<br/>Motivo del reemplazo:<br/>'+
-                '<textarea class="mot" cols="80" rows="10" name="mot"></textarea>'+
-                '<br/><br/>'+
-                '</form>'
-                ,
-                buttons: {
-                formSubmit: {
-                text: 'Reemplazar y avisar',
-                btnClass: 'btn-blue',
-                action: function () {
-                    var file = this.$content.find('.file').val();
-                    var mot = this.$content.find('.mot').val()
-                    var form = this.$content.find('.formName')
-                    form.submit()        
-                   }
-                },
-                cancelar: function () {
-                },
-                },
-        });
-    })
-
+    
     $(".logs").mouseover(function(){
         var ido = $(this).attr('ido')
         var titulo = ''
@@ -343,168 +172,6 @@
             }
         });
     });
-
-    function makeFileList() {
-            var input = document.getElementById("filesToUpload");
-            var ul = document.getElementById("fileList");
-            while (ul.hasChildNodes()) {
-                    ul.removeChild(ul.firstChild);
-            }
-            for (var i = 0; i < input.files.length; i++) {
-                    var li = document.createElement("li");
-                    li.innerHTML = input.files[i].name;
-                    ul.appendChild(li);
-            }
-            if(!ul.hasChildNodes()) {
-                    var li = document.createElement("li");
-                    li.innerHTML = 'No hay archivos selccionados.';
-                    ul.appendChild(li);
-            }
-            document.getElementById("files2upload").value = input.files.length;
-    }
-   ul
-
-    $(".del").click(function(){
-        var id = $(this).attr('oc')
-        $.confirm({
-            title: 'Eliminar la Orden de compra?',
-            content: 'Solo se pueden eliminar Ordenes que no esten trabajadas!',
-            buttons: {
-                Aceptar: function () {
-                    $.ajax({
-                        url:'index.wms.php',
-                        type:'post',
-                        dataType:'json',
-                        data:{delOc:1, id},
-                        success:function(data){
-                            if(data.status == 'ok'){
-                                //$("#e_"+id).hide()
-                                //document.getElementById(id).classList.add('hidden')
-                                //document.getElementById("c_"+id).classList.add('hidden')
-                                    $.alert(data.msg)
-                            }else if(data.status== 'no'){
-                                $.alert("Se encontraron movimientos o dependencias del componente")                                
-                            }else if(data.status=='p'){
-                                $.alert("El componente primario tiene asociaciones, hay que eliminar las asociaciones antes.")                                
-                            }
-                        },
-                        error:function(){
-                            $.alert('Ocurrio un error, favor de actualizar su pantalla he intentarlo nuevamente')
-                        }
-                    })
-                },
-                Cancelar: function () {
-                    $.alert('No se realizo ninguna acción.');
-                },
-                //somethingElse: {
-                //    text: 'Something else',
-                //    btnClass: 'btn-blue',
-                //    keys: ['enter', 'shift'],
-                //    action: function(){
-                //        $.alert('Something else?');
-                //    }
-                //}
-            }
-        });
-    })
-
-    $(".selAll").change(function(){
-        $("input[name=sel]").prop('checked', $(this).prop("checked"));
-    })
-
-    $(".envio").click(function(){
-        var selec = cheks();
-        if(selec['lista'].length == 0){
-            $.alert('Debe Seleccionar por lo menos un archivos.');
-            return false;            
-        }
-        $.confirm({
-            columnClass: 'col-md-8',
-            title: 'Envio de correo de los archivos seleccionados',
-            content: 'Se enviaran los documentos seleccionados.' + 
-            '<form action="index.php" class="formName">' +
-            '<div class="form-group">'+
-            '<br/>Para: '+
-            '<input type="email" multiple placeholder="Separar las direcciones con coma , " class="dir" size="100" maxlenght="150"><br/><br/>'+
-            '<input type="checkbox" name="mail" value="alberto@selectsound.com.mx" correo="alberto@selectsound.com.mx"> Alberto Mizrahi: alberto@selectsound.com.mx<br/>'+
-            <?php foreach($opcion as $opcM):?>
-                '<input type="checkbox" name="mail" value="<?php echo $opcM->CORREO?>" correo="<?php echo $opcM->CORREO?>"> <?php echo $opcM->NOMBRE?>: <?php echo $opcM->CORREO?><br/>'+
-            <?php endforeach;?>
-            '<br/>Mensaje:<br/>'+
-            '<textarea class="msg" cols="100" rows="15"></textarea>'+
-            '<br/><br/>'+
-            '</form>'+
-            'Archivos que se Adjuntaran: <br/>' + selec['lista']
-            ,
-                buttons: {
-                formSubmit: {
-                text: 'Envio de correo',
-                btnClass: 'btn-blue',
-                action: function () {
-                    var dir = this.$content.find('.dir').val();
-                    var msg = this.$content.find('.msg').val();
-                    var a = '';
-                    var c = 0;
-                    this.$content.find("input[name=mail]").each(function(index){ 
-                       if($(this).is(':checked')){
-                          c++;
-                          a+= ','+$(this).val();
-                       }
-                    });
-                    if(a.length >0){
-                        a = a.substring(1)
-                    }
-                    dir += a 
-                    if(dir=='' && pred == 0){
-                        $.alert('Debe de contener por lo menos una direccion');
-                        return false;
-                    }else{
-                        //$.alert("Se envia el correo")
-                        $.ajax({
-                            url:'index.wms.php',
-                            type:'post',
-                            dataType:'json',
-                            data:{envMail:1, dir, msg, files:selec['a'], ids:selec['ids']},
-                            success:function(data){
-                                alert(data.msg);
-                                //location.reload(true)
-                            }
-                        });
-                    }
-                   }
-                },
-                cancelar: function () {
-                },
-                },
-                onContentReady: function () {
-                // bind to events
-                var jc = this;
-                //alert(jc);
-                this.$content.find('form').on('submit', function (e) {
-                    // if the user submits the form by pressing enter in the field.
-                    e.preventDefault();
-                    jc.$$formSubmit.trigger('click'); // reference the button and click it
-                });
-            }
-        });
-    })
-
-    function cheks(){
-        var a = '';
-        var lista = '';
-        var c = 0;
-        var ids='';
-        $("input[name=sel]").each(function (index) { 
-           if($(this).is(':checked')){
-              c++;
-              lista+=  c + '.-' + $(this).val() + '<br/>';
-              ids += ',' + $(this).attr('ids');
-              a+= ','+$(this).val();
-           }
-        });
-        return {lista, c, a, ids};
-    }
-
 
         
 
