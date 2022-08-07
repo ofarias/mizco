@@ -439,7 +439,7 @@ class intelisis extends sqlbase {
 			$cabecera[]=$tsArray;
 		}
 		$this->query="SELECT * FROM VENTAD WHERE ID = $doc";
-		//$res=$this->Ejecutaquerysimple();
+		$res=$this->Ejecutaquerysimple();
 		while($tsArray=sqlsrv_fetch_array($res)){
 			$partidas[]=$tsArray;
 		}

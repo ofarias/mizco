@@ -1597,7 +1597,7 @@ class wms_controller {
         if($_SESSION['user']){
             $data= new wms;
             $data_i= new intelisis;
-            $res=$data->asgLn($ln, $c);
+            $res=$data->asgLn($ln, $c, $o='');
             //$sincInt =$data_i->asgLn($res['infoAsig']);
             return $res;
         }
@@ -2133,7 +2133,7 @@ class wms_controller {
         $inserta = $data->insDetOcInt($datos);
         //$infoWms = $data->orden($doc); no es necesario por que ya tenemos la orden de compra.
         $infoInt = $data_i->infoInt($doc);
-        //$sinc = $data->sincOrd($infoInt);
+        $sinc = $data->sincOrd($infoInt);
         return $sinc;
     }
 
@@ -2153,6 +2153,16 @@ class wms_controller {
         $data = new wms;
         $res = $data->reubPza($datos);
         return $res;
+    }
+
+    function sincInt($idOrdd, $t){
+        $data = new wms;
+        if($t == 'w'){// enviamos los valores a intelisis
+
+        }elseif($t== 'i'){/// Actualizamos con los valores de intelisis
+            
+        }
+        return $res;   
     }
 }
 ?>

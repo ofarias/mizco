@@ -149,6 +149,8 @@
                                                 <?php }?>
                                                 <p id="<?php echo $ord->PROD.'|'.$ord->ID_ORD?>" class="asigProd" asig="<?php echo $ord->ASIG?>"> <?php echo $ord->ID_ORD?></p>
 
+                                                <p class="sincInt" t="i" ln="<?php echo $ord->ID_ORDD?>"><font color="blue">Asignado Intelisis: </font><b><?php echo $ord->INTELISIS?></b></p>
+
                                             </td>
                                             <td><?php echo '<font color="blue">'.$ord->UPC.'<br/></font> <br/><font color="green">'.$ord->ITEM.'</font>'?></td>
                                             <td>
@@ -170,7 +172,50 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+  
     var ord = <?php echo $id_o?>;
+
+    $("body").on("click",".sincInt", function(e){
+    //$(".sincInt").click(function(){
+        e.preventDefault()
+        var t = $(this).attr("t")
+        var ln = $(this).attr("ln")
+        if(t == 'i'){
+            var contenido = "Deseas <b> traer </b> los valores de intelisis? los datos se sobreescribiran" 
+        }else if (t == 'w'){
+            var contenido = "Deseas <b>enviar</b> los valores a intelisis? los datos se sobreescribiran"
+        }
+        $.confirm({
+            title: 'Sincronización Intelisis',
+            content: contenido, 
+            buttons:{
+                aceptat:{
+                    text: 'Aceptar',
+                    btnClass: 'btn-blue',
+                    keys: ['enter'],
+                    action: function(){
+                        $.alert("intentamos enviar la informacion a intelisis, solo si el producto es el mismo.")
+                        $.ajax({
+                            url:'index.wms.php',
+                            type:'post', 
+                            dataType:'json',
+                            data:{sincInt:1, ln, t}, 
+                            success:function(data){
+                            }, 
+                            error:function(){
+                            }
+                        })
+                    }
+                }
+                ,
+                Cancelar: function(){
+                    return;
+                }
+            }
+        })
+    })
+
+
 
     $(".finA").click(function(){
         var lin = $(this).attr('lin')
@@ -740,8 +785,9 @@
                             for (const [k, val] of Object.entries(value)){
                                 if(k == 'NUEVO'){ var nuevo = val;}
                                 if(k == 'CANT'){ var cantidad = val;}
+                                if(k == 'ID_ORDD'){ var ln = val;}
                             }
-                            label += "<br/> Asignado " + nuevo + " : " + cantidad;
+                            label += '<br/> <label class="sincInt" t="w" ln = "'+ln+'">Asignado ' + nuevo +  ': ' + cantidad + '</label>';
                         }
                         document.getElementById(info).innerHTML = label
                     }, 
