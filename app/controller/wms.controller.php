@@ -1396,27 +1396,29 @@ class wms_controller {
             $pagina = $this->load_template('Reportes');
             $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenes.php');
             ob_start();
-            /*if($op == 'all'){
+            $opc = explode(":", $op);
+            if(strrpos($op, 'all') or $op=='all'){
+                $lt = $_SESSION['user']->CR;
                 $pagina = $this->load_template('Reportes');
                 $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenesAll.php');
-                $ordenes = $data->ordenesAll();
+                $ordenes = $data->ordenesAll($op);
                 include 'app/views/pages/almacenes/p.monitorOrdenesAll.php';
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
                 $this->view_page($pagina); 
                 die();
-            }*/
-            $opc = explode(":", $op);
+            }
+            
             if(count($opc)> 1){
                 if($opc[3] != '0'){
                     $op1=$opc[3]; $op0=1;
-                    $info=$data_i->documentos(1, $opc[3] , $opc[1], $opc[2]);
-                    $ins= $data->insOrdenes($info);
+                    //$info=$data_i->documentos(1, $opc[3] , $opc[1], $opc[2]);
+                    //$ins= $data->insOrdenes($info);
                 }else{
                     $op0= 0;
                 }
             }else{$op0=0;}
-            $docs = $data_i->documentos(0, '', '', '');
+            //$docs = $data_i->documentos(0, '', '', '');
             if($op0 == 0){
                 $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenesInt.php');
                 ob_start();

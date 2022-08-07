@@ -3402,6 +3402,7 @@ class wms extends database {
         return array("errores"=>$errores);
     }
 
+<<<<<<< HEAD
     function regInt($info, $ln ){
             $id_ord = $info['ID'];
             $renglon = $info['Renglon'];
@@ -3415,6 +3416,25 @@ class wms extends database {
             echo $this->query;
             $this->grabaBD();
         return;
+=======
+    function ordenesAll($param){
+        echo '<br/>Debemos traer el filtro de fechas: '.$param;
+        $data = array();
+        if($param != 'all'){
+            /// sacamos los parametros de las fechas.
+            $param = explode(":", substr($param,1));
+            $fi = $param[0];
+            $ff = $param[1];
+            $i = !empty($fi)? " and dia_carga >= '".$fi."'":'';
+            $f = !empty($ff)? " and dia_carga <= '".$ff."'":'';
+            $this->query="SELECT * from FTC_ALMACEN_ORDENES WHERE ID_ORD > 0 $i $f";
+            $res=$this->EjecutaQuerySimple();
+            while($tsArray=ibase_fetch_object($res)){
+                $data[]=$tsArray;
+            }
+            return $data;
+        }
+>>>>>>> fae589d552a5909b7c85aa6e176cfd60691f2a5e
     }
 
 }?>
