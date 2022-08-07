@@ -3402,21 +3402,6 @@ class wms extends database {
         return array("errores"=>$errores);
     }
 
-<<<<<<< HEAD
-    function regInt($info, $ln ){
-            $id_ord = $info['ID'];
-            $renglon = $info['Renglon'];
-            $cantidad = $info['CantidadInventario'];
-            $articulo = strtoupper( $info['Articulo']);
-            $factor = $info['Factor'];
-            $cantidadInventario = $info['CantidadInventario'];
-            $cantidadReservada = $info['CantidadReservada'];
-            $this->query="INSERT INTO FTC_ALMACEN_SIN_PAR_INT (ID_SINC, id_ord, ART, RENGLON, CANTIDAD, FACTOR, CantidadInventario, CantidadReservada, ID_ORDD) 
-                            VALUES (NULL, $id_ord, '$articulo', $renglon, $cantidad, $factor, $cantidadInventario, $cantidadReservada, $ln )";
-            echo $this->query;
-            $this->grabaBD();
-        return;
-=======
     function ordenesAll($param){
         echo '<br/>Debemos traer el filtro de fechas: '.$param;
         $data = array();
@@ -3434,7 +3419,20 @@ class wms extends database {
             }
             return $data;
         }
->>>>>>> fae589d552a5909b7c85aa6e176cfd60691f2a5e
+    }
+
+    function regInt($info, $ln ){
+            $id_ord = $info['ID'];
+            $renglon = $info['Renglon'];
+            $cantidad = $info['CantidadInventario'];
+            $articulo = strtoupper( $info['Articulo']);
+            $factor = $info['Factor'];
+            $cantidadInventario = !is_numeric($info['CantidadInventario'])? 0:$info['CantidadInventario'];
+            $cantidadReservada = !is_numeric($info['CantidadReservada'])? 0:$info['CantidadReservada'];
+            $this->query="INSERT INTO FTC_ALMACEN_SIN_PAR_INT (ID_SINC, id_ord, ART, RENGLON, CANTIDAD, FACTOR, CantidadInventario, CantidadReservada, ID_ORDD) 
+                            VALUES (NULL, $id_ord, '$articulo', $renglon, $cantidad, $factor, $cantidadInventario, $cantidadReservada, $ln )";
+            $this->grabaBD();
+        return;
     }
 
 }?>

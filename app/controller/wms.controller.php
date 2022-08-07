@@ -1408,17 +1408,16 @@ class wms_controller {
                 $this->view_page($pagina); 
                 die();
             }
-            
             if(count($opc)> 1){
                 if($opc[3] != '0'){
                     $op1=$opc[3]; $op0=1;
-                    //$info=$data_i->documentos(1, $opc[3] , $opc[1], $opc[2]);
-                    //$ins= $data->insOrdenes($info);
+                    $info=$data_i->documentos(1, $opc[3] , $opc[1], $opc[2]);
+                    $ins= $data->insOrdenes($info);
                 }else{
                     $op0= 0;
                 }
             }else{$op0=0;}
-            //$docs = $data_i->documentos(0, '', '', '');
+            $docs = $data_i->documentos(0, '', '', '');
             if($op0 == 0){
                 $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenesInt.php');
                 ob_start();
