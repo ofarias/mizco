@@ -25,8 +25,8 @@ abstract class sqlbase {
     //private $host = "ofa.dyndns.org:c:\\ftcData\\SAE\\MIZCOSAE.FDB"
 
     private function AbreCnx(){
-        //$connectionInfo= array("Database"=>'Mizco', "UID"=>'php_mizco',"PWD"=>'4phP2018+',"CharacterSet"=>'UTF-8');
-        $connectionInfo= array("Database"=>'MizcoPruebas', "UID"=>'php_mizco',"PWD"=>'4phP2018+',"CharacterSet"=>'UTF-8');
+        $connectionInfo= array("Database"=>'Mizco', "UID"=>'php_mizco',"PWD"=>'4phP2018+',"CharacterSet"=>'UTF-8');
+        //$connectionInfo= array("Database"=>'MizcoPruebas', "UID"=>'php_mizco',"PWD"=>'4phP2018+',"CharacterSet"=>'UTF-8');
         $this->cnx = sqlsrv_connect($this->host, $connectionInfo);
         if(!$this->cnx){   
             echo "Fallo la conexion";
