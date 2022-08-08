@@ -47,7 +47,7 @@
                                   <tbody>
                                     <?php $ln=0; foreach ($orden as $ord): 
                                         $color='';$ln++;$status= '';
-                                        switch ($ord->STATUS) {
+                                        switch ($ord->ID_STATUS) {
                                             case 2:
                                                 $color="style='background-color: #e2ffd8;'";$status= 'Asignado';
                                                 break;
@@ -78,7 +78,9 @@
                                         }
                                         ?>
                                        <tr class="odd gradeX color" <?php echo $color?> title="<?php echo $status?>" id="col_<?php echo $ln?>"> 
+                                            
                                             <td title="Asignacion Total de la linea">
+                                                <?php echo $status.'--'.$ord->STATUS ?>
                                                 <?php if($ord->ASIG == 0){?>
                                                 <input type="checkbox" 
                                                     name="selector" 
@@ -176,7 +178,6 @@
     var ord = <?php echo $id_o?>;
 
     $("body").on("click",".sincInt", function(e){
-    //$(".sincInt").click(function(){
         e.preventDefault()
         var t = $(this).attr("t")
         var ln = $(this).attr("ln")
@@ -215,8 +216,6 @@
         })
     })
 
-
-
     $(".finA").click(function(){
         var lin = $(this).attr('lin')
         var p = $(this).attr('p')
@@ -236,7 +235,6 @@
                             data:{finA:1, ord, t:'l', p}, 
                             success:function(data){
                                 if(data.status == 'ok'){
-                                    /// marcar como cerrada y bloquear uso.
                                     $.alert(data.msg)
                                 }else{
                                     $.alert(data.msg)
@@ -258,10 +256,10 @@
                             dataType:'json',
                             data:{finA:1, ord, t:'o', p}, 
                             success:function(data){
-                                if(data.status == 'ok'){
+                                if(data.status = 'ok'){
                                     $.alert({
-                                        title: 'Al parecer hay productos pendientes por Asignar',
-                                        content: 'Alguno de los productos aún no tienen asignación.',
+                                        title: 'Asignacion de Productos',
+                                        content: 'Se ha finalizado la orden.',
                                         buttons:{
                                             OK:{
                                                 text:'Ok',
@@ -269,7 +267,7 @@
                                             }
                                         }
                                     })
-                                    //window.close()
+                                    location.reload()
                                 }else{
                                     $.alert({
                                         title: 'Al parecer hay productos pendientes por Asignar',

@@ -387,6 +387,7 @@ class intelisis extends sqlbase {
 		$data = array(); $hoy=date("d.m.Y");
 		$ini = empty($ini)?  date("d.m.Y", strtotime($hoy."- 1 days")):date("d.m.Y", strtotime($ini));
 		$fin = empty($fin)?  date("d.m.Y"):date("d.m.Y", strtotime($fin));
+		$op1 = isset($op1)?  'Pedido':$op1; 
 		if($op0 == '0'){
 			$this->query="SELECT mov, count(*) as cant FROM VENTA  where fechaemision between '$ini' and '$fin' and (mov = 'Pedido' or Mov = 'Factura Electronica') and estatus = 'PENDIENTE' GROUP BY MOV";
 		}else{
@@ -398,6 +399,7 @@ class intelisis extends sqlbase {
 							and v.estatus ='PENDIENTE'
 							and v.mov = '$op1'";	
 		}
+		//echo '<br/>'.$this->query;
 		$res=$this->Ejecutaquerysimple();	
 			while($tsarray=sqlsrv_fetch_array($res)){
 				$data[]=$tsarray;

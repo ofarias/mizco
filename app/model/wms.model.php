@@ -879,9 +879,8 @@ class wms extends database {
             if(!empty($param[1])){$p.= " and dia_carga >= '". $param[1]."'";}
             if(!empty($param[2])){$p.= " and dia_carga <= '". $param[2]."'";}
             //$p.= ($param[3]==0)? " ":" and id_status = ". $param[3];
-            $p.= ($param[3]=='')? " and archivo starting with 'Pedido' ":" and archivo starting with '$param[3]' "; /// Forzando a que siempre jale pedidos
+            $p.= ($param[3]=='' or isset($param[3]))? " and archivo starting with 'Pedido' ":" and archivo starting with '$param[3]' "; /// Forzando a que siempre jale pedidos
         }
-
         $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD >0 $op $p";
         //echo $this->query;
         $res=$this->EjecutaQuerySimple();
@@ -1957,16 +1956,13 @@ class wms extends database {
 
     function orden($id_o, $t, $param){
         $data= array(); $p=''; $pnd =array();
-        //$this->query="UPDATE FTC_ALMACEN_ORDENES_DETALLES o set o.descr = (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = o.PROD) where o.descr='' ";
-        //$this->queryActualiza();
         if($t == 'd'){
             $this->query="SELECT * FROM FTC_ALMACEN_ORDENES_DETALLES where id_ord=$id_o";
         }elseif($t == 'p'){
             //$this->query="SELECT max(id_ord) as id_Ord, prod, descr, sum(pzas) as pzas, max(cedis) as cedis, max(orden) as orden, max(upc) as upc, max(item) as item, max(PROD_SKU) as PROD_SKU, CAST(LIST( DISTINCT color) AS varchar(200)) AS COLOR, sum(PZAS_SUR) as pzas_sur, avg(id_status) as status, sum(asig) as asig from ftc_almacen_ordenes_detalles where id_ord = $id_o  group by prod, descr";
                 //echo $this->query;
-            $this->query="SELECT id_Ord, id_ordd, prod, descr, pzas, cedis, orden, upc, item, PROD_SKU, pzas_sur, status, asig, (SELECT FIRST 1 ART||':'||cast(CantidadReservada as int) as intelisis  FROM FTC_ALMACEN_SIN_PAR_INT i WHERE i.ID_ORDD = d.ID_ORDD order by ID_SINC desc)
+            $this->query="SELECT id_Ord, id_ordd, prod, descr, pzas, cedis, orden, upc, item, PROD_SKU, pzas_sur, status, id_status, asig, (SELECT FIRST 1 ART||':'||cast(CantidadReservada * FACTOR as int)||' ('|| cast(CantidadReservada as int) ||' de '|| cast(factor as int) ||')' as intelisis  FROM FTC_ALMACEN_SIN_PAR_INT i WHERE i.ID_ORDD = d.ID_ORDD order by ID_SINC desc)
                 from ftc_almacen_ordenes_detalles d where id_ord = $id_o";
-                //echo $this->query;
         }elseif($t == 's'){
             if(!empty($param)){
                 $p= " and cedis = '".$param."'";
@@ -1978,7 +1974,6 @@ class wms extends database {
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
         }
-
         if($t == 's'){
             $i=0;$s=0;
             $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD=$id_o and (ASIG - PZAS_SUR)>0 ";
@@ -1986,7 +1981,6 @@ class wms extends database {
             while($tsArray=ibase_fetch_object($rs)){
                 $pnd[]=$tsArray;
             }
-
             foreach($pnd as $d){
                 //$res=$this->surteAuto($d);
                 $dataOCCHG = array();
@@ -2138,7 +2132,7 @@ class wms extends database {
         return array("msg"=>$msg, "status"=>$sta);
     }
 
-    function actualizaCodigo(){
+    function actualizaCodigo(){/// funcion degragada, borrar al cierre, tambien la tabla
         $data=array();
         $this->query="SELECT * FROM SP_MIZCO_INFORMACIONALMACENES WHERE STATUS IS NULL ";
         $res=$this->EjecutaQuerySimple();
@@ -2565,6 +2559,7 @@ class wms extends database {
         //$val = ($orden->PIEZAS==$orden->ASIGNADO)? 1:0;
         if($val == 1){
             $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET STATUS = 6 $param2";
+            //echo $this->query;
             $res=$this->queryActualiza();
             $this->actStatus($tabla, $tipo, "Asignación", ','.$ord, $p);
         }else{
@@ -3403,34 +3398,27 @@ class wms extends database {
     }
 
     function ordenesAll($param){
-        echo '<br/>Debemos traer el filtro de fechas: '.$param;
         $data = array();
         if($param != 'all'){
-            /// sacamos los parametros de las fechas.
             $param = explode(":", substr($param,1));
             $fi = $param[0];
             $ff = $param[1];
             $i = !empty($fi)? " and dia_carga >= '".$fi."'":'';
             $f = !empty($ff)? " and dia_carga <= '".$ff."'":'';
             $this->query="SELECT * from FTC_ALMACEN_ORDENES WHERE ID_ORD > 0 $i $f";
-            $res=$this->EjecutaQuerySimple();
-            while($tsArray=ibase_fetch_object($res)){
-                $data[]=$tsArray;
-            }
-            return $data;
+        }else{
+            $this->query="SELECT * from FTC_ALMACEN_ORDENES WHERE ID_ORD > 0";
         }
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
     }
 
     function regInt($info, $ln ){
-            $id_ord = $info['ID'];
-            $renglon = $info['Renglon'];
-            $cantidad = $info['CantidadInventario'];
-            $articulo = strtoupper( $info['Articulo']);
-            $factor = $info['Factor'];
-            $cantidadInventario = !is_numeric($info['CantidadInventario'])? 0:$info['CantidadInventario'];
-            $cantidadReservada = !is_numeric($info['CantidadReservada'])? 0:$info['CantidadReservada'];
-            $this->query="INSERT INTO FTC_ALMACEN_SIN_PAR_INT (ID_SINC, id_ord, ART, RENGLON, CANTIDAD, FACTOR, CantidadInventario, CantidadReservada, ID_ORDD) 
-                            VALUES (NULL, $id_ord, '$articulo', $renglon, $cantidad, $factor, $cantidadInventario, $cantidadReservada, $ln )";
+            $id_ord = $info['ID']; $renglon = $info['Renglon']; $cantidad = $info['CantidadInventario']; $articulo = strtoupper( $info['Articulo']); $factor = $info['Factor']; $cantidadInventario = !is_numeric($info['CantidadInventario'])? 0:$info['CantidadInventario']; $cantidadReservada = !is_numeric($info['CantidadReservada'])? 0:$info['CantidadReservada'];
+            $this->query="INSERT INTO FTC_ALMACEN_SIN_PAR_INT (ID_SINC, id_ord, ART, RENGLON, CANTIDAD, FACTOR, CantidadInventario, CantidadReservada, ID_ORDD) VALUES (NULL, $id_ord, '$articulo', $renglon, $cantidad, $factor, $cantidadInventario, $cantidadReservada, $ln )";
             $this->grabaBD();
         return;
     }
