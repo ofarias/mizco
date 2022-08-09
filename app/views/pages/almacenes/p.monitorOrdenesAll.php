@@ -90,11 +90,23 @@
                                                 <?php }?>
                                                 <br/>
                                                 <?php if($lt==2){?>
-                                                <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=p" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;">Productos de la Orden</a>
+                                                <!--<a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=p" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;">Productos de la Orden</a>-->
+                                                    <select class="utilOdn" title="Limpia la Asignación de forma parcial o total,para que se vuelva a asignar." ln="<?php echo $ord->ID_ORD?>" name="utils">
+                                                        <option value="0" title="Limpia la Asignación de forma parcial o total,para que se vuelva a asignar.">Opciones:</option>
+                                                        <option value="1" title="Se regresa para ser asignada con todos los valores en 0">Regresa a 0 </option>
+                                                        <option value="2" title="Se regresa para ser asignada con los valores actuales">Regresa asignación</option>
+                                                    </select>
                                                 <?php }?>
                                                 <br/>
                                                 <?php if($lt==9){?>
-                                                <a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=s" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;" class="marcar" lin="<?php echo $ln?>">Surtir Orden</a>
+                                                <!--<a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=s" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;" class="marcar" lin="<?php echo $ln?>">Surtir Orden</a>-->
+                                                    <select class="utilOdn" title="Regresa o Cancela el surtido" ln="<?php echo $ord->ID_ORD?>" name="utils">
+                                                        <option value="0" title="Limp As">Opciones:</option>
+                                                        <option value="3" title="Cancela el surtido y lo regresa a la pantalla de asignaciones.">Regresar a la asignación:</option>
+                                                        <option value="4" title="Regresa la orden al area de surtido para que se retrabaje.">Regresar al Surtido:</option>
+                                                        <option value="5" title="Cancela el surtido de la Orden y el producto regresa a su ubicacion original">Cancelar surtido (error Intelisis)</option>
+                                                        <option value="6" title="Cancela el surtido de la orden, los productos se envian a una ubicacion de reacomodo" >Cancela surtido (reacomodo)</option>
+                                                    </select>
                                                 <?php }?>
                                                 </td>
                                         </tr>
@@ -106,7 +118,6 @@
             </div>
         </div>
     </div>
-
 </div>
 
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
@@ -116,6 +127,48 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
+
+    $(".utilOdn").change(function(){
+        var t = $(this).val()
+        var ln = $(this).attr('ln')
+        var texto = $('.utilOdn option:selected').html()
+        //var texto =  $('select[name="utils"] option:selected').text()
+        //$.alert("Valor" + t + ' PARA LA LINEA ' + ln )
+        $.confirm({
+            title:'Utilidades de los Pedidos',
+            content:'Desea ' + texto + ' el Pedido ? ',
+            buttons:{
+                aceptar:{
+                    texto:'Aceptar',
+                    btnClass: 'btn-primary',
+                    keys:['enter', 's', 'y'],
+                    action:function(){
+                        //$.alert("Se libera el Pedido")
+                        $.ajax({
+                            url:'index.wms.php',
+                            type:'post',
+                            dataType:'json',
+                            data:{utilOdn:t, ln},
+                            success:function(data){
+                                $.alert(data.msg)
+                            }, 
+                            error:function(){
+
+                            }
+                        })
+                    }
+                },
+                cancelar:{
+                    texto:'Cancelar',
+                    btnClass:'btn-red',
+                    keys:['esc', 'n'],
+                    action:function(){
+                        return;
+                    }
+                }
+            }
+        })
+    })
 
     $(".all").click(function(){
         window.open("index.wms.php?action=wms_menu&opc=oall", "_self")

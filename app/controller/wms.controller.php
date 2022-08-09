@@ -2165,6 +2165,12 @@ class wms_controller {
         }
         return $res;   
     }
+
+    function utilOdn($t, $ido){
+        $data = new wms;
+        $res = $data->utilOdn($t, $ido);
+        return $res;
+    }
 }
 ?>
 

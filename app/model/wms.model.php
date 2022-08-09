@@ -3423,5 +3423,33 @@ class wms extends database {
         return;
     }
 
+    function utilOdn($t, $ido){
+
+        switch($t){
+            case 1:
+                echo 'Liberar el pedido '.$ido;
+                $this->query="";
+                break;
+            case 2:
+                echo 'Liberar el pedido '.$ido;
+                $this->query="";
+                break;
+            case 3:
+                echo 'Liberar el pedido '.$ido;
+                $this->query="";
+                break;
+            case 4:
+                echo 'Liberar el pedido '.$ido;
+                $this->query="";
+                break;
+            case 5:
+                echo 'Liberar el pedido '.$ido;
+                $this->query="";
+                break;
+        }
+        echo $this->query;
+        return array("status"=> 'ok', "msg"=>'');
+    }
+
 }?>
 

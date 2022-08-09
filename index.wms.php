@@ -123,6 +123,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->reubPza($_POST['reubPza']);echo json_encode($res);exit();
 }elseif(isset($_POST['sincInt'])){
     $res=$controller_wms->sincInt($_POST['ln'], $_POST['t']);echo json_encode($res);exit();
+}elseif(isset($_POST['utilOdn'])){
+    $res=$controller_wms->utilOdn($_POST['utilOdn'], $_POST['ln']);echo json_encode($res);exit();
 }
 else{
     switch ($_GET['action']) {
