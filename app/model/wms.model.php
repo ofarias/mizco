@@ -2321,7 +2321,7 @@ class wms extends database {
                 $tipo = ' Actualización '.$org;
             }else{  
                 $this->limpiaAsig($ln);
-                $this->query="UPDATE FTC_ALMACEN_OC_CHG SET CANT = $c , FECHA = current_timestamp, tipo = 'A' where id_ordd = $ln and nuevo = (SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln) RETURNING id_chg ";
+                $this->query="UPDATE FTC_ALMACEN_OC_CHG SET CANT = $c , FECHA = current_timestamp, tipo = 'A' where id_ordd = $ln and nuevo = (SELECT PROD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $ln) and status < 3 RETURNING id_chg ";
                 $res=$this->grabaBD();
                 $idchg = ibase_fetch_object($res)->ID_CHG; $tipo = ' Actualización '.$org;
             }
@@ -2539,6 +2539,7 @@ class wms extends database {
             $param = " WHERE ID_ORD = $ord group by id_ord";
             //$campos = " sum(pzas) as piezas, sum(asig) as asignado ";
             $param2 = " WHERE ID_ORD = $ord ";
+            $param3 = $param2;
             /// cambiamos el status de la orden a Asignado. 
             $this->query="UPDATE FTC_ALMACEN_ORDEN SET STATUS = 3, FECHA_ASIGNA_F = current_timestamp  WHERE STATUS = 1 AND ID_ORD = $ord";
             //echo $this->query;
@@ -2548,10 +2549,12 @@ class wms extends database {
             $param = " WHERE PROD = '$p' and id_ord = $ord group by Prod, id_ord";
             //$campos = "pzas as piezas, asig as asignado";
             $param2 = " WHERE PROD = '$p' and id_ord = $ord ";
+            $param3 = " WHERE BASE = '$p' and id_ord = $ord ";
             $tabla=2; $tipo='Orden Detalle';
         }elseif($t== 'lin'){
             $param2 = " , OBS = '".$p."' WHERE ID_ORDD = ".$ord;
             $tabla=1; $tipo='Orden';
+            $param3 = " WHERE BASE = '$p' and id_ord = $ord ";
         }
         //$this->query= "SELECT id_ord, sum(pzas) as piezas, sum(asig) as asignado  FROM FTC_ALMACEN_ORDEN_DET $param";
         //$res=$this->EjecutaQuerySimple();
@@ -2559,8 +2562,8 @@ class wms extends database {
         //$val = ($orden->PIEZAS==$orden->ASIGNADO)? 1:0;
         if($val == 1){
             $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET STATUS = 6 $param2";
-            //echo $this->query;
             $res=$this->queryActualiza();
+            $this->query="UPDATE FTC_ALMACEN_OC_CHG SET STATUS = 6 $param3";
             $this->actStatus($tabla, $tipo, "Asignación", ','.$ord, $p);
         }else{
             $sta='no';$msg="Error faltan partidas por asignar";
@@ -3388,8 +3391,8 @@ class wms extends database {
                 }
                 //if($asig > 0){
                     echo '<br/>Entra a asignar la linea';
-                    $this->regInt($p, $ln);
-                    $this->asgLn($ln, $asig, 'I');
+                    //$this->regInt($p, $ln); /// se registra las asignaciones en la tabla de sincronia.
+                    $this->asgLn($ln, $asig, 'I');/// se autoasigna por intelisis.
                 //}
             }
             unset($infoPart);
