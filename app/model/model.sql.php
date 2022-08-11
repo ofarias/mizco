@@ -479,4 +479,30 @@ class intelisis extends sqlbase {
 			$i++;
 		}
 	}
+
+	function sincInt($info){
+		$data=array();
+		foreach ($info as $inf) {
+			$idOrd = $inf->ID_ORD; $renglon=$inf->PARTIDA;
+			$this->query="SELECT * FROM VENTAD WHERE ID = $idOrd and renglon = $renglon";
+			$res=$this->Ejecutaquerysimple();
+			while($tsarray=sqlsrv_fetch_array($res)){
+				$data[]=$tsarray;
+			}
+			break;
+		}
+		return $data;
+	}
+
+	function sincIntWms($info){
+		$data=array();$cant= 0;
+		foreach ($info as $i) {
+			$cant += $i->CANT;
+			//$this->query="UPDATE VENTAD SET CantidadReservada = $cant / FACTOR, UltimoReservadoCantidad = $cant / FACTOR, UltimoReservadoFecha = current_timestamp where id = $i->ID_ORD AND Renglon = $i->PARTIDA";
+			//echo $this->query;
+			$this->query="UPDATE VENTAD SET CantidadA = $cant/FACTOR where id = $i->ID_ORD AND Renglon = $i->PARTIDA";
+			$this->EjecutaQuerySimple();
+		}
+		return array("status"=>'ok', "msg"=>'Debera terminar el proceso de "Afectar" en Intelisis para concluir');
+	}
 }

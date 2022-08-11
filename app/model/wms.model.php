@@ -3442,5 +3442,28 @@ class wms extends database {
         return array("status"=> 'ok', "msg"=>'');
     }
 
+    function sincIntWms($idOrdd){
+        $data=array();
+        $this->query="SELECT c.*, (SELECT PARTIDA FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $idOrdd) as Partida FROM FTC_ALMACEN_OC_CHG c WHERE c.id_ordd = $idOrdd and c.cant > 0 and c.status <3";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function sincInt($info, $infoInt){
+        foreach ($info as $inf){
+            $id_ordd=$inf->ID_ORDD;
+        }
+        foreach ($infoInt as $i){
+            $cant=$i['Cantidad']; $id=$i['ID']; $renglon=$i['Renglon'];$art=$i['Articulo'];
+            $this->limpiaAsig($id_ordd);
+            $this->query="UPDATE FTC_ALMACEN_OC_CHG SET CANT = $cant, COLOR = '' WHERE ID_ORDD = (SELECT ID_ORDD FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $id and PARTIDA = $renglon) and NUEVO = '$art'";
+            $this->queryActualiza(); 
+        }
+        return;
+    }
+
 }?>
 

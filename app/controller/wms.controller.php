@@ -2160,12 +2160,15 @@ class wms_controller {
 
     function sincInt($idOrdd, $t){
         $data = new wms;
-        if($t == 'w'){// enviamos los valores a intelisis
-
-        }elseif($t== 'i'){/// Actualizamos con los valores de intelisis
-            
+        $data_i = new intelisis;
+        $info=$data->sincIntWms($idOrdd);
+        if($t == 'i'){// Traemos los valores desde intelisis
+            $infInt=$data_i->sincInt($info);
+            $sinc=$data->sincInt($info, $infInt);
+        }elseif($t== 'w'){/// Actualizamos con los valores de intelisis
+            $sinc=$data_i->sincIntWms($info);
         }
-        return $res;   
+        return $info;   
     }
 
     function utilOdn($t, $ido){
