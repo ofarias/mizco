@@ -1457,8 +1457,11 @@ class wms_controller {
     function detOrden($id_o, $t, $param, $out){
         if($_SESSION['user']){
             $data = new wms;
-            if($t=='p'){/// que es t? 
+            if($t=='p'){/// que es t lo define el usuario ? 
                 $p = 'app/views/pages/almacenes/p.detOrdenProd.php';
+                $data_i = new intelisis;
+                $infoInt = $data_i->infoInt($id_o);
+                $sinc = $data->sincOrd($infoInt, "p");
             }elseif($t=='s'){
                 $p = 'app/views/pages/almacenes/p.detOrdenSurt.php';
             }else{
@@ -1467,7 +1470,6 @@ class wms_controller {
             $pagina = $this->load_templateL('Reportes');
             $html = $this->load_page($p);
             ob_start();
-            //$actDesc= $data->actDescr($id_o);  /// Depreciado por que se sincroniza con Intelisis 12 07 2022
             $cabecera =$data->datOrden($id_o);
             $orden = $data->orden($id_o, $t, $param);
             $persona = $data->perSurt($id_o, $t, $param);
@@ -2133,8 +2135,8 @@ class wms_controller {
         $datos = $data_i->detDoc($doc);
         $inserta = $data->insDetOcInt($datos);
         //$infoWms = $data->orden($doc); no es necesario por que ya tenemos la orden de compra.
-        $infoInt = $data_i->infoInt($doc);
-        $sinc = $data->sincOrd($infoInt);
+        $infoInt = $data_i->infoInt($doc);/// Obtiene la informacion para actualizar en wms.
+        $sinc = $data->sincOrd($infoInt, 'c'); /// sincroniza la informacion de intelisis,solo la cabecera, se utiliza para actualizar el status.
         return $sinc;
     }
 

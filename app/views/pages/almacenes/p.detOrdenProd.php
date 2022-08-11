@@ -80,7 +80,7 @@
                                        <tr class="odd gradeX color" <?php echo $color?> title="<?php echo $status?>" id="col_<?php echo $ln?>"> 
                                             
                                             <td title="Asignacion Total de la linea">
-                                                <?php echo $status.'--'.$ord->STATUS ?>
+                                                
                                                 <?php if($ord->ASIG == 0){?>
                                                 <input type="checkbox" 
                                                     name="selector" 
