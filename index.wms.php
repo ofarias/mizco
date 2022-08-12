@@ -60,7 +60,7 @@ if (isset($_POST['usuario'])) {
 }elseif (isset($_POST['chgProd'])){
     $res=$controller_wms->chgProd($_POST['p'], $_POST['nP'], $_POST['oc'], $_POST['t']);echo json_encode($res);exit();
 }elseif (isset($_POST['asigCol'])){
-    $res=$controller_wms->asigCol($_POST['ln'], $_POST['col']);echo json_encode($res);exit();
+    $res=$controller_wms->asigCol($_POST['ln'], $_POST['col'], $_POST['t']);echo json_encode($res);exit();
 }elseif (isset($_POST['finA'])){
     $res=$controller_wms->finA($_POST['p'], $_POST['ord'], $_POST['t']);echo json_encode($res);exit();
 }elseif (isset($_POST['delOc'])){

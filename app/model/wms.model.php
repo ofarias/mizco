@@ -2217,11 +2217,11 @@ class wms extends database {
     }
 
     function asgMultiple($ord, $prod){
-        $prod = explode(":", $prod);$usuario=$_SESSION['user']->ID;
+        $prod = explode(":", $prod);$usuario=$_SESSION['user']->ID; $infoAsig=array();
         for ($i=0; $i < count($prod); $i++){ 
             $data=array();
-            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $ord and PROD = '$prod[$i]' and status < 5";
-            $res=$this->EjecutaQuerySimple();
+                $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $ord and PROD = '$prod[$i]' and status < 5";
+                $res=$this->EjecutaQuerySimple();
                 while($tsArray=ibase_fetch_object($res)){
                     $data[]=$tsArray;
                 }
@@ -2254,11 +2254,12 @@ class wms extends database {
                     */
                 }
             unset($data);
-        }
-        $this->query="SELECT chg.*, (SELECT PARTIDA FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = chg.id_ordd) as RENGLON FROM FTC_ALMACEN_OC_CHG chg WHERE chg.ID_ORD = $ord";
-        $result=$this->EjecutaQuerySimple();
-        while($tsArray=ibase_fetch_object($result)){
-            $infoAsig[]=$tsArray;
+
+            $this->query="SELECT chg.*, (SELECT PARTIDA FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = chg.id_ordd) as RENGLON FROM FTC_ALMACEN_OC_CHG chg WHERE chg.ID_ORD = $ord and base = '$prod[$i]'";
+            $result=$this->EjecutaQuerySimple();
+            while($tsArray=ibase_fetch_object($result)){
+                $infoAsig[]=$tsArray;
+            }
         }
         return array("infoAsig"=>$infoAsig);
     }

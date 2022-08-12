@@ -1592,6 +1592,12 @@ class wms_controller {
             $data_i= new intelisis;
             $res=$data->asgProd($ord, $prod, $pza, $t, $c, $s);
             //$sincInt =$data_i->asgLn($res['infoAsig']);
+            if($s=='s'){
+                foreach ($res["infoAsig"] as $inf){
+                    //echo '<br/>Sincroniza el ID_ORDD: '.$inf->ID_ORDD;
+                    $this->sincInt($inf->ID_ORDD,"w");
+                }
+            }
             return $res;
         }
     }
@@ -1606,12 +1612,16 @@ class wms_controller {
         }
     }
 
-    function asigCol($ln, $col){
+    function asigCol($ln, $col, $t){
         if($_SESSION['user']){
             $data= new wms;
             $data_i= new intelisis;
             $res=$data->asigCol($ln, $col);
             //$sincInt =$data_i->asgLn($res['infoAsig']);
+            if($t == 's' ){
+                //echo 'Mandamos la sincronizacion';
+                $this->sincInt($ln ,"w");
+            }
             return $res;
         }       
     }
@@ -2165,7 +2175,7 @@ class wms_controller {
         if($t == 'i'){// Traemos los valores desde intelisis
             $infInt=$data_i->sincInt($info);
             $sinc=$data->sincInt($info, $infInt);
-        }elseif($t== 'w'){/// Actualizamos con los valores de intelisis
+        }elseif($t== 'w'){/// Enviamos los valores a intelisis
             $sinc=$data_i->sincIntWms($info);
         }
         return $info;   

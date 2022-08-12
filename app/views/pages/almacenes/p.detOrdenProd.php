@@ -104,13 +104,11 @@
                                                 <br/>
                                                 <a title="Actualizar" class="actProd"  prod="<?php echo htmlspecialchars($ord->PROD)?>" prodn="<?php echo $ord->PROD_SKU?>"><font color="purple" > <?php echo $ord->PROD_SKU ?></font> </a>
                                                 <?php if($ord->PZAS <> $ord->ASIG){?>
-
                                                     <input type="text" id="rem_<?php echo htmlspecialchars($ord->PROD)?>" class="chgProd hidden" placeholder="Remplazar" prod="<?php echo htmlspecialchars($ord->PROD)?>" ln="<?php echo $ln?>">
                                                     
                                                     <select class="hidden chgProd" id="pres_<?php echo htmlspecialchars($ord->PROD)?>" prod="<?php echo htmlspecialchars($ord->PROD)?>">
                                                             <option>Seleccione la presentacion</option>
                                                     </select>
-                                                    
                                                     <br/>
                                                     <!--<a title="Reemplazar el producto" class="reemp" p="<?php echo htmlspecialchars($ord->PROD)?>" art="<?php echo htmlspecialchars($ord->PROD)?>" >Remplazar</a>-->
 
@@ -470,18 +468,56 @@
                 prod += ':' + $(this).attr('prod');
             }
         });
-        $.ajax({
-            url:'index.wms.php',
-            type:'post', 
-            dataType:'json',
-            data:{asgProd:ord, prod, pza, t, c, s}, 
-            success:function(){
-                $.alert("Se han cargado los productos")
-            },
-            error:function(){
-                $.alert("Favor de Actualizar")
+        $.confirm({
+            title:'Asignacion Multiple de Productos',
+            content:'Desea asignar todos los productos?',
+            buttons:{
+                si:{
+                    text:'Aceptar',
+                    btnClass:'btn-blue',
+                    action:function(){
+                                $.ajax({
+                                    url:'index.wms.php',
+                                    type:'post', 
+                                    dataType:'json',
+                                    data:{asgProd:ord, prod, pza, t, c, s}, 
+                                    success:function(){
+                                        $.alert("Se han cargado los productos")
+                                    },
+                                    error:function(){
+                                        $.alert("Favor de Actualizar")
+                                    }
+                                })
+                    }
+                },
+                no:{
+                    text:'Cancelar',
+                    btnClass:'btn-red',
+                    action:function(){
+                        $.alert('no')
+                    }
+                },
+                sinc:{
+                    text:'Aceptar y Sincronizar',
+                    btnClass:'btn-green',
+                    action:function(){
+                                $.ajax({
+                                    url:'index.wms.php',
+                                    type:'post', 
+                                    dataType:'json',
+                                    data:{asgProd:ord, prod, pza, t, c, s:'s'}, 
+                                    success:function(){
+                                        $.alert("Se han cargado los productos")
+                                    },
+                                    error:function(){
+                                        $.alert("Favor de Actualizar")
+                                    }
+                                })
+                    }
+                }
             }
         })
+
     })
 
     $(".actProd").click(function(){
@@ -515,7 +551,6 @@
     $(".det").click(function(){
         var prod = $(this).attr("prod")
         var ln = $(this).attr("ln")
-        //$.alert('Ver el detalle del producto ' + prod + ' de la Orden ' + ord)
         var det = document.getElementById("det_"+ln)
         $.ajax({
             url:'index.wms.php',
@@ -524,11 +559,8 @@
             data:{detLinOrd:1, ord, prod},
             success:function(data){
                 if(data.status == 'ok'){
-                    //$.alert('Mensaje de '+  data.datos.values())
                     for(const [key, value] of Object.entries(data.datos)){
-                        //console.log(value);
                         for (const [k, val] of Object.entries(value)){
-                            //onsole.log(k + ' valor: ' + val);
                             if(k == 'CEDIS'){var nomC = val;}
                             if(k == 'PZAS'){var pzasC = val;}
                             if(k == 'ID_ORDD'){var idOC = val;}
@@ -539,13 +571,46 @@
                         '&nbsp;&nbsp; <a class="chgLin" prod="'+prod+'" idOC="'+idOC+'" c="'+pzasC+'" > + </a> '+
                         '<a title="No Surtir" class="ns" idOC="'+idOC+'" prod= "'+prod+'">N.S.</a>'
                     }
-                document.getElementById("det+_"+ln).classList.add('hidden')
-                document.getElementById("det-_"+ln).classList.remove('hidden')
+               
+                   
+                    var lni =idOC
+                    var c = pzasC
+                    var p = 0;
+                    var art = prod
+                    var opc = ''
+                    
+                    $.ajax({
+                        url: 'index.wms.php',
+                        type: 'post',
+                        dataType: 'json',
+                        data:{sincPres:art},
+                        success:function(data){
+                        p=parseFloat(data.datos.length)
+                        if(p>0){
+                            for(const [key, value] of Object.entries(data.datos)){
+                                for (const [k, val] of Object.entries(value)){
+                                    if(k == 'presentacion'){var pst = val;}
+                                    if(k == 'descripcion1'){var descr = val;}
+                                }
+                                opc += "<br/><br/>" +pst + ': ' + descr + ' :  <input type="text" placeholder="0" size="3" class="cant" value="0" press="' +pst + '">'
+                            }
+                                presentaciones(lni, c, art, data.datos, opc)
+                            }else{
+                                $.alert("NO hay presentaciones del producto")        
+                            }
+                        },
+                        error:function(){
+                            $.alert("NO hay presentaciones del producto")
+                        }
+                    })
+                    
+                    document.getElementById("det+_"+ln).classList.add('hidden')
+                    document.getElementById("det-_"+ln).classList.remove('hidden')
                 }
             },
             error:function(){
             }
-        })
+        })      
     })
 
 
@@ -642,15 +707,12 @@
         var p = 0;
         var art = $(this).attr('prod')
         var opc = ''
-        //var c = $(this).val()
-        //var org =$(this).attr('org')
             $.ajax({
                 url: 'index.wms.php',
                 type: 'post',
                 dataType: 'json',
                 data:{sincPres:art},
                 success:function(data){
-                    //$.alert('Se obtiene las presentaciones')
                         p=parseFloat(data.datos.length)
                         if(p>0){
                             for(const [key, value] of Object.entries(data.datos)){
@@ -688,62 +750,97 @@
                     opc
                 +"" +
                 '<br/><br/><p class="hidden" id="colAsig">Asignado:  <label id="cntCol"></label></p>'+ 
-                //'<br>La Cantidad deber ser la exacta para poder asignar los colores.'+
                 '</form>',
                 buttons: {
                 formSubmit: {
-                text: 'Asignar',
-                btnClass: 'btn-blue',
-                action: function () {
-                        //var prodN = this.$content.find('.chgProd2').val();
-                        $(".cant").each(function (){
-                            var valor = $(this).val()
-                            if($.isNumeric(valor)){
-                                if(valor > 0){
-                                    total += parseFloat($(this).val())
-                                }else if(valor < 0){
-                                    $.alert('Error en la asignacion, favor de revisar')
+                    text: 'Asignar',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                            //var prodN = this.$content.find('.chgProd2').val();
+                            $(".cant").each(function (){
+                                var valor = $(this).val()
+                                if($.isNumeric(valor)){
+                                    if(valor > 0){
+                                        total += parseFloat($(this).val())
+                                    }else if(valor < 0){
+                                        $.alert('Error en la asignacion, favor de revisar')
+                                        return false
+                                    }
+                                }else{
+                                    $.alert('Hay un valor invalido o en blanco, favor de revisar')
                                     return false
                                 }
+                            })
+                            //alert("Total : "+ total );
+                            /* Asignacion parcial
+                            if(total < parseFloat(c)){
+                                $.alert('Debe de colocar el total de colores faltan ' + (c-total) + ' piezas por asignar color.');
+                                return false;
+                            }else 
+                            */
+                            if(total>c){
+                                $.alert('Se estan asignando mas piezas de las necesarias favor de revisar ' );
+                                return false;
                             }else{
-                                $.alert('Hay un valor invalido o en blanco, favor de revisar')
-                                return false
-                            }
-                        })
-                        //alert("Total : "+ total );
-                        /* Asignacion parcial
-                        if(total < parseFloat(c)){
-                            $.alert('Debe de colocar el total de colores faltan ' + (c-total) + ' piezas por asignar color.');
-                            return false;
-                        }else 
-                        */
-                        if(total>c){
-                            $.alert('Se estan asignando mas piezas de las necesarias favor de revisar ' );
-                            return false;
-                        }else{
-                            $(".cant").each(function (){
-                                dist += $(this).attr('press') + ':' + $(this).val() + '|'
-                            })  
-                            $.ajax({
-                                url:'index.wms.php',
-                                type:'post',
-                                dataType:'json',
-                                //data:{asigCol:1, ln, col, nP:prodN},
-                                data:{asigCol:1, ln, col:dist},
-                                success:function(data){
-                                    alert(data.msg);
-                                    //location.reload(true)
-                                    if(data.status =='ok'){
-                                    // actualizar el valor de los asignados
-                                    // quitar el select 
+                                $(".cant").each(function (){
+                                    dist += $(this).attr('press') + ':' + $(this).val() + '|'
+                                })  
+                                $.ajax({
+                                    url:'index.wms.php',
+                                    type:'post',
+                                    dataType:'json',
+                                    data:{asigCol:1, ln, col:dist, t:''},
+                                    success:function(data){
+                                        alert(data.msg);
+                                        if(data.status =='ok'){
+                                        }
                                     }
-                                }
-                            });
-                        }
-                       }
+                                });
+                            }
+                    }
                 },
                 cancelar: function () {
                 },
+                Sincronizar:{
+                    text: 'Asignar y Sincronizar',
+                    btnClass: 'btn-green',
+                    action: function () {
+                            //var prodN = this.$content.find('.chgProd2').val();
+                            $(".cant").each(function (){
+                                var valor = $(this).val()
+                                if($.isNumeric(valor)){
+                                    if(valor > 0){
+                                        total += parseFloat($(this).val())
+                                    }else if(valor < 0){
+                                        $.alert('Error en la asignacion, favor de revisar')
+                                        return false
+                                    }
+                                }else{
+                                    $.alert('Hay un valor invalido o en blanco, favor de revisar')
+                                    return false
+                                }
+                            })
+                            if(total>c){
+                                $.alert('Se estan asignando mas piezas de las necesarias favor de revisar ' );
+                                return false;
+                            }else{
+                                $(".cant").each(function (){
+                                    dist += $(this).attr('press') + ':' + $(this).val() + '|'
+                                })  
+                                $.ajax({
+                                    url:'index.wms.php',
+                                    type:'post',
+                                    dataType:'json',
+                                    data:{asigCol:1, ln, col:dist, t:'s'},
+                                    success:function(data){
+                                        alert(data.msg);
+                                        if(data.status =='ok'){
+                                        }
+                                    }
+                                });
+                            }
+                    }
+                }
             },
                 onContentReady: function () {
                     // bind to events
