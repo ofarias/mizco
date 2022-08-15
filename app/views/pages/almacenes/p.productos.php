@@ -165,7 +165,7 @@
         var comps = ''
         var movs  = ''
         var info = "El producto <b>"+ nombre +"</b> se encuenta en: <br/><br/>"
-        info += 'Ubicacion Actual:       Nueva Ubicacion <br/><br/>'
+        info += 'Ubicacion Actual:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Nueva Ubicacion <br/><br/>'
         $.ajax({
             url:'index.wms.php',
             type:'post',
@@ -181,9 +181,17 @@
                         if(k == 'CATEGORIA'){ var cat = val}
                         if(k == 'ID_AM'){ var mov = val}
                         if(k == 'ALMACEN'){var almacen = val}
+                        if(k == 'PIEZAS'){var pzas = val}
+                        if(k == 'PIEZAS_SAL'){var pSal = val}
+                        if(k == 'PIEZAS_SURT'){var pSurt = val}
+
                     }
                     if (parseFloat(disp) > 0){
-                        info += 'Almacen: <b>'+ almacen +'</b> : <b>' +lin + '</b> : <b><input type="hidden" value="'+idComps+'" class="comps"> <input type="hidden" value="'+mov+'" class="idmovs"> ' + tar + '</b>, piezas: <b><input type="hidden" value="'+disp+'" class= "disps" >'+ disp + '</b> Cat: <b>' + cat + '</b>  |  ' + 
+                        info += 'Almacen: <b>'+ almacen +'</b> : <b>' +lin + '</b> : <b><input type="hidden" value="'+idComps+'" class="comps"> <input type="hidden" value="'+mov+'" class="idmovs"> ' + tar + 
+                        '</b> Exist: <b>' + (pzas - pSal) +
+                        '</b> En Surtido: <b>' + pSurt +
+                        '</b> Disp: <b><input type="hidden" value="'+disp+'" class= "disps" >'+ disp + 
+                        '</b> Cat: <b>' + cat + '</b>' +
                         '<select class="alm">  '+
                             '<option value="0">Almacen</option>'+
                             '<option value="1">Almacen 1</option>'+

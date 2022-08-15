@@ -397,7 +397,8 @@ class intelisis extends sqlbase {
 						  FROM VENTA v WHERE 
 							v.FECHAEMISION between '$ini' and '$fin' 
 							and v.estatus ='PENDIENTE'
-							and v.mov = '$op1'";	
+							and v.mov = '$op1'
+							and v.Almacen = 'AL PT'";	
 		}
 		//echo '<br/>'.$this->query;
 		$res=$this->Ejecutaquerysimple();	

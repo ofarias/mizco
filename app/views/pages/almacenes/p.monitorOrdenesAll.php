@@ -136,32 +136,34 @@
         //$.alert("Valor" + t + ' PARA LA LINEA ' + ln )
         $.confirm({
             title:'Utilidades de los Pedidos',
-            content:'Desea ' + texto + ' el Pedido ? ',
+            content:'Desea ' + texto + ' el Pedido ? '+
+            '<form action="" class="formName">' +
+                '<br/><input type="text" placeholder="Observaciones" class="obs form-control" >'+
+            '</form>',
             buttons:{
-                aceptar:{
-                    texto:'Aceptar',
+                formSubmit:{
+                    text:'Aceptar',
                     btnClass: 'btn-primary',
-                    keys:['enter', 's', 'y'],
+                    keys:['enter'],
                     action:function(){
-                        //$.alert("Se libera el Pedido")
+                        var obs = this.$content.find('.obs').val();
                         $.ajax({
                             url:'index.wms.php',
                             type:'post',
                             dataType:'json',
-                            data:{utilOdn:t, ln},
+                            data:{utilOdn:t, ln, obs},
                             success:function(data){
                                 $.alert(data.msg)
                             }, 
                             error:function(){
-
                             }
                         })
                     }
                 },
                 cancelar:{
-                    texto:'Cancelar',
+                    text:'Cancelar',
                     btnClass:'btn-red',
-                    keys:['esc', 'n'],
+                    keys:['esc'],
                     action:function(){
                         return;
                     }

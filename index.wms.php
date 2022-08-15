@@ -18,7 +18,7 @@ if (isset($_POST['usuario'])) {
 }elseif(isset($_POST['cpComp'])){
     $res=$controller_wms->cpComp($_POST['cns'], $_POST['can'], $_POST['id'], $_POST['ser'], $_POST['fol'], $_POST['sep']);echo json_encode($res);exit();
 }elseif (isset($_POST['addMov'])) {
-    $res=$controller_wms->addMov($_POST['tipo'], $_POST['alm'],$_POST['compP'],$_POST['compS'],$_POST['prod'],$_POST['uni'],$_POST['cant'],$_POST['col'],$_POST['mov'], $_POST['pza'], $_POST['cat']);echo json_encode($res);exit();
+    $res=$controller_wms->addMov($_POST['tipo'], $_POST['alm'],$_POST['compP'],$_POST['compS'],$_POST['prod'],$_POST['uni'],$_POST['cant'],$_POST['obs'],$_POST['mov'], $_POST['pza'], $_POST['cat']);echo json_encode($res);exit();
 }elseif (isset($_POST['delMov'])) {
     $res=$controller_wms->delMov($_POST['delMov'], $_POST['tp'], $_POST['e']); echo json_encode($res);exit();
 }elseif (isset($_POST['asocia'])) {
@@ -124,7 +124,7 @@ if (isset($_POST['usuario'])) {
 }elseif(isset($_POST['sincInt'])){
     $res=$controller_wms->sincInt($_POST['ln'], $_POST['t']);echo json_encode($res);exit();
 }elseif(isset($_POST['utilOdn'])){
-    $res=$controller_wms->utilOdn($_POST['utilOdn'], $_POST['ln']);echo json_encode($res);exit();
+    $res=$controller_wms->utilOdn($_POST['utilOdn'], $_POST['ln'], $_POST['obs']);echo json_encode($res);exit();
 }
 else{
     switch ($_GET['action']) {

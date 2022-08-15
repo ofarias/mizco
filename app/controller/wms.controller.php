@@ -281,10 +281,10 @@ class wms_controller {
         $this->view_page($pagina);
     }
 
-    function addMov($tipo, $alm, $compP, $compS, $prod, $uni, $cant, $col, $mov, $pza, $cat){
+    function addMov($tipo, $alm, $compP, $compS, $prod, $uni, $cant, $obs, $mov, $pza, $cat){
         if($_SESSION['user']){
             $data = new wms;
-            $exec = $data->addMov($tipo, $alm, $compP, $compS, $prod, $uni, $cant, $col, $mov, $pza, $cat);
+            $exec = $data->addMov($tipo, $alm, $compP, $compS, $prod, $uni, $cant, $obs, $mov, $pza, $cat);
             return $exec;
         }
     }
@@ -2181,9 +2181,9 @@ class wms_controller {
         return $info;   
     }
 
-    function utilOdn($t, $ido){
+    function utilOdn($t, $ido, $obs){
         $data = new wms;
-        $res = $data->utilOdn($t, $ido);
+        $res = $data->utilOdn($t, $ido, $obs);
         return $res;
     }
 }

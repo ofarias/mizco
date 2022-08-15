@@ -179,7 +179,8 @@ class wms extends database {
             $cs=$info[5];
             $cp=$info[7];
             $mov=$info[9];
-            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP, FOLIO, SERIE, ID_PROD, categoria) VALUES (NULL, $cs, 0, null, $usuario, current_timestamp, 'P', '$mov', $cant, 1, $cp, $fol, '$ser', (select m.prod from ftc_almacen_mov m where m.id_am = $mov), (SELECT CATEGORIA FROM FTC_ALMACEN_MOV m where m.ID_AM = $mov))";
+            $obs=$info[11];
+            $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP, FOLIO, SERIE, ID_PROD, categoria, OBS) VALUES (NULL, $cs, 0, null, $usuario, current_timestamp, 'P', '$mov', $cant, 1, $cp, $fol, '$ser', (select m.prod from ftc_almacen_mov m where m.id_am = $mov), (SELECT CATEGORIA FROM FTC_ALMACEN_MOV m where m.ID_AM = $mov), '$obs')";
             $this->grabaBD();
         }
         return array("folio"=>$fol);
@@ -613,17 +614,17 @@ class wms extends database {
         return $data;
     }
 
-    function  addMov($tipo, $alm, $compP, $compS, $prod, $uni, $cant, $col, $mov, $pza, $cat){
+    function  addMov($tipo, $alm, $compP, $compS, $prod, $uni, $cant, $obs, $mov, $pza, $cat){
         $usuario=$_SESSION['user']->ID;
         $sist='php';
         if($mov=='nuevo'){
             $folio = $this->folioMov($mov);
             $id=$folio[1]; $mov=$folio[0];
-            $this->query="UPDATE FTC_ALMACEN_MOV SET SIST_ORIGEN= '$sist', ALMACEN=$alm, TIPO='$tipo', USUARIO=$usuario, FECHA=current_timestamp, STATUS='P', HORA_I=current_time, CANT=$cant, PROD =$prod, UNIDAD=$uni, PIEZAS=$pza, MOV=$mov, COMPP=$compP, COMPS=$compS, COLOR='$col', CATEGORIA = $cat WHERE ID_AM=$id";
+            $this->query="UPDATE FTC_ALMACEN_MOV SET SIST_ORIGEN= '$sist', ALMACEN=$alm, TIPO='$tipo', USUARIO=$usuario, FECHA=current_timestamp, STATUS='P', HORA_I=current_time, CANT=$cant, PROD =$prod, UNIDAD=$uni, PIEZAS=$pza, MOV=$mov, COMPP=$compP, COMPS=$compS, OBS='$obs', CATEGORIA = $cat WHERE ID_AM=$id";
             $this->queryActualiza();
             $msg='Se ha inserado el movimiento';
         }else{
-            $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, COLOR, CATEGORIA) VALUES (null, '$sist', $alm, '$tipo', $usuario, current_timestamp, 'P', 0, current_time, $cant, $prod, $uni, $pza, $mov, $compP, $compS, '$col', $cat)";
+            $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, OBS, CATEGORIA) VALUES (null, '$sist', $alm, '$tipo', $usuario, current_timestamp, 'P', 0, current_time, $cant, $prod, $uni, $pza, $mov, $compP, $compS, '$obs', $cat)";
             $res=$this->grabaBD();
             if($res == 1){
                 $msg='Se ha inserado el movimiento';
@@ -644,7 +645,7 @@ class wms extends database {
     }
 
     function cpLin($base, $cs){
-        $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, COLOR, CATEGORIA) SELECT NULL, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, current_timestamp, STATUS, USUARIO_ATT, current_time, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, '$cs', COLOR, CATEGORIA FROM FTC_ALMACEN_MOV WHERE ID_AM = $base and status='P' RETURNING ID_AM, MOV";
+        $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, OBS, CATEGORIA) SELECT NULL, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, current_timestamp, STATUS, USUARIO_ATT, current_time, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, '$cs', OBS, CATEGORIA FROM FTC_ALMACEN_MOV WHERE ID_AM = $base and status='P' RETURNING ID_AM, MOV";
         $res=$this->grabaBD();
         $res=ibase_fetch_object($res);
         if($res->ID_AM >0){
@@ -3304,7 +3305,6 @@ class wms extends database {
     function reubPza($datos){
         //print_r($datos);
         $usuario=$_SESSION['user']->ID;
-        $destino=array();
         $almacenes= explode("|",substr($datos[0],1));
         $lineas= explode("|",substr($datos[1],1));
         $tarimas= explode("|",substr($datos[2],1));
@@ -3313,43 +3313,40 @@ class wms extends database {
         $comps = explode("|",substr($datos[5],1));
         $movs = explode("|",substr($datos[6],1));
         $prod = $datos[7];
-        for ($i=0; $i < count($almacenes) ; $i++) { 
+        for ($i=0; $i < count($almacenes) ; $i++){
+            $destino=array();
             $origen=$comps[$i];
             $almacen=$almacenes[$i]; $linea=$lineas[$i];  $tarima=$tarimas[$i]; $cant=$piezas[$i]; $categoria=$categorias[$i];$idmov=$movs[$i];
+            echo '<br/> Busca registro'.$i.' Tarima : '.$tarima.' Catidad: '.$cant.' Categoria '.$categoria;
             if(!empty($almacen) and !empty($linea) and !empty($tarima) and !empty($categoria)){   
-                /// revisar si el destino es valido.
                 $this->query = "SELECT * FROM FTC_ALMACEN_COMPS WHERE COMPP =(SELECT ID_COMP FROM FTC_ALMACEN_COMP c WHERE ALMACEN = $almacen and ETIQUETA = 'LINEA $linea' and status = 1 and compp is null) and replace(ETI, ' ', '') = 'T$tarima' ";
-                //echo $this->query;
                 $res=$this->EjecutaQuerySimple();
                 while($tsArray=ibase_fetch_object($res)){
                     $destino[]=$tsArray;
                 }
-                if(count($destino) ==1){
-                    /// Valida cantidad
+                if(count($destino) == 1){
                     $this->query="SELECT DISPONIBLE FROM FTC_ALMACEN_MOV_DET WHERE ID_AM = $idmov";
                     $result=$this->EjecutaQuerySimple();
                     $disp = ibase_fetch_object($result)->DISPONIBLE;
                     if(($disp-$cant) >= 0){
                         foreach ($destino as $k) {
-                            // hacemos la salida y la entrada, con la misma fecha, el movimiento de salida es una reubicacion del producto por la cantidad seleccionada.
                             $idcomps = $k->ID_COMP;  $idcompp=$k->COMPP;
                             $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP, SERIE, FOLIO, ID_PROD, CATEGORIA) VALUES (null, (SELECT COMPS FROM FTC_ALMACEN_MOV WHERE ID_AM = $idmov), 0, null, $usuario, current_timestamp, 'F', $idmov, $cant, 1, (SELECT COMPP FROM FTC_ALMACEN_MOV WHERE ID_AM = $idmov), 'R', (SELECT coalesce(MAX(FOLIO), 0) + 1 FROM FTC_ALMACEN_MOV_SAL WHERE SERIE = 'R'), $prod, (SELECT CATEGORIA FROM FTC_ALMACEN_MOV WHERE ID_AM = $idmov) ) RETURNING FOLIO";
-                            //echo '<br/> Salida: '.$this->query;
                             $res=$this->grabaBD();
                             $folio = ibase_fetch_object($res)->FOLIO;
                             $this->query="INSERT INTO FTC_ALMACEN_MOV (ID_AM, SIST_ORIGEN, ALMACEN, TIPO, USUARIO, FECHA, STATUS, USUARIO_ATT, HORA_I, HORA_F, CANT, PROD, UNIDAD, PIEZAS, MOV, COMPP, COMPS, COLOR, CATEGORIA) VALUES (null, 'Reubicar', $almacen, 'e', $usuario, (select fecha from FTC_ALMACEN_MOV where id_am = $idmov), 'F', null, current_timestamp, current_timestamp, $cant, $prod, 4, $cant, (SELECT COALESCE(MAX(MOV),0 ) + 1 FROM FTC_ALMACEN_MOV), $idcompp, $idcomps, 'R-$folio', $categoria)";
                             $this->grabaBD();
-                            //echo '<br/> Entrada: '.$this->query;
                         }
                     }else{
-                        echo 'La cantidad a reubicar es mayor que la dispobible, favor de revisar';
+                        echo '<br/>La cantidad a reubicar es mayor que la dispobible, favor de revisar';
                     }
                 }else{
-                    echo 'No se encontro el componente destino o se encontro mas de uno con los criterios de busqueda, favor de revisar la informacion';
+                    echo '<br/>No se encontro el componente destino o se encontro mas de uno con los criterios de busqueda, favor de revisar la informacion';
                 }
             }else{
-                echo 'NO se eligio el destino correcto.';
+                echo '<br/>NO se eligio el destino correcto.';
             }
+            unset($destino);
         }
     }
 
@@ -3415,31 +3412,16 @@ class wms extends database {
         return;
     }
 
-    function utilOdn($t, $ido){
-
-        switch($t){
-            case 1:
-                echo 'Liberar el pedido '.$ido;
-                $this->query="";
-                break;
-            case 2:
-                echo 'Liberar el pedido '.$ido;
-                $this->query="";
-                break;
-            case 3:
-                echo 'Liberar el pedido '.$ido;
-                $this->query="";
-                break;
-            case 4:
-                echo 'Liberar el pedido '.$ido;
-                $this->query="";
-                break;
-            case 5:
-                echo 'Liberar el pedido '.$ido;
-                $this->query="";
-                break;
-        }
+    function utilOdn($t, $ido, $obs){
+        $usr = $_SESSION['user']->ID;
+        $this->query= "SELECT * from FTC_ALMACEN_ORDENES WHERE ID_ORD = $ido";
+        $res=$this->EjecutaQuerySimple();
+        $row = ibase_fetch_row($res);
+                
+        $this->query="EXECUTE PROCEDURE SP_ALMACEN_LIBERA_ASIGNACION ($ido, $usr, $t, '$obs')";
         echo $this->query;
+        $this->grabaBD();
+
         return array("status"=> 'ok', "msg"=>'');
     }
 

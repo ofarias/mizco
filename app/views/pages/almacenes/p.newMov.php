@@ -104,7 +104,7 @@
                                             <th> Producto </th>
                                             <!--<th> Unidad </th>-->
                                             <th> Cantidad </th>
-                                            <!--<th> Color </th>-->
+                                            <th> Observaciones </th>
                                             <th> Total Piezas </th>
 
                                             <th class="catP hidden"> Categoria </th>
@@ -137,17 +137,9 @@
                                         -->
 
                                             <td><input class="cant total" type="number" min="1" max="100"></td>
-                                            <!--<td>
-                                                <select class="col">
-                                                    <option value="">Seleccione color</option>
-                                                    <option>Rojo</option>
-                                                    <option>Negro</option>
-                                                    <option>Blanco</option>
-                                                    <option>Verde</option>
-                                                    <option>Mixto (R,N,B,V)</option>
-                                                </select>-->
-
-                                                <!--<input class="col" type="text" name="" placeholder="color">-->
+                                            <td>
+                                                <input type="text" name="obs" placeholder="Observaciones" size="30" class="obs">
+                                                
                                             </td>
                                             <td align="rigth"><label id="totPzas"></label></td>
                                             
@@ -186,12 +178,11 @@
                                             <th> Producto </th>
                                             <th> Unidad </th>
                                             <th> Cantidad </th>
-                                            <!--<th> Color </th>-->
+                                            <th> Observaciones </th>
                                             <th> Total Piezas </th>
                                             <th> Categoria </th>
                                             <th> Volumen</th>
                                             <th> Estado </th>
-                                            <!--<th> Color </th>-->
                                             <th> Copiar a:</th>
                                             <th> Eliminar </th>
                                         </tr>
@@ -207,7 +198,7 @@
                                             <td><?php echo $kp->PROD?></td>
                                             <td><?php echo $kp->UNIDAD?></td>
                                             <td><?php echo $kp->CANT?></td>
-                                            <!--<td><?php echo $kp->COLOR?></td>-->
+                                            <td><?php echo $kp->OBS?></td>
                                             <td><?php echo $kp->PIEZAS?></td>
                                             <td><?php echo $kp->CATEGORIA?></td>
                                             <td><?php echo $kp->VOLUMEN?></td>
@@ -230,7 +221,6 @@
             </div>
         </div>
     </div>
-
 <?php }?>
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -355,7 +345,7 @@
         var prod = $(".prod").val();
         var uni = $(".uni").val();
         var cant = $(".cant").val();
-        var col = ''//$(".col").val();
+        var obs = $(".obs").val();
         var pza = document.getElementById("totPzas").innerHTML;
         var cat = $("#catProd").val();
         if(compS == 'none'){
@@ -373,7 +363,7 @@
                         url:'index.wms.php',
                         type:'post',
                         dataType:'json',
-                        data:{addMov:1, tipo, alm, compP, compS, prod:data.prod, uni, cant, col, mov, pza, cat},
+                        data:{addMov:1, tipo, alm, compP, compS, prod:data.prod, uni, cant, obs, mov, pza, cat},
                         success:function(data){
                             window.open('index.wms.php?action=wms_menu&opc=ediMov:'+ data.mov+':Entrada', "_self")
                         }

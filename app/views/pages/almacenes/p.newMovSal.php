@@ -103,7 +103,8 @@
                                             <td><?php echo $kp->PIEZAS_SAL?></td>
                                             <td><?php echo $kp->DISPONIBLE?></td>
                                             <td><?php echo $kp->CATEGORIA?></td>
-                                            <td align="right"><input type="text" placeholder="Cantidad" size="5" class="cant" onpaste="alert('No puedes pegar');return false" ln="<?php echo $ln?>" cs="<?php echo $kp->ID_COMPS?>" cp="<?php echo $kp->ID_COMPP?>" mov="<?php echo $kp->ID_AM?>"></td>
+                                            <td align="right"><input type="text" placeholder="Cantidad" size="5" class="cant" onpaste="alert('No puedes pegar');return false" ln="<?php echo $ln?>" cs="<?php echo $kp->ID_COMPS?>" cp="<?php echo $kp->ID_COMPP?>" mov="<?php echo $kp->ID_AM?>">
+                                                <br/><br/><input type="text" placeholder="Observaciones" id="obs<?php echo $ln?>"></td>
                                             <td><a class="exeSal hidden <?php echo $ln?>" id="<?php echo $ln?>" >&#x23f5;</a></td>
                                         </tr>
                                     <?php endforeach ?>               
@@ -136,6 +137,7 @@
                                             <th> Usuario <br/> Salida </th>
                                             <th> Piezas <br/> Salida </th>
                                             <th> Fecha de Salida </th>
+                                            <th> Observaciones </th>
                                         </tr>
                                     </thead>
                                   <tbody>
@@ -151,6 +153,7 @@
                                             <td><?php echo $mv->NOMBRE?></td>
                                             <td><?php echo $mv->PIEZAS?></td>
                                             <td><?php echo $mv->FECHA?></td>
+                                            <td><?php echo $mv->OBS?></td>
                                         </tr>
                                     <?php endforeach ?>               
                                     </tbody>
@@ -197,13 +200,15 @@
         $(".exeSal").each(function(index,element){e++;})
         $(".cant").each(function(index, element){
             var cant = $(this).val();
+            var ln = $(this).attr('ln');
             if(cant !=''){
                 c++;
                 var cant = $(this).val()
                 var cs   = $(this).attr('cs')
                 var cp   = $(this).attr('cp')
                 var mov  = $(this).attr('mov')
-                data += 'f:'+fol+':c:'+cant+':cs:'+cs+':cp:'+cp+':mov:'+mov+','; 
+                var obs = $("#obs"+ln).val()
+                data += 'f:'+fol+':c:'+cant+':cs:'+cs+':cp:'+cp+':mov:'+mov+':obs:'+obs+','; 
             }
         })
         if(e==1){ t = 'Singular';}else if( i>0 ){ t = 'plural'}
