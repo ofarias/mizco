@@ -249,6 +249,7 @@ foreach($orden as $od){
         dataType:'json',
         data:{comPro:mod, ordd},
         success:function(data){
+            
             if(data.status== 'ok'){
                 for(const [key, value] of Object.entries(data.datos)){
                     for(const[k, val] of Object.entries(value)){

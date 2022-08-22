@@ -328,7 +328,7 @@
             data:{cpLin:1,base, cs},
             success:function(data){
                 $.alert(data.msg)
-                window.open('index.wms.php?action=wms_menu&opc=ediMov:'+ data.mov, "_self")
+                window.open('index.wms.php?action=wms_menu&opc=ediMov:'+ data.mov+':Entrada', "_self")
             },
             error:function(data){
                 $.alert(data.msg)

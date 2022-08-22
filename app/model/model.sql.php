@@ -506,4 +506,42 @@ class intelisis extends sqlbase {
 		}
 		return array("status"=>'ok', "msg"=>'Debera terminar el proceso de "Afectar" en Intelisis para concluir');
 	}
+
+	function iCP($data){
+		foreach ($data['cabecera'] as $c) {
+			$this->query="SET IDENTITY_INSERT INV ON";
+			$this->Ejecutaquerysimple();
+			$this->query="INSERT INTO inv (ID, Empresa, Mov, MovID, FechaEmision, UltimoCambio, Moneda, TipoCambio, Usuario, Estatus, Directo, RenglonID, Almacen,
+				AlmacenTransito, Largo, FechaRequerida, Vencimiento, GenerarPoliza, Ejercicio, Periodo, FechaRegistro, FechaConclusion, Peso, 
+				Sucursal, SucursalOrigen, SubModulo) 
+				output inserted.ID 
+				values (
+				(select max(id)+1 from inv),
+				 'MIZCO', 
+				 'Cambio Presentacion', 
+				 (SELECT Consecutivo + 1 FROM InvC where mov = 'Cambio Presentacion'),
+				CURRENT_TIMESTAMP, 
+				CURRENT_TIMESTAMP, 
+				'Pesos', 
+				1, 
+				'PHP', 
+				'SINAFECTAR', 1, 0, 'AL PT',
+				'(TRANSITO)', 0, CURRENT_TIMESTAMP , CURRENT_TIMESTAMP, 0,  YEAR(GETDATE()),  MONTH(GETDATE()), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0
+				, 0, 0, 'INV'
+				) ";
+			$res=$this->Ejecutaquerysimple();
+			$row = sqlsrv_fetch_array();
+			$this->query="SET IDENTITY_INSERT INV OFF";
+			$this->Ejecutaquerysimple();
+		}
+
+		foreach ($data['partidas'] as $p) {
+			$pedido = $p->movID;
+			$this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonID, CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) VALUES ( 26121, 6144, 0, 19, 1, 'AL PT', 'BTH024', 'BTH024N',  CURRENT_TIMESTAMP, 'PIEZA', 1, 1 , 0, 0,'$pedido')";
+			$this->Ejecutaquerysimple();
+		}
+
+		$this->query="update invC set Consecutivo = Consecutivo+ 1 WHERE MOV = 'Cambio Presentacion'";
+		$this->Ejecutaquerysimple();
+	}
 }

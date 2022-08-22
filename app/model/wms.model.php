@@ -2701,7 +2701,7 @@ class wms extends database {
         while($tsArray=ibase_fetch_object($res)){
             $pos[]=$tsArray;
         }
-        $sta= count($pos)>0? 'ok':'no';
+        //$sta= count($pos)>0? 'ok':'no';
         //$pos= $this->posiciones($ordd);
         return array("status"=>$sta,"datos"=>$data, "posiciones"=>$pos);
     }

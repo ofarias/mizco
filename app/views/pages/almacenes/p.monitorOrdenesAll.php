@@ -93,12 +93,12 @@
                                                 <!--<a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=p" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;">Productos de la Orden</a>-->
                                                     <select class="utilOdn" title="Limpia la Asignación de forma parcial o total,para que se vuelva a asignar." ln="<?php echo $ord->ID_ORD?>" name="utils">
                                                         <option value="0" title="Limpia la Asignación de forma parcial o total,para que se vuelva a asignar.">Opciones:</option>
-                                                        <option value="1" title="Se regresa para ser asignada con todos los valores en 0">Regresa a 0 </option>
-                                                        <option value="2" title="Se regresa para ser asignada con los valores actuales">Regresa asignación</option>
+                                                        <option value="2" title="Se regresa para ser asignada con todos los valores en 0">Regresa a 0 </option>
+                                                        <option value="1" title="Se regresa para ser asignada con los valores actuales">Regresa asignación</option>
                                                     </select>
                                                 <?php }?>
                                                 <br/>
-                                                <?php if($lt==9){?>
+                                                <?php if($lt==3){?>
                                                 <!--<a href="index.wms.php?action=detOrden&orden=<?php echo $ord->ID_ORD?>&t=s" target="popup" onclick="window.open(this.href, this.target, 'width=1600,height=600'); return false;" class="marcar" lin="<?php echo $ln?>">Surtir Orden</a>-->
                                                     <select class="utilOdn" title="Regresa o Cancela el surtido" ln="<?php echo $ord->ID_ORD?>" name="utils">
                                                         <option value="0" title="Limp As">Opciones:</option>
