@@ -50,6 +50,7 @@ class intelisis extends sqlbase {
 					}
 					$this->query="SELECT * FROM ART WHERE ARTICULO = '$art'";
 					$r=$this->EjecutaQuerySimple();
+					$rengId=0;
 					if($rowArt = sqlsrv_fetch_array($r)){ ### Existe el articulo, entonces insertamos la remision.
 						if($oc == $ocBase){
 							$part++;
@@ -62,8 +63,9 @@ class intelisis extends sqlbase {
 							$docs++;
 						}
 						$id = $id * $part;
-						$this->query="INSERT INTO VENTAD (ID, Renglon, Almacen, Cantidad, Articulo, Precio, Impuesto1, Unidad, DescripcionExtra, renglonID, CantidadInventario, OrdenCompra )
-									VALUES ((SELECT MAX(ID) FROM VENTA), $id, '$alm', $cant, '$art', $precio, 16, 'PIEZA', '$cadena'+'$movID', 0, $cant, '$movID')";
+						$rengId++;
+						$this->query="INSERT INTO VENTAD (ID, Renglon, RenglonID, Almacen, Cantidad, Articulo, Precio, Impuesto1, Unidad, DescripcionExtra, renglonID, CantidadInventario, OrdenCompra )
+									VALUES ((SELECT MAX(ID) FROM VENTA), $id, $rengId, '$alm', $cant, '$art', $precio, 16, 'PIEZA', '$cadena'+'$movID', 0, $cant, '$movID')";
 						$this->grabaBD();
 						$ocBase= $oc;
 					}else{
@@ -132,7 +134,7 @@ class intelisis extends sqlbase {
         $errors = '';
         $te=0;
         for ($row=2; $row <= $highestRow; $row++){ //10
-        	$col = 'A';
+        	    $col = 'A';
 	            $A = date('d/m/Y',PHPExcel_Shared_Date::ExcelToPHP($sheet->getCell($col.$row)->getValue()+1));//FECHA
 	            $B = $sheet->getCell(++$col.$row)->getValue();//CLIENTE
 	            $C = $sheet->getCell(++$col.$row)->getValue();//SUCURSAL CLIENTE
@@ -499,27 +501,61 @@ class intelisis extends sqlbase {
 		$data=array();$cant= 0;
 		foreach ($info as $i) {
 			$cant += $i->CANT;
-			//$this->query="UPDATE VENTAD SET CantidadReservada = $cant / FACTOR, UltimoReservadoCantidad = $cant / FACTOR, UltimoReservadoFecha = current_timestamp where id = $i->ID_ORD AND Renglon = $i->PARTIDA";
-			//echo $this->query;
+			//echo '<br/> Base: '.$i->BASE.' Nuevo: '.$i->NUEVO;
+			if($i->BASE != $i->NUEVO){
+				$this->iCambioPres($i->BASE , $i->NUEVO, $i->CANT, $i->PARTIDA, $i->ID_ORD, $i->MOVID);
+			}
 			$this->query="UPDATE VENTAD SET CantidadA = $cant/FACTOR where id = $i->ID_ORD AND Renglon = $i->PARTIDA";
 			$this->EjecutaQuerySimple();
 		}
 		return array("status"=>'ok', "msg"=>'Debera terminar el proceso de "Afectar" en Intelisis para concluir');
 	}
 
-	function iCP($data){
-		foreach ($data['cabecera'] as $c) {
-			$this->query="SET IDENTITY_INSERT INV ON";
+	function iCambioPres($base, $nuevo, $cant, $part, $idord, $movID){
+		//// Buscamos si hay un documento abierto, si existe introducimos las partidas en el, si no existe, creamos uno nuevo.
+			$id = $this->findCambio('Cambio Presentacion');
+			$this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonID, RenglonTipo, CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) 
+				VALUES ( $id,
+					(SELECT COALESCE (MAX(Renglon), 0) + 2048 FROM INVD WHERE ID = $id),
+					0,
+					'L',
+					(SELECT COALESCE (MAX(RenglonID),0) + 1 FROM INVD WHERE ID = $id),
+					$cant,
+					'AL PT',
+					'$nuevo',
+					'$base',  CURRENT_TIMESTAMP,
+					'PIEZA', 1,
+					$cant,
+					0,
+					0,
+					'$movID --> $idord --> $part')";
+			echo '<br/>Detalle: '.$this->query.'<br/>';
 			$this->Ejecutaquerysimple();
-			$this->query="INSERT INTO inv (ID, Empresa, Mov, MovID, FechaEmision, UltimoCambio, Moneda, TipoCambio, Usuario, Estatus, Directo, RenglonID, Almacen,
+	}
+
+	function findCambio($tipo){
+		$data=array();
+		$this->query ="SELECT coalesce(max(id),0) as id FROM INV WHERE MOV = '$tipo' and Estatus = 'SINAFECTAR'";
+		$res=$this->Ejecutaquerysimple();
+		while($tsArray = sqlsrv_fetch_array($res)){
+			$data[]=$tsArray;
+		}
+		$id = $data[0]['id'] > 0?  $data[0]['id']:$this->creaFolio($tipo);
+		return $id;
+	}
+
+	function creaFolio($tipo){
+			//echo '<br/> No existe el documento entonces creamos el registro';
+			$this->query="SET IDENTITY_INSERT INV ON ";
+			$this->query .="INSERT INTO inv (ID, Empresa, Mov, MovID, FechaEmision, UltimoCambio, Moneda, TipoCambio, Usuario, Estatus, Directo, RenglonID, Almacen,
 				AlmacenTransito, Largo, FechaRequerida, Vencimiento, GenerarPoliza, Ejercicio, Periodo, FechaRegistro, FechaConclusion, Peso, 
 				Sucursal, SucursalOrigen, SubModulo) 
 				output inserted.ID 
 				values (
 				(select max(id)+1 from inv),
 				 'MIZCO', 
-				 'Cambio Presentacion', 
-				 (SELECT Consecutivo + 1 FROM InvC where mov = 'Cambio Presentacion'),
+				 '$tipo', 
+				 (SELECT Consecutivo + 1 FROM InvC where mov = '$tipo'),
 				CURRENT_TIMESTAMP, 
 				CURRENT_TIMESTAMP, 
 				'Pesos', 
@@ -527,21 +563,46 @@ class intelisis extends sqlbase {
 				'PHP', 
 				'SINAFECTAR', 1, 0, 'AL PT',
 				'(TRANSITO)', 0, CURRENT_TIMESTAMP , CURRENT_TIMESTAMP, 0,  YEAR(GETDATE()),  MONTH(GETDATE()), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0
-				, 0, 0, 'INV'
-				) ";
-			$res=$this->Ejecutaquerysimple();
-			$row = sqlsrv_fetch_array();
-			$this->query="SET IDENTITY_INSERT INV OFF";
+				, 0, 0, 'INV' ) ";
+			$this->query .="SET IDENTITY_INSERT INV OFF";
+			//echo '<br/>Cabecera: '.$this->query.'<br/>';
 			$this->Ejecutaquerysimple();
-		}
-
-		foreach ($data['partidas'] as $p) {
-			$pedido = $p->movID;
-			$this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonID, CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) VALUES ( 26121, 6144, 0, 19, 1, 'AL PT', 'BTH024', 'BTH024N',  CURRENT_TIMESTAMP, 'PIEZA', 1, 1 , 0, 0,'$pedido')";
+			
+			$this->query="UPDATE InvC SET Consecutivo = Consecutivo + 1 where mov = '$tipo'";
+			//echo '<br/>Folio: '.$this->query.'<br/>';
 			$this->Ejecutaquerysimple();
-		}
 
-		$this->query="update invC set Consecutivo = Consecutivo+ 1 WHERE MOV = 'Cambio Presentacion'";
-		$this->Ejecutaquerysimple();
+			return $this->findCambio($tipo);
 	}
+
+	function insertaMovInv($info){
+		$id = $this->findCambio($tipo = 'Salida Diversa');
+		for ($i=0; $i < count($info) ; $i++){ 
+            $cant=$info[$i]['PIEZAS']; $alm='AL PT';$art=$info[$i]['SKU']; $uni = 'PIEZA'; $factor = 1; $suc = 0; $obs=$info[$i]['OBS']; $guia=$info[$i]['GUIA'];$edo_fis=$info[$i]['ESTADO'];$motivo=$info[$i]['MOTIVO']; $solicitante=$info[$i]['SOLICITUD'];
+            $this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonID, RenglonTipo, CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) 
+				VALUES ( $id,
+					(SELECT COALESCE (MAX(Renglon), 0) + 2048 FROM INVD WHERE ID = $id),
+					0,
+					(SELECT COALESCE (MAX(RenglonID),0) + 1 FROM INVD WHERE ID = $id),
+					'L',
+					$cant,
+					'$alm',
+					'$art',
+					'',  CURRENT_TIMESTAMP,
+					'$uni', 
+					$factor,
+					$cant,
+					$suc,
+					0,
+					'$obs --> $guia --> $motivo --> $solicitante')";
+			//echo '<br/>Detalle: '.$this->query.'<br/>';
+			$this->Ejecutaquerysimple();
+        }	
+        $this->query ="SELECT MOVID FROM INV WHERE ID = $id ";
+        $res=$this->Ejecutaquerysimple();
+        $movid = sqlsrv_fetch_array($res);
+        $movid = $movid[0];
+		return array("movid"=>$movid, "idint"=>$id, "docs"=> 1, "errors"=>0);
+	}
+
 }

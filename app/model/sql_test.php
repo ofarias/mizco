@@ -1,20 +1,6 @@
 <?php 
-/*
-$serverName='localhost';
-$connectionInfo= array("Database"=>'MizcoPruebas', "UID"=>'php_mizco',"PWD"=>'4phP2018+',"CharacterSet"=>'UTF-8');
-$conn_sis = sqlsrv_connect($serverName, $connectionInfo);
 
-if($conn_sis){
-	echo "Conexion establecida<br/>";
-	sqlsrv_close($conn_sis);
-	echo "Conexioc cerrada";
-}else{
-	echo "Fallo la conexion";
-	die(print_r(sqlsrv_errors(), true));
-}
-*/
-
-abstract class sqlbase {
+abstract class sqlbasetest {
 
     //private static $usr = "php_mizco";
     //private static $pwd = "4phP2018+";

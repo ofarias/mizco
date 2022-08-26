@@ -30,17 +30,32 @@
                 </p>
                 <p><label>Muesta los productos que contiene cada uno de los componentes primarios y secundarios del almacen.</label></p>
             </div>
+            <!--
             <div>
                 <p>
                     <button class="btn report" value="da">Disponibilidad del almacen</button>
                     &nbsp;&nbsp;&nbsp;&nbsp;<select id="da">Seleccione
                                                     <option value="x">Excel</option>
                                                     <option value="p">PDF</option>
-                                                    <!--<option value="b">Excel y PDF</option>
-                                                    <option>Impresora</option>-->
+                                                    <option value="b">Excel y PDF</option>
+                                                    <option>Impresora</option>
                                                 </select>                    
                 </p>
                 <p><label>Muestra las posiciones que tienen espacio en el almacen.</label></p>
+            </div>-->
+            <div>
+                <div>
+                    <p>
+                        Carga de Archivos
+                        <form action="index.int.php" method="post" enctype="multipart/form-data">
+                        <input type="file" name="files[]" multiple="" onchange="makeFileList()" id="filesToUpload" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                        <input type="hidden" name="UPLOAD_META_DATA" value="UPLOAD_META_DATA" />
+                        <input type="hidden" name="files2upload" value="" />
+                        <input type="submit" value="Iniciar Carga"/> 
+                        <input type="hidden" value="<?php echo $tipo?>" name="tipo">   
+                        </form>
+                    </p>
+                </div>
             </div>
 
 </div>
@@ -87,5 +102,24 @@
             }
         }); 
     })
+
+    function makeFileList() {
+            var input = document.getElementById("filesToUpload");
+            var ul = document.getElementById("fileList");
+            while (ul.hasChildNodes()) {
+                    ul.removeChild(ul.firstChild);
+            }
+            for (var i = 0; i < input.files.length; i++) {
+                    var li = document.createElement("li");
+                    li.innerHTML = input.files[i].name;
+                    ul.appendChild(li);
+            }
+            if(!ul.hasChildNodes()) {
+                    var li = document.createElement("li");
+                    li.innerHTML = 'No hay archivos selccionados.';
+                    ul.appendChild(li);
+            }
+            document.getElementById("files2upload").value = input.files.length;
+    }
     
 </script>

@@ -1617,9 +1617,7 @@ class wms_controller {
             $data= new wms;
             $data_i= new intelisis;
             $res=$data->asigCol($ln, $col);
-            //$sincInt =$data_i->asgLn($res['infoAsig']);
             if($t == 's' ){
-                //echo 'Mandamos la sincronizacion';
                 $this->sincInt($ln ,"w");
             }
             return $res;
@@ -1764,11 +1762,18 @@ class wms_controller {
                     $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
                     $asig = $ord->ASIG;
                 }else{
+                    $sus=0;
                     foreach ($pres as $ss) {
+                        if($sus>0){     
+                            $pdf->Cell(28, 6, '', 'LRTB');
+                            $pdf->Cell(20, 6, '', 'LRTB');
+                        }
                         $pdf->Cell(20, 6, $ss->NUEVO , 'LRTB'); // Sustituto 
                         $pdf->Cell(20, 6, number_format($ss->CANT,0), 'LRTB',0,'R');
                         $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
                         $asig = $ss->CANT;
+                        $sus++;
+                        $pdf->Ln();
                     }
                 }
                 $uni = $ord->CAJAS;

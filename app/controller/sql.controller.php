@@ -4,6 +4,7 @@ require_once('app/model/pegaso.model.php');
 require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
 require_once 'app/model/model.sql.php';
+require_once('app/model/wms.model.php');
 
 class sql_controller {
 
@@ -58,6 +59,7 @@ class sql_controller {
 	function cargaSQL($files2upload){
 		if (isset($_SESSION['user'])) {            
             $data = new intelisis;
+            $wms = new wms;
             $valid_formats = array("xls", "XLS", "XLSX", "xlsx");
             $max_file_size = 1024 * 10000; 
             $target_dir="C:/xampp/htdocs/uploads/xls/remisiones/";
@@ -82,7 +84,13 @@ class sql_controller {
                     } else { 
                         if(move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir.$name)){
                            	$count++;
-							$res=$data->insertaVentas($target_dir.$name);
+                            $tipo=$wms->valXLS($target_dir.$name);
+                            if($tipo['tipo'] == 'Salida Diversa'){
+                                $res=$data->insertaMovInv($tipo['info']);
+                                $regWms=$wms->insertaMovInt($tipo['info'],$tipo['tipo'], $res['movid'], $res['idint']);
+                            }else{
+                                $res=$data->insertaVentas($target_dir.$name);
+                            }
                     	}
                 	}
             	}

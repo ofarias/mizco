@@ -4,6 +4,7 @@ require_once 'app/model/database.php';
 require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
 require_once 'app/simplexlsx-master/src/SimpleXLSX.php';
+require_once('app/Classes/PHPExcel.php');
 
 /* Clase para hacer uso de database */
 class wms extends database {
@@ -1935,7 +1936,7 @@ class wms extends database {
 
     function insDetOcInt($datos){
         foreach($datos as $d){
-            $id = $d['ID']; $prod=trim($d['Articulo']);$desc=trim($d['descr']); $cant=$d['CantidadInventario']; $part=$d['Renglon']; $upc=trim($d['upc']); $caja = $d['Factor'];
+            $id = $d['ID']; $prod=trim(strtoupper($d['Articulo']));$desc=trim($d['descr']); $cant=$d['CantidadInventario']; $part=$d['Renglon']; $upc=trim($d['upc']); $caja = $d['Factor'];
             $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $id and PARTIDA =$part";
             $res=$this->EjecutaQuerySimple();
             if(!ibase_fetch_object($res)){
@@ -1991,7 +1992,7 @@ class wms extends database {
                 while($tsArray=ibase_fetch_object($res)){
                     $dataOCCHG[] = $tsArray;
                 }
-                if(count($dataOCCHG > 0)){
+                if(count($dataOCCHG) > 0){
                     foreach ($dataOCCHG as $k){
                         $surt = $k->SURTIDAS; /// hay que revisar este impacto
                         $asig = $k->CANT - $surt;
@@ -2004,6 +2005,7 @@ class wms extends database {
                             $categoria = 'Primera'; /// hay que hacer una funcion que traiga la categoria segun el cliente. pero la debemos de pasar al inicio de esta funcion.
                             $cat = 1;
                             $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE INTELISIS = '$prodS' and disponible > 0 and categoria = '$categoria' order by fecha_ingreso asc, ID_AM ASC";
+                            //echo '<br/> Busqueda por componente: '.$this->query;
                             $res=$this->EjecutaQuerySimple();
                             while($tsArray=ibase_fetch_object($res)){
                                 $st[]=$tsArray;
@@ -2016,7 +2018,9 @@ class wms extends database {
                                     }else{
                                         $pzas = $disp;    
                                     }
-                                    $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP, ID_PROD, categoria) VALUES (NULL, $ms->ID_COMPS, 0, $d->ID_ORDD, $usuario, current_timestamp, 'P', $ms->ID_AM, $pzas, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $ms->ID_COMPS), (select m.prod from ftc_almacen_mov m where m.id_am = $ms->ID_AM), $cat)";
+                                    $this->query="INSERT INTO FTC_ALMACEN_MOV_SAL (ID_MS, ID_COMPS, CANT, ID_ORDD, USUARIO, FECHA, STATUS, ID_MOV, PIEZAS, UNIDAD, ID_COMPP, ID_PROD, categoria) VALUES (NULL, $ms->ID_COMPS, 0, $d->ID_ORDD, $usuario, current_timestamp, 'P', $ms->ID_AM, $pzas, 1, (SELECT COMPP FROM FTC_ALMACEN_COMP WHERE ID_COMP = $ms->ID_COMPS), 
+                                        (select m.prod from ftc_almacen_mov m where m.id_am = $ms->ID_AM),
+                                         $cat)";
                                     //echo '<br/> Insercion del movimiento de Salida: '.$this->query;
                                     $this->grabaBD();
                                     $this->query="UPDATE FTC_ALMACEN_ORDEN_DET SET PZAS_SUR = (PZAS_SUR + $pzas) where id_ordd = $d->ID_ORDD";
@@ -2030,6 +2034,7 @@ class wms extends database {
                                         break;
                                     }
                                 }
+                                unset($st);
                             }else{
                                 echo 'No hay producto Disponible';
                             }
@@ -2045,6 +2050,7 @@ class wms extends database {
                 $p= " and cedis = '".$param."'";
             }
             $this->query="SELECT ID_ORDD,UPC, ITEM, PROD, DESCR, PZAS, ASIG, CAJAS, UNIDAD, PROD_SKU, orden, cedis,PZAS_SUR, CAJAS_SUR, status, ETIQUETA, id_status FROM FTC_ALMACEN_ORDENES_DETALLES WHERE ID_ORD = $id_o and id_status >=3 $p";
+            //echo $this->query;
             $res=$this->EjecutaQuerySimple();
             while($tsArray=ibase_fetch_object($res)){
                 $data[]=$tsArray;
@@ -2648,7 +2654,7 @@ class wms extends database {
         $this->query="SELECT * FROM FTC_ALMACEN_OC_CHG WHERE BASE = '$prod' and id_ordd = $ordd";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
-            $dataChg= $tsArray;
+            $dataChg[]= $tsArray;
         }
         if(count($dataChg)>0){
 
@@ -2694,14 +2700,14 @@ class wms extends database {
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
         }
-        $sta= count($data)>0? 'ok':'no';
+        $sta=count($data)>0? 'ok':'no';
         $pos=array();
         $this->query="SELECT * FROM FTC_ALMACEN_MOV_SALIDA WHERE ID_ORDD=$ordd and (status= 'P' or status = 'F')"; /// obtiene las posiciones del surtido de productos.
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $pos[]=$tsArray;
         }
-        //$sta= count($pos)>0? 'ok':'no';
+        $sta= count($pos)>0? 'ok':'no';
         //$pos= $this->posiciones($ordd);
         return array("status"=>$sta,"datos"=>$data, "posiciones"=>$pos);
     }
@@ -3275,7 +3281,7 @@ class wms extends database {
 
     function pres($info){
         $data=array(); $inf = explode("|", $info); $prod = $inf[0]; $ord = $inf[1]; $origen = 'chg';
-        $this->query="SELECT c.*, (select id_pint from FTC_ALMACEN_PROD_INT WHERE ID_INT = '$prod') as idProd FROM FTC_ALMACEN_OC_CHG c WHERE c.BASE ='$prod' and c.id_ord = $ord";
+        $this->query="SELECT c.*, (select id_pint from FTC_ALMACEN_PROD_INT WHERE ID_INT = c.nuevo) as idProd FROM FTC_ALMACEN_OC_CHG c WHERE c.BASE ='$prod' and c.id_ord = $ord";
         //echo $this->query;
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
@@ -3427,7 +3433,7 @@ class wms extends database {
 
     function sincIntWms($idOrdd){
         $data=array();
-        $this->query="SELECT c.*, (SELECT PARTIDA FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $idOrdd) as Partida FROM FTC_ALMACEN_OC_CHG c WHERE c.id_ordd = $idOrdd and c.cant > 0 and c.status <3";
+        $this->query="SELECT c.*, (SELECT PARTIDA FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORDD = $idOrdd) as Partida, (SELECT MOVID FROM FTC_ALMACEN_ORDEN WHERE ID_ORD = c.id_ord) as movid FROM FTC_ALMACEN_OC_CHG c WHERE c.id_ordd = $idOrdd and c.cant > 0 and c.status <3";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -3448,5 +3454,70 @@ class wms extends database {
         return;
     }
 
+    function valXls($file){
+        $data= array();
+        $usuario = $_SESSION['user']->NOMBRE;
+        $lista = '';
+        $inputFileType=PHPExcel_IOFactory::identify($file);
+        $objReader=PHPExcel_IOFactory::createReader($inputFileType);
+        $objPHPExcel=$objReader->load($file);
+        $sheet=$objPHPExcel->getSheet(0);
+        $highestRow = $sheet->getHighestRow(); 
+        $highestColumn = $sheet->getHighestColumn();
+        $ruta="C:\\xampp\\htdocs\\remisiones\\";
+        if(!file_exists($ruta)){
+            mkdir($ruta, null, true);
+        }
+        $d=date('s');
+        $errors = '';
+        $te=0;
+        for ($row=2; $row <= $highestRow; $row++){ //10
+            $col = 'A';
+            $A = date('d/m/Y',PHPExcel_Shared_Date::ExcelToPHP($sheet->getCell($col.$row)->getValue()+1));//FECHA
+            $B = $sheet->getCell(++$col.$row)->getValue();//observacion
+            $C = $sheet->getCell(++$col.$row)->getValue();//SKU
+            $D = $sheet->getCell(++$col.$row)->getValue();//Piezas
+            $E = $sheet->getCell(++$col.$row)->getValue();//Guia Envio
+            $F = $sheet->getCell(++$col.$row)->getValue();//Estado Fisico
+            $G = $sheet->getCell(++$col.$row)->getValue();//Motivo
+            $H = $sheet->getCell(++$col.$row)->getValue();//Solicitud
+            $I = $sheet->getCell(++$col.$row)->getValue();//Disponible
+            $J = $sheet->getCell(++$col.$row)->getValue();//Disponible
+            $K = $sheet->getCell(++$col.$row)->getValue();//Disponible
+            $L = $sheet->getCell(++$col.$row)->getValue();//Disponible
+            $M = $sheet->getCell(++$col.$row)->getValue();//Disponible
+            $N = $sheet->getCell(++$col.$row)->getValue();//Disponible
+
+            if(strpos(($A.$B.$C.$D.$E.$F.$G.$H.$I),"|")){
+                    $errors .= $row.',';
+                    $te++;
+            }else{
+                $info[] = $A.'|'.$B.'|'.$C.'|'.$D.'|'.$E.'|'.$F.'|'.$G.'|'.$H.'|'.$I.'|'.$J.'|'.$K.'|'.$N;
+                $info1[] = array("FECHA"=>$A,"OBS"=>$B, "SKU"=>$C, "PIEZAS"=>$D, "GUIA"=>$E, "ESTADO"=>$F,"MOTIVO"=>$G, "SOLICITUD"=>$H, "DISP1"=>$I, "DISP2"=>$J, "DISP3"=>$K, "DISP4"=>$L, "DISP5"=>$M, "LINEA"=>$row, "DISP6"=>$N);
+            }
+        }
+        $tipo = (trim($sheet->getCell('B1')->getValue()) == 'Observaciones' and trim($sheet->getCell('C1')->getValue())== 'SKU')? 'Salida Diversa':'Ventas';  
+            //echo '<br/>'.$sheet->getCell('B1')->getValue();
+            //echo '<br/>'.$sheet->getCell('C1')->getValue();
+            //echo $tipo;
+            //die;
+        return array("status"=>'ok', "info"=>$info1, "errors"=>$errors, "te"=>$te, 'tipo'=>$tipo);
+    }
+
+    function insertaMovInt($info,  $tipo, $movID, $idint){
+        $usuario = $_SESSION['user']->ID;
+        $this->query="INSERT INTO FTC_INT_MVI (ID_MVI, id_mov_int, MOV, MOVID, FECHA, ESTATUS, USUARIO, OBS, ALMACEN, CONCEPTO, REFERENCIA, FECHA_ELAB ) VALUES (NULL, $idint, '$tipo', $movID, CURRENT_DATE, '', $usuario, '', '', '', '', current_timestamp) RETURNING ID_MVI";
+        $res=$this->grabaBD();
+        $id = ibase_fetch_object($res)->ID_MVI; $renglon=0;
+        for ($i=0; $i < count($info) ; $i++){ 
+            $renglon += 2048; $cant = $info[$i]['PIEZAS']; $alm = 'AL PT';$art = $info[$i]['SKU'];$uni = 'PZA'; $factor = 1; $suc = 0; $obs=$info[$i]['OBS']; $guia=$info[$i]['GUIA'];$edo_fis=$info[$i]['ESTADO'];$motivo=$info[$i]['MOTIVO']; $solicitante=$info[$i]['SOLICITUD'];
+                $this->query="INSERT INTO FTC_INT_MVI_DET (ID_MVID,ID_MVI,RENGLON,RENGLON_SUB,RENGLON_ID,RENGLON_TIPO,CANTIDAD,ALAMCEN,ARTICULO,UNIDAD,FACTOR,CANTIDAD_INVENTARIO,SUCURSAL,FECHA,USUARIO,ESTATUS,STATUS_WMS,FECHA_ELAB, OBS, GUIA, EDO_FIS, MOTIVO, SOLICITANTE) VALUES (null, $id, $renglon, 0, $i+1,'L', $cant, '$alm', '$art', '$uni', $factor, $cant*$factor, $suc, current_date, $usuario, '', 0, current_timestamp, '$obs', '$guia', '$edo_fis', '$motivo', '$solicitante')";
+                $this->grabaBD();
+
+        }
+        return $id; 
+    }
+
 }?>
+
 
