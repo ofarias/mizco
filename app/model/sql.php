@@ -16,21 +16,20 @@ if($conn_sis){
 
 abstract class sqlbase {
 
-    //private static $usr = "php_mizco";
-    //private static $pwd = "4phP2018+";
-    private static $usr = "sa";
-    private static $pwd = "genseg01+";
+    private static $usr = "php_mizco";
+    private static $pwd = "4phP2018+";
+    //private static $usr = "sa";
+    //private static $pwd = "genseg01+";
     
     private $cnx;
     protected $query;
-    //private $host = "localhost";
-    private $host = '192.168.0.184\\';
+    private $host = "localhost";
+    //private $host = '192.168.0.184\\';
     //private $dataBase="MizcoPruebas";
     //private $host = "ofa.dyndns.org:c:\\ftcData\\SAE\\MIZCOSAE.FDB"
 
     private function AbreCnx(){
         $connectionInfo= array("Database"=>'Mizco', "UID"=>'sa',"PWD"=>'genseg01+',"CharacterSet"=>'UTF-8');
-        //$connectionInfo= array("Database"=>'MizcoPruebas', "UID"=>'php_mizco',"PWD"=>'4phP2018+',"CharacterSet"=>'UTF-8');
         $this->cnx = sqlsrv_connect($this->host, $connectionInfo);
         if(!$this->cnx){   
             echo "Fallo la conexion";
