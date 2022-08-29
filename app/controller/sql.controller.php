@@ -89,6 +89,9 @@ class sql_controller {
                                 //print_r($tipo['tipo']);
                                 $res=$data->insertaMovInv($tipo['info']);
                                 $regWms=$wms->insertaMovInt($tipo['info'],$tipo['tipo'], $res['movid'], $res['idint']);
+                            }elseif($tipo['tipo']=='walmart'){
+                                $regWms=$wms->insertaVtaInt($tipo['info'],$tipo['tipo']);
+                                //$res=$data->insertaVtaInt($regWms['info']);
                             }else{
                                 $res=$data->insertaVentas($target_dir.$name);
                             }

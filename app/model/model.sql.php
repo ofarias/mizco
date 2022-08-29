@@ -60,6 +60,9 @@ class intelisis extends sqlbase {
 							$this->query="INSERT INTO Venta (EMPRESA, MOV, FECHAEMISION, Moneda, TipoCambio, Usuario, Estatus, Cliente, Almacen, enviarA, FormaPagoTipo, comentarios, ORDENCOMPRA, Agente, Atencion, MovID, Observaciones, Referencia, ListaPreciosEsp) VALUES ('MIZCO', '$mov', '$fecha', 'Pesos', '1', 'ECOMMERCE', 'SINAFECTAR', '$cliente', '$alm', $suc, '$mp', '$obs', '$cadena'+ '$movID', '02', iif( (SELECT top 1 departamento FROM DESACondicionesxDepto WHERE CLIENTE = '$cliente') is null, 'General', (SELECT top 1 DEPARTAMENTO FROM DESACondicionesxDepto WHERE CLIENTE = '$cliente')), '$oc', '$obs', '$tv', '$lista')";
 							$this->grabaBD();
 							$docs++;
+							### Falta actualizar en VentaC que maneja los folios.
+							$this->query="UPDATE VENTAC set Consecutivo = Consecutivo + 1 where MOV = '$mov'";
+							$this->grabaBD();
 						}
 
 						$id = $id * $part;

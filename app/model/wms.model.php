@@ -3464,10 +3464,13 @@ class wms extends database {
         $sheet=$objPHPExcel->getSheet(0);
         $highestRow = $sheet->getHighestRow(); 
         $highestColumn = $sheet->getHighestColumn();
-        $ruta="C:\\xampp\\htdocs\\remisiones\\";
-        if(!file_exists($ruta)){
-            mkdir($ruta, null, true);
+        $walmart = $sheet->getCell('A1')->getValue() == 'WAL * MART'? 'walmart':'';
+        if($walmart == 'walmart'){
+            $res=$this->leeWalmart($file);
+            return $res;
         }
+        $ruta="C:\\xampp\\htdocs\\remisiones\\";
+        if(!file_exists($ruta)){mkdir($ruta, null, true);}
         $d=date('s');
         $errors = '';
         $te=0;
@@ -3496,12 +3499,53 @@ class wms extends database {
                 $info1[] = array("FECHA"=>$A,"OBS"=>$B, "SKU"=>$C, "PIEZAS"=>$D, "GUIA"=>$E, "ESTADO"=>$F,"MOTIVO"=>$G, "SOLICITUD"=>$H, "DISP1"=>$I, "DISP2"=>$J, "DISP3"=>$K, "DISP4"=>$L, "DISP5"=>$M, "LINEA"=>$row, "DISP6"=>$N);
             }
         }
-        $tipo = (trim($sheet->getCell('B1')->getValue()) == 'Observaciones' and trim($sheet->getCell('C1')->getValue())== 'SKU')? 'Salida Diversa':'Ventas';  
-            //echo '<br/>'.$sheet->getCell('B1')->getValue();
-            //echo '<br/>'.$sheet->getCell('C1')->getValue();
-            //echo $tipo;
-            //die;
+        $tipo = (trim($sheet->getCell('B1')->getValue()) == 'Observaciones' and trim($sheet->getCell('C1')->getValue())== 'SKU')? 'Salida Diversa':'Ventas';
         return array("status"=>'ok', "info"=>$info1, "errors"=>$errors, "te"=>$te, 'tipo'=>$tipo);
+    }
+
+    function leeWalmart($file){
+        $data= array();
+        $usuario = $_SESSION['user']->NOMBRE;
+        $lista = '';
+        $inputFileType=PHPExcel_IOFactory::identify($file);
+        $objReader=PHPExcel_IOFactory::createReader($inputFileType);
+        $objPHPExcel=$objReader->load($file);
+        $sheet=$objPHPExcel->getSheet(0);
+        $highestRow = $sheet->getHighestRow(); 
+        $highestColumn = $sheet->getHighestColumn();
+        $ruta="C:\\xampp\\htdocs\\walmart\\";
+        if(!file_exists($ruta)){mkdir($ruta, null, true);}
+        $d=date('s');
+        $errors = '';
+        $te=0;
+        for ($row=23; $row <= $highestRow; $row++){ // Se utiliza para recorrer las partidas
+            $col = 'A';
+            $A = $sheet->getCell($col.$row)->getValue();//Código EAN/UPC:
+            $B = $sheet->getCell(++$col.$row)->getValue();//Cómprador
+            $C = $sheet->getCell(++$col.$row)->getValue();//Vendedor
+            $D = $sheet->getCell(++$col.$row)->getValue();//Color/Talla
+            $E = $sheet->getCell(++$col.$row)->getValue();//Precio Unitario
+            $F = $sheet->getCell(++$col.$row)->getValue();//Medida:
+            $G = $sheet->getCell(++$col.$row)->getValue();//Total:  
+            $H = $sheet->getCell(++$col.$row)->getValue();//Cantidad Ordenada:
+            $I = $sheet->getCell(++$col.$row)->getValue();//No. Paquetes/Empaque:
+            $J = $sheet->getCell(++$col.$row)->getValue();//Etiqueta:
+            $K = $sheet->getCell(++$col.$row)->getValue();//Departamento:
+            $L = $sheet->getCell(++$col.$row)->getValue();//Modelo:
+            $M = $sheet->getCell(++$col.$row)->getValue();//Precio Vta.
+            $N = $sheet->getCell(++$col.$row)->getValue();//Info Etiquetas:
+            $O = $sheet->getCell(++$col.$row)->getValue();//Lugar de Entrega:
+            $P = $sheet->getCell(++$col.$row)->getValue();//Cantidad:
+            
+            if(strpos(($A.$B.$C.$D.$E.$F.$G.$H.$I.$J.$K.$L.$M.$N.$O.$P),"|")){
+                    $errors .= $row.',';
+                    $te++;
+            }else{
+                $info[] = $A.'|'.$B.'|'.$C.'|'.$D.'|'.$E.'|'.$F.'|'.$G.'|'.$H.'|'.$I.'|'.$J.'|'.$K.'|'.$N.'|'.$O.'|'.$P;
+                $info1[] = array("EAN"=>$A,"COMPRADOR"=>$B, "VENDEDOR"=>$C, "COLOR"=>$D, "PRECIO"=>$E, "MEDIDA"=>$F,"TOTAL"=>$G, "ORDENADA"=>$H, "PAQUETES"=>$I, "ETIQUETA"=>$J, "DEPARTAMENTO"=>$K, "MODELO"=>$L, "PRECIOVTA"=>$M, "INFOETI"=>$N, "LUGARENTREGA"=>$O,"CANTIDAD"=>$P);
+            }
+        }
+        return array("status"=>'ok', "info"=>$info1, "errors"=>$errors, "te"=>$te, 'tipo'=>'walmart');        
     }
 
     function insertaMovInt($info,  $tipo, $movID, $idint){
@@ -3518,6 +3562,33 @@ class wms extends database {
         return $id; 
     }
 
+    function insertaVtaInt($info,$tipo){
+        $usuario=$_SESSION['user']->ID;
+        $this->query="INSERT INTO FTC_INT_FACT (ID_INT_F, EMPRESA, MOV, FECHAEMISION, MONEDA, TIPOCAMBIO, USUARIO, ESTATUS, CLIENTE, ALMACEN, ENVIARA, FORMAPAGOTIPO, COMENTARIOS, ORDENCOMPRA, AGENTE, ATENCION, MOVID, OBSERVACIONES, REFERENCIA, LISTAPRECIOSESP) VALUES (NULL, 'MIZCO', '', NULL, 'Pesos', 1, 'CMARTINEZ', 'SINAFECTAR', '', 'AL PT', 0, '', '', '', '', '', '', '', '', '', '') ";
+        $this->grabaBD();
+
+        for ($i=0; $i < count($info); $i++) { 
+            $this->query="INSERT INTO FTC_INT_FACT_PAR () VALUES ()";
+            $this->grabaBD();
+        }
+    }
+
 }?>
 
 
+
+    
+    
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
