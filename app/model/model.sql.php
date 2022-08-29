@@ -14,8 +14,8 @@ class intelisis extends sqlbase {
 	}
 
 	function insertaVentas($file){
-		### Leemos el archivo de excel
-		$xls = $this->lee_xls($file);
+		### Leemos el archivo de excel	
+		$xls = $this->lee_xls($file);$rengId=0;
 		if($xls['status']=='ok'){
 			$part = 0;$ocBase=''; $docs=0; $errors=0;
 			foreach ($xls['info'] as $col){
@@ -43,14 +43,13 @@ class intelisis extends sqlbase {
 				$this->query="SELECT TOP 1 * FROM dbo.CTE WHERE cliente = '$cliente' or rfc = '$rfc'";
 				$res = $this->EjecutaQuerySimple();
 				$row = sqlsrv_fetch_array($res);
-
 				if($row){
 					if(empty($cliente)){
 						$cliente = $row['Cliente'];
 					}
 					$this->query="SELECT * FROM ART WHERE ARTICULO = '$art'";
 					$r=$this->EjecutaQuerySimple();
-					$rengId=0;
+					
 					if($rowArt = sqlsrv_fetch_array($r)){ ### Existe el articulo, entonces insertamos la remision.
 						if($oc == $ocBase){
 							$part++;
@@ -62,10 +61,11 @@ class intelisis extends sqlbase {
 							$this->grabaBD();
 							$docs++;
 						}
+
 						$id = $id * $part;
 						$rengId++;
-						$this->query="INSERT INTO VENTAD (ID, Renglon, RenglonID, Almacen, Cantidad, Articulo, Precio, Impuesto1, Unidad, DescripcionExtra, renglonID, CantidadInventario, OrdenCompra )
-									VALUES ((SELECT MAX(ID) FROM VENTA), $id, $rengId, '$alm', $cant, '$art', $precio, 16, 'PIEZA', '$cadena'+'$movID', 0, $cant, '$movID')";
+						$this->query="INSERT INTO VENTAD (ID, Renglon, RenglonID, Almacen, Cantidad, Articulo, Precio, Impuesto1, Unidad, DescripcionExtra, CantidadInventario, OrdenCompra )
+									VALUES ((SELECT MAX(ID) FROM VENTA), $id, $rengId, '$alm', $cant, '$art', $precio, 16, 'PIEZA', '$cadena'+'$movID', $cant, '$movID')";
 						$this->grabaBD();
 						$ocBase= $oc;
 					}else{
@@ -96,22 +96,18 @@ class intelisis extends sqlbase {
 	}
 
 	function metodos($m){
-		switch ($m) {
-			case '3' or '03':
-					$nm = '03 Transferencia electronica de fondos';
-				break;
-			case '4' or '04':
-					$nm = '04 Tarjeta de Credito';
-				break;
-			case '28':
-					$nm = '28 Tarjeta de Débito';
-				break;
-			case '1' or '01':
-					$nm = '01 Efectivo';
-				break;
-			default:
-					$nm = '01 Efectivo';
-				break;
+		if($m == '99'){
+			$nm = '99 Por definir';
+		}elseif($m == '03' or $m == '3'){
+			$nm = '03 Transferencia electronica de fondos';
+		}elseif($m == '04' or $m == '4'){
+			$nm = '04 Tarjeta de Credito';
+		}elseif($m == '28'){
+			$nm = '28 Tarjeta de Débito';
+		}elseif($m == '01' or $m == '1'){
+			$nm = '01 Efectivo';
+		}else{
+			$nm = '01 Efectivo';
 		}
 		return $nm;
 	}
@@ -157,7 +153,7 @@ class intelisis extends sqlbase {
 				if(empty($rowC)){
 					$this->insertaCliente($J, $I, $U='',$L, $lista);
 				}
-				
+	
 	            if(strpos(($A.$B.$C.$D.$E.$F.$G.$H.$I),"|")){
 	            	$errors .= $row.',';
 	            	$te++;
@@ -571,7 +567,6 @@ class intelisis extends sqlbase {
 			$this->query="UPDATE InvC SET Consecutivo = Consecutivo + 1 where mov = '$tipo'";
 			//echo '<br/>Folio: '.$this->query.'<br/>';
 			$this->Ejecutaquerysimple();
-
 			return $this->findCambio($tipo);
 	}
 

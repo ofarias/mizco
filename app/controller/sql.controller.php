@@ -86,6 +86,7 @@ class sql_controller {
                            	$count++;
                             $tipo=$wms->valXLS($target_dir.$name);
                             if($tipo['tipo'] == 'Salida Diversa'){
+                                //print_r($tipo['tipo']);
                                 $res=$data->insertaMovInv($tipo['info']);
                                 $regWms=$wms->insertaMovInt($tipo['info'],$tipo['tipo'], $res['movid'], $res['idint']);
                             }else{
