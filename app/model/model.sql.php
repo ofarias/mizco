@@ -603,4 +603,63 @@ class intelisis extends sqlbase {
 		return array("movid"=>$movid, "idint"=>$id, "docs"=> 1, "errors"=>0);
 	}
 
+
+	function valInt($regWms){
+			### stdClass Object ( [ID_INT_FP] => 10281 [ID] => 401 [RENGLON] => 2048 [RENGLONSUB] => 0 [RENGLONID] => 1 [RENGLONTIPO] => L [ALMACEN] => AL PT [CANTIDAD] => 12 [ARTICULO] => BT1400 [PRECIO] => 310 [IMPUESTO1] => 1.16 [UNIDAD] => 4 [DESCRIPCIONEXTRA] => [CANTIDADINVENTARIO] => 48 [ORDENCOMPRA] => 9950821199 ) 
+	### La validacion se hace por lista de precios, almacen y presentacion por el momento solo se hace por articulo. 
+		$valPart=array();$valCab=array();
+		foreach($regWms['partidas'] as $par){
+			$art= $par->COMPRADOR; $lista = $par->LISTA; $id=$par->ID_INT_FP;
+			//$this->query = "SELECT count(*) as valArt FROM ListaPreciosD WHERE CodigoCliente = '$art' and Lista = '$lista'";
+			$this->query = "SELECT count(*) as valArt FROM ListaPreciosD WHERE CodigoCliente = '$art'";
+			$res = $this->EjecutaQuerySimple();
+			$row=sqlsrv_fetch_array($res);
+			//echo '<br/> Revisa el Articulo: '.$art. ' con el resultado '.$row['valArt'];
+			//$this->query="SELECT * FROM ART WHERE "
+			$valPart[] = array("id"=>$id, "art"=>$art, "val"=>$row['valArt']);;
+		}
+		
+		foreach($regWms['cabecera'] as $cbc){
+			$enviarA = $cbc->ENVIARA;
+			$valCab[]=array("id"=>$cbc->ID_INT_F, "suc"=>$enviarA, "val"=>1);
+		}
+		return array("valPart"=>$valPart, "valCab"=>$valCab);
+	}
+
+	function insertaVtaInt($info){
+		$mov='Pedido';$docs=0;
+		foreach ($info['cabeceras'] as $c){
+			//echo '<br/> se intenta insertar el ID_INT_F: '.$c->ID_INT_F;
+			$empresa =$c->EMPRESA; $mov=$c->MOV; $moneda=$c->MONEDA; $tc = $c->TIPOCAMBIO; $usuario=$c->USUARIO; $estatus=$c->ESTATUS;$cliente=$c->CLIENTE;$almacen=$c->ALMACEN;$enviarA=$c->ENVIARA;$formaPago=$c->FORMAPAGOTIPO; $comentarios=$c->COMENTARIOS;$oc=$c->ORDENCOMPRA;$agente=$c->AGENTE;$atencion=$c->ATENCION;$obs=$c->OBSERVACIONES;$depto=$c->DEPTO;$lista='WAL-MART SC'; $cadena=$c->COMPRADOR;
+				//$lista=$c->LISTAPRECIOSESP;
+			$this->query="INSERT INTO Venta (EMPRESA, MOV, FECHAEMISION, Moneda, TipoCambio, Usuario, Estatus, Cliente, Almacen, enviarA, FormaPagoTipo, comentarios, ORDENCOMPRA, Agente, Atencion, MovID, Observaciones, Referencia, ListaPreciosEsp) VALUES ('$empresa', '$mov',  GETDATE(), '$moneda', '$tc', '$usuario', '$estatus', '$cliente', '$almacen',
+				(SELECT ID FROM CteEnviarA where cliente='$cliente' and cadena = '$cadena'),
+				(SELECT Condicion FROM CteEnviarA where cliente='$cliente' and cadena = '$cadena'),
+				'$obs',
+				'$oc',
+				'01', 
+				iif( (SELECT top 1 departamento FROM DESACondicionesxDepto WHERE CLIENTE = '$cliente' and Departamento = '$depto') is null, 'General', (SELECT top 1 DEPARTAMENTO FROM DESACondicionesxDepto WHERE CLIENTE = '$cliente' and Departamento = '$depto')), 
+				(SELECT Consecutivo + 1  FROM VENTAC WHERE MOV = '$mov'), 
+				'$obs', 
+				'$oc', 
+				'$lista'
+				)";
+			echo '<br/>Cabecera: '.$this->query.'<br/>';
+			$this->grabaBD();
+			$docs++;
+			$this->query="UPDATE VENTAC set Consecutivo = Consecutivo + 1 where MOV = '$mov'";
+			$this->grabaBD();
+			$i=0;
+			foreach ($info['partidas'] as $p){
+				if($p->ID = $c->ID_INT_F){
+					$i++;
+					$this->query="INSERT INTO VENTAD (ID, Renglon, RenglonID, RenglonTipo, Almacen, Cantidad, Articulo, Precio, Impuesto1, Unidad, DescripcionExtra, CantidadInventario, OrdenCompra )
+									VALUES ((SELECT MAX(ID) FROM VENTA), $p->RENGLON, $p->RENGLONID, '$p->RENGLONTIPO', '$almacen', $p->CANTIDAD, '$p->ARTICULO', $p->PRECIO, 16, '$p->UNIDAD', '$p->ORDENCOMPRA', $p->CANTIDADINVENTARIO, '$p->ORDENCOMPRA')";
+					echo '<br/> Partidas: '.$this->query.'<br/>';
+					$this->grabaBD();
+				}
+			}
+		}
+		return array("docs"=>count($info['cabeceras']));
+	}
 }

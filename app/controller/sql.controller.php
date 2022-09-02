@@ -90,8 +90,17 @@ class sql_controller {
                                 $res=$data->insertaMovInv($tipo['info']);
                                 $regWms=$wms->insertaMovInt($tipo['info'],$tipo['tipo'], $res['movid'], $res['idint']);
                             }elseif($tipo['tipo']=='walmart'){
+                                //print_r($tipo['info']);
                                 $regWms=$wms->insertaVtaInt($tipo['info'],$tipo['tipo']);
-                                //$res=$data->insertaVtaInt($regWms['info']);
+                                $valInt=$data->valInt($regWms);
+                                $valWms=$wms->valWms($valInt);
+                                foreach($valWms as $insInt){
+                                    if($insInt->VAL == 1 and empty($insInt->MOVID)){
+                                        //echo '<br/> Crea el documento de la orden '.$insInt->ID_INT_F;
+                                        $res= $wms->traeDatosInt($insInt->ID_INT_F);
+                                        $res=$data->insertaVtaInt($res);
+                                    }
+                                }
                             }else{
                                 $res=$data->insertaVentas($target_dir.$name);
                             }

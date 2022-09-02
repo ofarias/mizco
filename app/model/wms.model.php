@@ -3511,44 +3511,69 @@ class wms extends database {
         $objReader=PHPExcel_IOFactory::createReader($inputFileType);
         $objPHPExcel=$objReader->load($file);
         $sheet=$objPHPExcel->getSheet(0);
-        $highestRow = $sheet->getHighestRow(); 
-        $highestColumn = $sheet->getHighestColumn();
+        
         $ruta="C:\\xampp\\htdocs\\walmart\\";
         if(!file_exists($ruta)){mkdir($ruta, null, true);}
         $d=date('s');
         $errors = '';
         $te=0;
-        for ($row=23; $row <= $highestRow; $row++){ // Se utiliza para recorrer las partidas
-            $col = 'A';
-            $A = $sheet->getCell($col.$row)->getValue();//Código EAN/UPC:
-            $B = $sheet->getCell(++$col.$row)->getValue();//Cómprador
-            $C = $sheet->getCell(++$col.$row)->getValue();//Vendedor
-            $D = $sheet->getCell(++$col.$row)->getValue();//Color/Talla
-            $E = $sheet->getCell(++$col.$row)->getValue();//Precio Unitario
-            $F = $sheet->getCell(++$col.$row)->getValue();//Medida:
-            $G = $sheet->getCell(++$col.$row)->getValue();//Total:  
-            $H = $sheet->getCell(++$col.$row)->getValue();//Cantidad Ordenada:
-            $I = $sheet->getCell(++$col.$row)->getValue();//No. Paquetes/Empaque:
-            $J = $sheet->getCell(++$col.$row)->getValue();//Etiqueta:
-            $K = $sheet->getCell(++$col.$row)->getValue();//Departamento:
-            $L = $sheet->getCell(++$col.$row)->getValue();//Modelo:
-            $M = $sheet->getCell(++$col.$row)->getValue();//Precio Vta.
-            $N = $sheet->getCell(++$col.$row)->getValue();//Info Etiquetas:
-            $O = $sheet->getCell(++$col.$row)->getValue();//Lugar de Entrega:
-            $P = $sheet->getCell(++$col.$row)->getValue();//Cantidad:
+        $data = array(); 
+        foreach ($objPHPExcel->getWorksheetIterator() as $worksheet){
+            $row_ctrl = 23;
+            $part=array();
+            $Hoja = $worksheet->getTitle();
+            $orden = $worksheet->getCell("B3")->getValue();
+            $suc = $worksheet->getCell("B6")->getValue();
+            $fechaOC = $worksheet->getCell("D3")->getValue();
+            $fechaCan= $worksheet->getCell("D5")->getValue();
+            $suc = $worksheet->getCell("D7")->getValue();
+            $depto = $worksheet->getCell("B6")->getValue();
+            $comp = $worksheet->getCell("B8")->getValue();
+            $deter = $worksheet->getCell("B9")->getValue();
+            $prov = $worksheet->getCell("B11")->getValue();
+            $arts = $worksheet->getCell("B19")->getValue();
+            $monto = $worksheet->getCell("B18")->getValue();
             
-            if(strpos(($A.$B.$C.$D.$E.$F.$G.$H.$I.$J.$K.$L.$M.$N.$O.$P),"|")){
-                    $errors .= $row.',';
-                    $te++;
-            }else{
-                $info[] = $A.'|'.$B.'|'.$C.'|'.$D.'|'.$E.'|'.$F.'|'.$G.'|'.$H.'|'.$I.'|'.$J.'|'.$K.'|'.$N.'|'.$O.'|'.$P;
-                $info1[] = array("EAN"=>$A,"COMPRADOR"=>$B, "VENDEDOR"=>$C, "COLOR"=>$D, "PRECIO"=>$E, "MEDIDA"=>$F,"TOTAL"=>$G, "ORDENADA"=>$H, "PAQUETES"=>$I, "ETIQUETA"=>$J, "DEPARTAMENTO"=>$K, "MODELO"=>$L, "PRECIOVTA"=>$M, "INFOETI"=>$N, "LUGARENTREGA"=>$O,"CANTIDAD"=>$P);
+            if($worksheet->getCell('A1') != ''){
+                $highestRow = $worksheet->getHighestRow(); 
+                $highestColumn = $worksheet->getHighestColumn();
+                for ($row=$row_ctrl; $row <= $highestRow; $row++){ // Se utiliza para recorrer las partidas
+                    $col = 'A';
+                    $A = $worksheet->getCell($col.$row)->getValue();//Código EAN/UPC:
+                    $B = $worksheet->getCell(++$col.$row)->getValue();//Cómprador
+                    $C = $worksheet->getCell(++$col.$row)->getValue();//Vendedor
+                    $D = $worksheet->getCell(++$col.$row)->getValue();//Color/Talla
+                    $E = $worksheet->getCell(++$col.$row)->getValue();//Precio Unitario
+                    $F = $worksheet->getCell(++$col.$row)->getValue();//Medida:
+                    $G = $worksheet->getCell(++$col.$row)->getValue();//Total:  
+                    $H = $worksheet->getCell(++$col.$row)->getValue();//Cantidad Ordenada:
+                    $I = $worksheet->getCell(++$col.$row)->getValue();//No. Paquetes/Empaque:
+                    $J = $worksheet->getCell(++$col.$row)->getValue();//Etiqueta:
+                    $K = $worksheet->getCell(++$col.$row)->getValue();//Departamento:
+                    $L = $worksheet->getCell(++$col.$row)->getValue();//Modelo:
+                    $M = $worksheet->getCell(++$col.$row)->getValue();//Precio Vta.
+                    $N = $worksheet->getCell(++$col.$row)->getValue();//Info Etiquetas:
+                    $O = $worksheet->getCell(++$col.$row)->getValue();//Lugar de Entrega:
+                    $P = $worksheet->getCell(++$col.$row)->getValue();//Cantidad:
+                    if(strpos(($A.$B.$C.$D.$E.$F.$G.$H.$I.$J.$K.$L.$M.$N.$O.$P),"|")){
+                            $errors .= $row.',';
+                            $te++;
+                    }else{
+
+                        if(trim($A) != trim('Código EAN/UPC:')){
+                            $info[] = $A.'|'.$B.'|'.$C.'|'.$D.'|'.$E.'|'.$F.'|'.$G.'|'.$H.'|'.$I.'|'.$J.'|'.$K.'|'.$N.'|'.$O.'|'.$P;
+                            $part[] = array("hoja"=>$Hoja,"EAN"=>$A,"COMPRADOR"=>$B, "VENDEDOR"=>$C, "COLOR"=>$D, "PRECIO"=>$E, "MEDIDA"=>$F,"TOTAL"=>$G, "ORDENADA"=>$H, "PAQUETES"=>$I, "ETIQUETA"=>$J, "DEPARTAMENTO"=>$K, "MODELO"=>$L, "PRECIOVTA"=>$M, "INFOETI"=>$N, "LUGARENTREGA"=>$O,"CANTIDAD"=>$P);
+                        }
+                    }
+                }
             }
+            $data[]=array("orden"=>$orden, "sucursal"=>$suc, "fechaOc"=>$fechaOC, "fechaCan"=>$fechaCan, "suc"=>$suc, "comp"=>$comp, "hoja"=>$Hoja, "partidas"=>$part, "deter"=>$deter, "prov"=>$prov, "depto"=>$depto, "arts"=>$arts, "monto"=>$monto);
+            unset($part);
         }
-        return array("status"=>'ok', "info"=>$info1, "errors"=>$errors, "te"=>$te, 'tipo'=>'walmart');        
+        return array("status"=>'ok', "info"=>$data, "errors"=>$errors, "te"=>$te, 'tipo'=>'walmart');
     }
 
-    function insertaMovInt($info,  $tipo, $movID, $idint){
+    function insertaMovInt($info,  $tipo, $movID, $idint, $cabecera){
         $usuario = $_SESSION['user']->ID;
         $this->query="INSERT INTO FTC_INT_MVI (ID_MVI, id_mov_int, MOV, MOVID, FECHA, ESTATUS, USUARIO, OBS, ALMACEN, CONCEPTO, REFERENCIA, FECHA_ELAB ) VALUES (NULL, $idint, '$tipo', $movID, CURRENT_DATE, '', $usuario, '', '', '', '', current_timestamp) RETURNING ID_MVI";
         $res=$this->grabaBD();
@@ -3563,14 +3588,73 @@ class wms extends database {
     }
 
     function insertaVtaInt($info,$tipo){
-        $usuario=$_SESSION['user']->ID;
-        $this->query="INSERT INTO FTC_INT_FACT (ID_INT_F, EMPRESA, MOV, FECHAEMISION, MONEDA, TIPOCAMBIO, USUARIO, ESTATUS, CLIENTE, ALMACEN, ENVIARA, FORMAPAGOTIPO, COMENTARIOS, ORDENCOMPRA, AGENTE, ATENCION, MOVID, OBSERVACIONES, REFERENCIA, LISTAPRECIOSESP) VALUES (NULL, 'MIZCO', '', NULL, 'Pesos', 1, 'CMARTINEZ', 'SINAFECTAR', '', 'AL PT', 0, '', '', '', '', '', '', '', '', '', '') ";
-        $this->grabaBD();
+        $usuario=$_SESSION['user']->ID; $ids=array();$ids='';
+        for ($i=0; $i < count($info) ; $i++) { 
+            $oc = $info[$i]['orden']; $suc=$info[$i]['sucursal']; $fechaOC=$info[$i]['fechaOc'];$fechaCan=$info[$i]['orden']; $suc=$info[$i]['suc']; $comp=$info[$i]['comp']; $hoja=$info[$i]['hoja']; $cliente = '10002'; $prov = $info[$i]['prov']; $determinante=$info[$i]['deter']; $depto = $info[$i]['depto']; $monto = $info[$i]['monto']; $arts=$info[$i]['arts'];
+            //echo '<br/>Hoja u Orden de compra: '.$oc.'<br/>';
+            if(!empty($oc)){
+                $this->query="INSERT INTO FTC_INT_FACT (ID_INT_F, EMPRESA, MOV, FECHAEMISION, MONEDA, TIPOCAMBIO, USUARIO, ESTATUS, CLIENTE, ALMACEN, ENVIARA, FORMAPAGOTIPO, COMENTARIOS, ORDENCOMPRA, AGENTE, ATENCION, MOVID, OBSERVACIONES, REFERENCIA, LISTAPRECIOSESP, COMPRADOR, PROVEEDOR, DETERMINANTE, DEPTO, MONTO, ARTICULOS) VALUES (NULL, 'MIZCO', 'Pedido', NULL, 'Pesos', 1, 'CMARTINEZ', 'SINAFECTAR', '$cliente', 'AL PT', 0, '', '', '$oc', '', '', '', '', '', '', '$comp', '$prov', '$determinante', '$depto', $monto, $arts ) RETURNING id_int_f ";
+                $res=$this->grabaBD(); $id = ibase_fetch_object($res)->ID_INT_F; $renglon=0; $rid=0; $ids.=$id.',';
+            }
+            for ($p=0; $p < count($info[$i]['partidas']); $p++) { 
+                $renglon += 2048; $rid++; $almacen='AL PT'; $articulo = $info[$i]['partidas'][$p]['VENDEDOR']; $precio=$info[$i]['partidas'][$p]['PRECIO']; $imp1 =1.16; $unidad=$info[$i]['partidas'][$p]['PAQUETES']; $cant = $info[$i]['partidas'][$p]['ORDENADA'];
+                $paquete = explode("/", $unidad);$paquete=$paquete[0]; $comprador=$info[$i]['partidas'][$p]['COMPRADOR'];
+                $descExtra=''; $cantInv= $cant * $paquete; $ordenada = $info[$i]['partidas'][$p]['ORDENADA']; $paquetes = $info[$i]['partidas'][$p]['PAQUETES'];
+                $this->query="INSERT INTO FTC_INT_FACT_PAR (ID_INT_FP, ID, RENGLON, RENGLONSUB, RENGLONID, RENGLONTIPO, ALMACEN, CANTIDAD, ARTICULO, PRECIO, IMPUESTO1, UNIDAD, DESCRIPCIONEXTRA, CANTIDADINVENTARIO, ORDENCOMPRA, COMPRADOR) VALUES (NULL, $id, $renglon, 0, $rid, 'L', '$almacen', $cant, '$articulo', $precio, $imp1, '$paquete', '$descExtra', $cantInv, $oc, '$comprador')";
+                $this->grabaBD();
+            }
+        }
+        $ids = substr($ids, 0 , strlen($ids)-1);
+        return $this->validaInt($ids);
+    }
 
-        for ($i=0; $i < count($info); $i++) { 
-            $this->query="INSERT INTO FTC_INT_FACT_PAR () VALUES ()";
+    function validaInt($ids){
+        $this->query ="SELECT * FROM FTC_INT_FACT WHERE ID_INT_F IN ($ids)";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $cabecera[] =$tsArray;
+        }
+        $this->query ="SELECT * FROM FTC_INT_FACT_PAR WHERE ID IN ($ids)";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $partidas[] =$tsArray;
+        }
+        return array("cabecera"=>$cabecera, "partidas"=>$partidas);
+    }
+
+    function valWms($valData){
+        $usuario=$_SESSION['user']->ID;$data=array();
+        foreach ($valData['valPart'] as $val) {
+            $id =  $val['id']; $sta =  $val['val'];
+            $this->query="INSERT INTO FTC_INT_FACT_LOG (ID, id_int_f, ID_INT_FP, FECHA_CARGA, STATUS, USUARIO, OBS) VALUES (NULL, (SELECT ID FROM FTC_INT_FACT_PAR WHERE ID_INT_FP = $id), $id, current_timestamp, $sta, $usuario, 'Articulo')";
             $this->grabaBD();
         }
+        foreach ($valData['valCab'] as $val){
+            $id = $val['id'];
+            $this->query="EXECUTE PROCEDURE FTC_INT_VAL_FAT_PART ($id)";
+            $this->EjecutaQuerySimple();
+        }
+        $this->query = "SELECT (select first 1 status from FTC_INT_FACT_LOG l where l.ID_INT_FP is null and l.id_int_f = f.ID_INT_F order by l.id desc) as val, f.* FROM FTC_INT_FACT f ";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function traeDatosInt($id){
+        $data=array(); $par=array();
+        $this->query="SELECT * FROM FTC_INT_FACT WHERE ID_INT_F = $id";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        $this->query="SELECT * FROM FTC_INT_FACT_PAR WHERE ID = $id";
+        $res = $this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $par[]=$tsArray;
+        }
+        return array("cabeceras"=>$data, "partidas"=>$par);
     }
 
 }?>
