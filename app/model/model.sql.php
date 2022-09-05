@@ -670,4 +670,19 @@ class intelisis extends sqlbase {
 		}
 		return array("docs"=>count($info['cabeceras']));
 	}
+
+	function actMov($movs){
+		$act=array(); $int=array();
+		foreach ($movs as $mov) {
+			$this->query="SELECT * FROM INV WHERE ID = $mov->ID_MOV_INT";
+			$res=$this->Ejecutaquerysimple();
+			while ($tsArray=sqlsrv_fetch_array($res)){
+				$int[]=$tsArray;
+			}
+			foreach ($int as $k) {
+				$act[] = array("idInt"=>$mov->ID_MOV_INT, "estatus"=>$k['Estatus']);
+			}
+		}
+		return $act;
+	}
 }

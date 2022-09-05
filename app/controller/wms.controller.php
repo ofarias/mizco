@@ -1397,6 +1397,11 @@ class wms_controller {
             $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenes.php');
             ob_start();
             $opc = explode(":", $op);
+            $movs = $data->movsInv();
+            if(count($movs)>0){
+                $actMov=$data_i->actMov($movs);
+                $actMov=$data->actMov($actMov);
+            }
             $revMovs=$data->revMovs();
             if(strrpos($op, 'all') or $op=='all'){
                 $lt = $_SESSION['user']->CR;

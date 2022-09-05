@@ -3658,6 +3658,7 @@ class wms extends database {
     }
 
     function revMovs(){
+        $data=array();
         $this->query="SELECT * FROM FTC_INT_MVI WHERE ESTATUS ='CONCLUIDO' AND id_ord is null";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
@@ -3692,6 +3693,25 @@ class wms extends database {
         $this->query ="UPDATE FTC_INT_MVI SET ID_ORD = $id, status_wms = 0 where ID_MOV_INT = $idmiv";
         $this->queryActualiza();
 
+        return;
+    }
+
+    function movsInv(){
+        $data = array();
+        $this->query="SELECT * FROM FTC_INT_MVI WHERE ESTATUS = ''";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function actMov($info){
+        for ($i=0; $i < count($info) ; $i++) { 
+            $id = $info[$i]['idInt']; $status=$info[$i]['estatus'];
+            $this->query="UPDATE FTC_INT_MVI SET ESTATUS = '$status' where id_mov_int = $id";
+            $this->queryActualiza();
+        }
         return;
     }
 
