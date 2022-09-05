@@ -437,12 +437,18 @@ class intelisis extends sqlbase {
 
 	function infoInt($doc){
 		$cabecera=array(); $detalle=array();
-		$this->query="SELECT * FROM VENTA WHERE ID = $doc";
+		if($doc < 187033){
+			$tabla =' INV '; $tablap = ' INVD ';
+		}else{
+			$tabla =' VENTA '; $tablap = ' VENTAD ';
+		}
+		
+		$this->query="SELECT * FROM $tabla WHERE ID = $doc";
 		$res=$this->Ejecutaquerysimple();
 		while($tsArray=sqlsrv_fetch_array($res)){
 			$cabecera[]=$tsArray;
 		}
-		$this->query="SELECT * FROM VENTAD WHERE ID = $doc";
+		$this->query="SELECT * FROM $tablap WHERE ID = $doc";
 		$res=$this->Ejecutaquerysimple();
 		while($tsArray=sqlsrv_fetch_array($res)){
 			$partidas[]=$tsArray;
@@ -450,6 +456,8 @@ class intelisis extends sqlbase {
 		//echo 'Cabecera: '.count($cabecera).' partidas '.count($partidas); 
 		return array("cabecera"=>$cabecera, "partidas"=>$partidas);
 	}
+
+
 
 	function asgLn($info){
 		$data=array();$asig=0;$base=''; $i=0;

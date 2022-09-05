@@ -1397,6 +1397,7 @@ class wms_controller {
             $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenes.php');
             ob_start();
             $opc = explode(":", $op);
+            $revMovs=$data->revMovs();
             if(strrpos($op, 'all') or $op=='all'){
                 $lt = $_SESSION['user']->CR;
                 $pagina = $this->load_template('Reportes');
@@ -1746,77 +1747,126 @@ class wms_controller {
         $pdf->Ln();
        
         foreach ($orden as $ord) {
-            if($ord->ASIG > 0){
+            if($ord->ASIG > 0){ /// solo se imprime si tiene algo asignado.
                 $componentes=array();$pos= array();$ubicacion='';$ubi=array();
-                $componentes=$data->comPro($ord->PROD, $ord->ID_ORDD);
+                $componentes=$data->comPro($ord->PROD, $ord->ID_ORDD);/// Obtiene la informacion de las ubicaciones.
                 $pos = $data->posImp($ord->ID_ORDD); /// Obtiene las posiciones de los productos.
-                $pres = $data->sustitutos($ord->ID_ORDD);
+                $pres = $data->sustitutos($ord->ID_ORDD); /// Obtiene los sustitutos.
                 $surt= count($pos);$cmpt=count($componentes['datos']);$sust=count($pres);
                 //$pdf->Cell(50, 6, $ord->CEDIS, 'LRT');
                 $m = (count($pos)>1)? 'LRT':'LRTB';
                 $pdf->Cell(28, 6, $ord->UPC, 'LRTB');
                 $pdf->Cell(20, 6, $ord->PROD, 'LRTB');/// Producto de la Orden
                 if($sust == 0 ){
-                    $pdf->Cell(20, 6,'' , 'LRTB'); // Sustituto 
+                    $pdf->Cell(20, 6,'' , 'LRTB'); // Imprime cuanto tiene sustitutos, como no tiene es una linea directa. 
                     $pdf->Cell(20, 6, number_format($ord->ASIG,0), 'LRTB',0,'R');
                     $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
                     $asig = $ord->ASIG;
-                }else{
+                    ##### Impresion de las posiciones de los productos
+                        $uni=$ord->CAJAS;
+                        $residuo = fmod($asig,$uni);
+                        $resi = '';
+                        $total = bcdiv($asig,$uni,0);
+                        if($residuo > 0 ){
+                            $resi= " + 1C/".$residuo." ";
+                            $total +=1;
+                        }
+                        //$pdf->Cell(25, 6, number_format($ord->CAJAS,0)."C/".$ord->UNIDAD.$resi , 'LRTB',0,'R');
+                        $i=0;
+                        foreach($pos as $pst){
+                            $i++;
+                            if($pst->COMPONENTES > 1){
+                                $ubicacion = ' Lin:  '.$pst->LINEA.'  Tar: '.$pst->TARIMA.'  Cant:  '.number_format($pst->PIEZAS,0).' - '.$pst->PRODUCTO.''."\n";
+                            }else{
+                                $ubicacion = ' Lin:  '.$pst->LINEA.'  Tar: '.$pst->TARIMA.'  Cant:  '.number_format($pst->PIEZAS,0).' - '.$pst->PRODUCTO.''."\n";
+                            }
+                            if($i>=1){
+                                $ubi[] = ($ubicacion);
+                            }
+                        }
+                        $pdf->Cell(20, 6, number_format($total,0), 'LRTB',0,'R');
+                        $pdf->Cell(70, 6, utf8_decode($ubicacion), $m,0,'R');
+                        $pdf->Cell(40, 6, utf8_decode($ord->ETIQUETA) , 'LRTB');
+                        //$pdf->Ln();
+                    ##### Finaliza la impresion 
+                    #### Ipresion de las ubicaciones cuando se tienen una o mas.
+                        if($i>= 2){
+                            for($l=0; $l < count($ubi)-1 ; $l++) { 
+                                $pdf->Cell(28, 4,"",'LB',0,'R');
+                                $pdf->Cell(20, 4,"",'B',0,'R');
+                                $pdf->Cell(20, 4,"",'B',0,'R');
+                                $pdf->Cell(20, 4,"",'B',0,'R');
+                                $pdf->Cell(20, 4,"",'B',0,'R');
+                                $pdf->Cell(20, 4,"",'B',0,'R');
+                                $pdf->Cell(70, 4,$ubi[$l],'LR',0,'R');
+                                $pdf->Cell(40, 4,"",'RBT',0,'R');
+                                $pdf->Ln();
+                            }
+                        }
+                    #### Finaliza la impresion.
+                }else{ // aqui si tiene sustitutos.
                     $sus=0;
-                    foreach ($pres as $ss) {
-                        if($sus>0){     
+                    $asig = $ord->ASIG;
+                    ##### Impresion de las posiciones de los productos
+                    $uni=$ord->CAJAS;
+                    $residuo = fmod($asig,$uni);
+                    $resi = '';
+                    $total = bcdiv($asig,$uni,0);
+                    if($residuo > 0 ){
+                        $resi= " + 1C/".$residuo." ";
+                        $total +=1;
+                    }
+                    foreach ($pres as $ss){ /// cada una de las presentaciones.
+                        unset($ubi);
+                        if($sus>0){ // cuando se tienen mas de una sustitucion se agregan las primeras celdas.
+                            $pdf->Ln();
                             $pdf->Cell(28, 6, '', 'LRTB');
                             $pdf->Cell(20, 6, '', 'LRTB');
-                        }
+                        } /// aqui inicia cuando se imprime la primer sustitucion.
                         $pdf->Cell(20, 6, $ss->NUEVO , 'LRTB'); // Sustituto 
-                        $pdf->Cell(20, 6, number_format($ss->CANT,0), 'LRTB',0,'R');
-                        $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
-                        $asig = $ss->CANT;
+                        $pdf->Cell(20, 6, number_format($ss->CANT,0), 'LRTB',0,'R'); // Surtir
+                        $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R'); // Piezas x caja 
+                        #### IMPRESION DE LOS TOTALES DE LAS CAJAS
+                        if($sus == 0){
+                            $pdf->Cell(20, 6, number_format($total,0), 'LRTB',0,'R');
+                        }else{
+                            $pdf->Cell(20, 6, '', 'LRTB',0,'R');
+                        }
+                        ##### FINALIZA LA IMPRESION DE TOTAL DE CAJAS
+                        $asig=$ss->CANT;
                         $sus++;
-                        $pdf->Ln();
+                    #####  Hasta aqui se imprimen los sustitutos.
+                    $i=0;
+                    foreach($pos as $pst){
+                        $i++;
+                        if($pst->PRODUCTO == $ss->NUEVO){
+                            if($pst->COMPONENTES > 1){
+                                $ubicacion = ' Lin:  '.$pst->LINEA.'  Tar: '.$pst->TARIMA.'  Cant:  '.number_format($pst->PIEZAS,0).' - '.$pst->PRODUCTO.''."\n";
+                            }else{
+                                $ubicacion = ' Lin:  '.$pst->LINEA.'  Tar: '.$pst->TARIMA.'  Cant:  '.number_format($pst->PIEZAS,0).' - '.$pst->PRODUCTO.''."\n";
+                            }
+                            if($i>=1){ // siempre guarda la ubicacion
+                                $ubi[] = ($ubicacion);
+                            }
+                        }
+                    }
+                    #### Ipresion de las ubicaciones cuando se tienen una o mas.
+                    if($i >= 1){
+                        for($l=0; $l<count($ubi) ; $l++){ 
+                            $pdf->Cell(70, 6,$ubi[$l],'LRBT',0,'R'); /// Ubicacion y cantidad en piezas
+                            $pdf->Cell(40, 6,"",'RBT',0,'R'); /// Etiquetas
+                            if($l > 1){
+                                $pdf->Ln();
+                            }
+                        }
+                    }
+                    ### Finaliza la impresion de las ubicaciones
                     }
                 }
-                $uni = $ord->CAJAS;
-                $residuo = fmod($asig,$uni);
-                $resi = '';
-                $total = bcdiv($asig,$uni,0);
-                if($residuo > 0 ){
-                    $resi= " + 1C/".$residuo." ";
-                    $total +=1;
-                }
-                //$pdf->Cell(25, 6, number_format($ord->CAJAS,0)."C/".$ord->UNIDAD.$resi , 'LRTB',0,'R');
-                $i=0;
-                foreach($pos as $pst){
-                    $i++;
-                    if($pst->COMPONENTES > 1){
-                        $ubicacion = ' Lin:  '.$pst->LINEA.'  Tar: '.$pst->TARIMA.'  Cant:  '.number_format($pst->PIEZAS,0).' - '.$pst->PRODUCTO.''."\n";
-                    }else{
-                        $ubicacion = ' Lin:  '.$pst->LINEA.'  Tar: '.$pst->TARIMA.'  Cant:  '.number_format($pst->PIEZAS,0).' - '.$pst->PRODUCTO.''."\n";
-                    }
-                    if($i >=1){
-                        $ubi[] = ($ubicacion);
-                    }
-                }
-                $pdf->Cell(20, 6, number_format($total,0), 'LRTB',0,'R');
-                $pdf->Cell(70, 6, utf8_decode($ubicacion), $m,0,'R');
-                $pdf->Cell(40, 6, utf8_decode($ord->ETIQUETA) , 'LRTB');
-                $pdf->Ln();
-                if($i >= 2){
-                    for($l=0; $l < count($ubi)-1 ; $l++) { 
-                        $pdf->Cell(28, 4,"",'LB',0,'R');
-                        $pdf->Cell(20, 4,"",'B',0,'R');
-                        $pdf->Cell(20, 4,"",'B',0,'R');
-                        $pdf->Cell(20, 4,"",'B',0,'R');
-                        $pdf->Cell(20, 4,"",'B',0,'R');
-                        $pdf->Cell(20, 4,"",'B',0,'R');
-                        $pdf->Cell(70, 4,$ubi[$l],'LR',0,'R');
-                        $pdf->Cell(40, 4,"",'RBT',0,'R');
-                        $pdf->Ln();
-                    }
-                }
+            $pdf->Ln();
+            #### Finaliza la impresion.
             }
         }
-        //die;
         $pdf->SetFont('Arial', 'I',10);
         $pdf->Ln(10);
         $pdf->Write(6,"_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- FIN DEL REPORTE _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-");
