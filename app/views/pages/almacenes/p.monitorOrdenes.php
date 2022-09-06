@@ -156,6 +156,21 @@
     $(".all").click(function(){
         window.open("index.wms.php?action=wms_menu&opc=oall", "_self")
     })
+
+    $(".docCP").click(function(){
+        $.ajax({
+            url:'index.php',
+            type:'post',
+            dataType:'json',
+            data:{docCP:1},
+            success:function(data){
+                alert("El numero de documento es: " + data.doc )
+            },
+            error:function(){
+
+            }
+        })
+    })
     
 
     $(".marcar").click(function(){

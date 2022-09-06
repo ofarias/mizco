@@ -1493,6 +1493,8 @@ if (isset($_POST['usuario'])) {
 }elseif(isset($_POST['verListaDePrecios'])){
     $cliente=$_POST['cliente'];
     $controller->verListaDePrecios($cliente);
+}elseif(isset($_POST['docCP'])){
+    $res=$controller_int->docCP(); echo json_encode($res); exit();
 }
 elseif (isset($_POST['utilerias'])) {
     $opcion = $_POST['opcion'];

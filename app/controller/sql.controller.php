@@ -128,4 +128,10 @@ class sql_controller {
         $info= $data->detalleDoc($docp, $docf);
     }
 
+    function docCP(){
+        $data= new intelisis;
+        $res = $data->docCP();
+        return $res;
+    }
+
 }

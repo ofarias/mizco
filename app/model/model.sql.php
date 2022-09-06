@@ -685,4 +685,17 @@ class intelisis extends sqlbase {
 		}
 		return $act;
 	}
+
+	function docCP(){
+		$data=array(); $movimiento='No se encontro Movimiento';
+		$this->query="SELECT * FROM INV where mov = 'Cambio Presentacion' and estatus = 'SINAFECTAR'";
+		$res=$this->Ejecutaquerysimple();
+		while ($tsArray=sqlsrv_fetch_array($res)) {
+			$data[]=$tsArray;
+		}
+		foreach ($data as $d) {
+			$movimiento = $d['Mov'].'-'.$d['MovID'];
+		}
+		return array("doc"=>$movimiento);
+	}
 }
