@@ -521,7 +521,7 @@ class intelisis extends sqlbase {
 	function iCambioPres($base, $nuevo, $cant, $part, $idord, $movID){
 		//// Buscamos si hay un documento abierto, si existe introducimos las partidas en el, si no existe, creamos uno nuevo.
 			$id = $this->findCambio('Cambio Presentacion');
-			$this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonID, RenglonTipo, CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) 
+			$this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonTipo, RenglonID,  CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) 
 				VALUES ( $id,
 					(SELECT COALESCE (MAX(Renglon), 0) + 2048 FROM INVD WHERE ID = $id),
 					0,
@@ -536,7 +536,7 @@ class intelisis extends sqlbase {
 					0,
 					0,
 					'$movID --> $idord --> $part')";
-			echo '<br/>Detalle: '.$this->query.'<br/>';
+			//echo '<br/>Detalle: '.$this->query.'<br/>';
 			$this->Ejecutaquerysimple();
 	}
 
@@ -567,7 +567,7 @@ class intelisis extends sqlbase {
 				CURRENT_TIMESTAMP, 
 				'Pesos', 
 				1, 
-				'PHP', 
+				'FGARCIA', 
 				'SINAFECTAR', 1, 0, 'AL PT',
 				'(TRANSITO)', 0, CURRENT_TIMESTAMP , CURRENT_TIMESTAMP, 0,  YEAR(GETDATE()),  MONTH(GETDATE()), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0
 				, 0, 0, 'INV' ) ";

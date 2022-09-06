@@ -38,6 +38,7 @@
 
                 Fecha inicial:&nbsp;&nbsp;<input type="date" class="ini" value="<?php echo date('d/m/Y')?>" > Fecha Final:&nbsp;&nbsp;<input type="date" class="fin" value="<?php echo date('d/m/Y')?>" >&nbsp;&nbsp;<button class="btn-sm btn-info filtro">Ir</button>
                 Todos <input type="button" value="Todos" class="btn-sm btn-primary all">
+                <a class="docCP"> Cambio de presentacion </a>
             </p>
             </div>
             <br/>

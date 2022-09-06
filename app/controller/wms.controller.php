@@ -1721,7 +1721,9 @@ class wms_controller {
         $pdf->write(5, "Partidas : ". count($orden)."");
         $pdf->SetX(150);
         $pdf->write(5, "Elaborado por :". $usuario. " el ".date("d-m-Y h:i:s")."\n");
-
+        $pdf->SetX(40);
+        $pdf->write(5, "Orden de Compra : ". $cabecera->ORDEN."");
+        
         $pdf->Ln();
         $pdf->write(5, "Picking List ");
         $pdf->Ln(8);
@@ -1809,7 +1811,7 @@ class wms_controller {
                             }
                         }
                     #### Finaliza la impresion.
-                }else{ // aqui si tiene sustitutos.
+            }else{ // aqui si tiene sustitutos.
                     $sus=0;
                     $asig = $ord->ASIG;
                     ##### Impresion de las posiciones de los productos
@@ -1856,13 +1858,17 @@ class wms_controller {
                         }
                     }
                     #### Ipresion de las ubicaciones cuando se tienen una o mas.
-                    if($i >= 1){
-                        for($l=0; $l<count($ubi) ; $l++){ 
-                            $pdf->Cell(70, 6,$ubi[$l],'LRBT',0,'R'); /// Ubicacion y cantidad en piezas
-                            $pdf->Cell(40, 6,"",'RBT',0,'R'); /// Etiquetas
-                            if($l > 1){
+                    if($i>=1){
+                        $a=0;
+                        for($l=0; $l<count($ubi) ; $l++){
+                            //$pdf->Cell(20, 6,'Ubicaciones:'.count($ubi), 'LRBT',0,'R');
+                            $pdf->Cell(70, 6,$ubi[$l],'LRBT',0,'R'); /// Ubicacion y cantidad en piezas 70, 6
+                            $pdf->Cell(40, 6,"",'RBT',0,'R'); /// Etiquetas 40, 6
+                            if($a == count($ubi)-1){}else{
                                 $pdf->Ln();
                             }
+                            $pdf->Cell(128,6, '');
+                            $a++;
                         }
                     }
                     ### Finaliza la impresion de las ubicaciones

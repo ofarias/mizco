@@ -3579,7 +3579,7 @@ class wms extends database {
         $res=$this->grabaBD();
         $id = ibase_fetch_object($res)->ID_MVI; $renglon=0;
         for ($i=0; $i < count($info) ; $i++){ 
-            $renglon += 2048; $cant = $info[$i]['PIEZAS']; $alm = 'AL PT';$art = $info[$i]['SKU'];$uni = 'PZA'; $factor = 1; $suc = 0; $obs=$info[$i]['OBS']; $guia=$info[$i]['GUIA'];$edo_fis=$info[$i]['ESTADO'];$motivo=$info[$i]['MOTIVO']; $solicitante=$info[$i]['SOLICITUD'];
+            $renglon += 2048; $cant = $info[$i]['PIEZAS']; $alm = 'AL PT';$art = strtoupper($info[$i]['SKU']);$uni = 'PZA'; $factor = 1; $suc = 0; $obs=$info[$i]['OBS']; $guia=$info[$i]['GUIA'];$edo_fis=$info[$i]['ESTADO'];$motivo=$info[$i]['MOTIVO']; $solicitante=$info[$i]['SOLICITUD'];
                 $this->query="INSERT INTO FTC_INT_MVI_DET (ID_MVID,ID_MVI,RENGLON,RENGLON_SUB,RENGLON_ID,RENGLON_TIPO,CANTIDAD,ALAMCEN,ARTICULO,UNIDAD,FACTOR,CANTIDAD_INVENTARIO,SUCURSAL,FECHA,USUARIO,ESTATUS,STATUS_WMS,FECHA_ELAB, OBS, GUIA, EDO_FIS, MOTIVO, SOLICITANTE) VALUES (null, $id, $renglon, 0, $i+1,'L', $cant, '$alm', '$art', '$uni', $factor, $cant*$factor, $suc, current_date, $usuario, '', 0, current_timestamp, '$obs', '$guia', '$edo_fis', '$motivo', '$solicitante')";
                 $this->grabaBD();
 
@@ -3698,7 +3698,7 @@ class wms extends database {
 
     function movsInv(){
         $data = array();
-        $this->query="SELECT * FROM FTC_INT_MVI WHERE ESTATUS = ''";
+        $this->query="SELECT * FROM FTC_INT_MVI WHERE ID_ORD  IS NULL ";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
