@@ -5,6 +5,8 @@ require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
 require_once 'app/model/model.sql.php';
 require_once('app/model/wms.model.php');
+require_once('app/model/order.model.php');
+
 
 class sql_controller {
 
@@ -60,6 +62,8 @@ class sql_controller {
 		if (isset($_SESSION['user'])) {            
             $data = new intelisis;
             $wms = new wms;
+            $order = new orders;
+            $errors=array();
             $valid_formats = array("xls", "XLS", "XLSX", "xlsx");
             $max_file_size = 1024 * 10000; 
             $target_dir="C:/xampp/htdocs/uploads/xls/remisiones/";
@@ -86,22 +90,25 @@ class sql_controller {
                            	$count++;
                             $tipo=$wms->valXLS($target_dir.$name);
                             if($tipo['tipo'] == 'Salida Diversa'){
-                                //print_r($tipo['tipo']);
+                                $idf=$order->regFile($name, $tipo['tipo']);
                                 $res=$data->insertaMovInv($tipo['info']);
                                 $regWms=$wms->insertaMovInt($tipo['info'],$tipo['tipo'], $res['movid'], $res['idint']);
                             }elseif($tipo['tipo']=='walmart'){
-                                //print_r($tipo['info']);
-                                $regWms=$wms->insertaVtaInt($tipo['info'],$tipo['tipo']);
+                                $idf=$order->regFile($name, $tipo['tipo']);
+                                $regWms=$wms->insertaVtaInt($tipo['info'],$tipo['tipo'],$idf);
                                 $valInt=$data->valInt($regWms);
                                 $valWms=$wms->valWms($valInt);
                                 foreach($valWms as $insInt){
                                     if($insInt->VAL == 1 and empty($insInt->MOVID)){
-                                        //echo '<br/> Crea el documento de la orden '.$insInt->ID_INT_F;
                                         $res= $wms->traeDatosInt($insInt->ID_INT_F);
-                                        $res=$data->insertaVtaInt($res);
+                                        $resInt=$data->insertaVtaInt($res); /// despues de insertar la venta se tiene que actualizar
+                                        $valCab = $data->sincCab($insInt->ID_INT_F);
+                                        $valCab = $wms->sincCab($valCab);
                                     }
                                 }
+                                $this->redirect("w");
                             }else{
+                                $idf=$order->regFile($name, 'ML');
                                 $res=$data->insertaVentas($target_dir.$name);
                             }
                     	}
@@ -134,4 +141,34 @@ class sql_controller {
         return $res;
     }
 
+    function redirect($opc){
+        $redireccionar = $opc;
+        $html = $this->load_page('app/views/pages/intelisis/p.redirectform.php');
+        ob_start();
+        include 'app/views/pages/intelisis/p.redirectform.php';
+    }
+
+    function OrdenesWalmart(){
+        if (isset($_SESSION['user'])) {
+            $orders = new orders;
+            $pagina = $this->load_template('Ordenes walmart');
+            $html = $this->load_page('app/views/pages/intelisis/p.ordenesWalmart.php');
+            ob_start();
+            $ordenes = $orders->ordenesWalmart($param='');
+            include 'app/views/pages/intelisis/p.ordenesWalmart.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this->view_page($pagina);
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+    }
+
+    function enviarA($cte){
+        $int = new intelisis;
+        $info = $int->enviarA($cte, $det='');
+        return $info;
+    }
 }

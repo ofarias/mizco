@@ -3,7 +3,9 @@ session_start();
 date_default_timezone_set('America/Mexico_City');
 //session_cache_limiter('private_no_expire');
 require_once('app/controller/wms.controller.php');
+require_once('app/controller/sql.controller.php');
 $controller_wms = new wms_controller;
+$controller_int = new sql_controller;
 if (isset($_GET['action'])) {
     $action = $_GET['action'];
 } else {
@@ -133,6 +135,10 @@ else{
             break;
         case 'wms_menu':
             $opc=isset($_GET['opc'])? $_GET['opc']:'';
+            if($opc == 'w'){
+                $controller_int->OrdenesWalmart();
+                break;
+            }
             $controller_wms->wms_menu($opc);
             break;
         case 'detOrden':

@@ -3587,20 +3587,20 @@ class wms extends database {
         return $id; 
     }
 
-    function insertaVtaInt($info,$tipo){
+    function insertaVtaInt($info,$tipo, $idf){
         $usuario=$_SESSION['user']->ID; $ids=array();$ids='';
         for ($i=0; $i < count($info) ; $i++) { 
-            $oc = $info[$i]['orden']; $suc=$info[$i]['sucursal']; $fechaOC=$info[$i]['fechaOc'];$fechaCan=$info[$i]['orden']; $suc=$info[$i]['suc']; $comp=$info[$i]['comp']; $hoja=$info[$i]['hoja']; $cliente = '10002'; $prov = $info[$i]['prov']; $determinante=$info[$i]['deter']; $depto = $info[$i]['depto']; $monto = $info[$i]['monto']; $arts=$info[$i]['arts'];
+            $oc = $info[$i]['orden']; $suc=$info[$i]['sucursal']; $fechaOC=$info[$i]['fechaOc'];$fechaCan=$info[$i]['orden']; $suc=$info[$i]['suc']; $comp=$info[$i]['comp']; $hoja=$info[$i]['hoja']; $cliente = '10002'; $prov = $info[$i]['prov']; $determinante=$info[$i]['deter']; $depto = $info[$i]['depto']; $monto = $info[$i]['monto']; $arts=$info[$i]['arts'];$subDet=$info[$i]['sucursal'];
             //echo '<br/>Hoja u Orden de compra: '.$oc.'<br/>';
             if(!empty($oc)){
-                $this->query="INSERT INTO FTC_INT_FACT (ID_INT_F, EMPRESA, MOV, FECHAEMISION, MONEDA, TIPOCAMBIO, USUARIO, ESTATUS, CLIENTE, ALMACEN, ENVIARA, FORMAPAGOTIPO, COMENTARIOS, ORDENCOMPRA, AGENTE, ATENCION, MOVID, OBSERVACIONES, REFERENCIA, LISTAPRECIOSESP, COMPRADOR, PROVEEDOR, DETERMINANTE, DEPTO, MONTO, ARTICULOS) VALUES (NULL, 'MIZCO', 'Pedido', NULL, 'Pesos', 1, 'CMARTINEZ', 'SINAFECTAR', '$cliente', 'AL PT', 0, '', '', '$oc', '', '', '', '', '', '', '$comp', '$prov', '$determinante', '$depto', $monto, $arts ) RETURNING id_int_f ";
+                $this->query="INSERT INTO FTC_INT_FACT (ID_INT_F, EMPRESA, MOV, FECHAEMISION, MONEDA, TIPOCAMBIO, USUARIO, ESTATUS, CLIENTE, ALMACEN, ENVIARA, FORMAPAGOTIPO, COMENTARIOS, ORDENCOMPRA, AGENTE, ATENCION, MOVID, OBSERVACIONES, REFERENCIA, LISTAPRECIOSESP, COMPRADOR, PROVEEDOR, DETERMINANTE, DEPTO, MONTO, ARTICULOS, SUB_DETERMINANTE, ID_FILE) VALUES (NULL, 'MIZCO', 'Pedido', NULL, 'Pesos', 1, 'CMARTINEZ', 'SINAFECTAR', '$cliente', 'AL PT', 0, '', '', '$oc', '', '', '', '', '', '', '$comp', '$prov', '$determinante', '$depto', $monto, $arts, '$subDet', $idf) RETURNING id_int_f ";
                 $res=$this->grabaBD(); $id = ibase_fetch_object($res)->ID_INT_F; $renglon=0; $rid=0; $ids.=$id.',';
             }
             for ($p=0; $p < count($info[$i]['partidas']); $p++) { 
                 $renglon += 2048; $rid++; $almacen='AL PT'; $articulo = $info[$i]['partidas'][$p]['VENDEDOR']; $precio=$info[$i]['partidas'][$p]['PRECIO']; $imp1 =1.16; $unidad=$info[$i]['partidas'][$p]['PAQUETES']; $cant = $info[$i]['partidas'][$p]['ORDENADA'];
                 $paquete = explode("/", $unidad);$paquete=$paquete[0]; $comprador=$info[$i]['partidas'][$p]['COMPRADOR'];
-                $descExtra=''; $cantInv= $cant * $paquete; $ordenada = $info[$i]['partidas'][$p]['ORDENADA']; $paquetes = $info[$i]['partidas'][$p]['PAQUETES'];
-                $this->query="INSERT INTO FTC_INT_FACT_PAR (ID_INT_FP, ID, RENGLON, RENGLONSUB, RENGLONID, RENGLONTIPO, ALMACEN, CANTIDAD, ARTICULO, PRECIO, IMPUESTO1, UNIDAD, DESCRIPCIONEXTRA, CANTIDADINVENTARIO, ORDENCOMPRA, COMPRADOR) VALUES (NULL, $id, $renglon, 0, $rid, 'L', '$almacen', $cant, '$articulo', $precio, $imp1, '$paquete', '$descExtra', $cantInv, $oc, '$comprador')";
+                $descExtra=''; $cantInv= $cant; $ordenada = $info[$i]['partidas'][$p]['ORDENADA']; $paquetes = $info[$i]['partidas'][$p]['PAQUETES'];
+                $this->query="INSERT INTO FTC_INT_FACT_PAR (ID_INT_FP, ID, RENGLON, RENGLONSUB, RENGLONID, RENGLONTIPO, ALMACEN, CANTIDAD, ARTICULO, PRECIO, IMPUESTO1, UNIDAD, DESCRIPCIONEXTRA, CANTIDADINVENTARIO, ORDENCOMPRA, COMPRADOR, ART_ORIGINAL) VALUES (NULL, $id, $renglon, 0, $rid, 'L', '$almacen', $cant, '$articulo', $precio, $imp1, '$paquete', '$descExtra', $cantInv, $oc, '$comprador', '$articulo')";
                 $this->grabaBD();
             }
         }
@@ -3625,16 +3625,24 @@ class wms extends database {
     function valWms($valData){
         $usuario=$_SESSION['user']->ID;$data=array();
         foreach ($valData['valPart'] as $val) {
-            $id =  $val['id']; $sta =  $val['val'];
+            $id =  $val['id']; $sta =  $val['val']; $artn = $val['art']; $lista=$val['lista'];
             $this->query="INSERT INTO FTC_INT_FACT_LOG (ID, id_int_f, ID_INT_FP, FECHA_CARGA, STATUS, USUARIO, OBS) VALUES (NULL, (SELECT ID FROM FTC_INT_FACT_PAR WHERE ID_INT_FP = $id), $id, current_timestamp, $sta, $usuario, 'Articulo')";
             $this->grabaBD();
+            if(!empty($artn)){
+                $this->query="UPDATE FTC_INT_FACT_PAR SET ARTICULO = '$artn', lista = '$lista' where ID_INT_FP = $id";
+                $this->queryActualiza();
+            }
         }
-        foreach ($valData['valCab'] as $val){
-            $id = $val['id'];
-            $this->query="EXECUTE PROCEDURE FTC_INT_VAL_FAT_PART ($id)";
+        foreach ($valData['valCab'] as $valc){
+            $idc = $valc['id']; $ea = $valc['suc'];
+            if($ea > 0){
+                $this->query = "UPDATE FTC_INT_FACT SET ENVIARA = $ea where id_int_f = $idc";
+                $this->queryActualiza();
+            }
+            $this->query="EXECUTE PROCEDURE FTC_INT_VAL_FAT_PART ($idc)";
             $this->EjecutaQuerySimple();
         }
-        $this->query = "SELECT (select first 1 status from FTC_INT_FACT_LOG l where l.ID_INT_FP is null and l.id_int_f = f.ID_INT_F order by l.id desc) as val, f.* FROM FTC_INT_FACT f ";
+        $this->query = "SELECT (select first 1 status from FTC_INT_FACT_LOG l where l.ID_INT_FP is null and l.id_int_f = f.ID_INT_F order by l.id desc) as val, f.* FROM FTC_INT_FACT f where ENVIARA > 0 ";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -3713,6 +3721,17 @@ class wms extends database {
             $this->queryActualiza();
         }
         return;
+    }
+
+    function sincCab($info){
+        foreach($info as $inf){
+            $idintf= $inf['ReferenciaOrdenCompra'];
+            $fpt = $inf['FormaPagoTipo']; $ea = empty($inf['EnviarA'])? 0:$inf['EnviarA']; $mi = $inf['movID']; $a = $inf['Agente']; $o = $inf['Observaciones']; $r = $inf['Referencia']; $lpe=$inf['ListaPreciosEsp']; $fe = $inf['FechaEmision'];
+            $fe = $fe->format("d.m.Y"); $detInt = $inf['detInt']; $idInt=$inf['ID'];
+            $this->query="UPDATE FTC_INT_FACT SET FECHAEMISION = '$fe', FORMAPAGOTIPO = '$fpt', ENVIARA = $ea, MovID = '$mi', Agente='$a', Observaciones = '$o', Referencia = '$r', ListaPreciosEsp = '$lpe', DET_INTELISIS = '$detInt', ID_INT = '$idInt' WHERE ID_INT_F = $idintf";
+            $this->queryActualiza();
+            return;
+        }
     }
 
 }?>

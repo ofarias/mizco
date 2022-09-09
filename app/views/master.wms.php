@@ -51,9 +51,11 @@
                         &nbsp;&nbsp;&nbsp;
                         <input type="button" name="m" value="Movimientos" class="btn-sm btn-primary exec">
                         &nbsp;&nbsp;&nbsp;
-                        <input type="button" name="r" value="Reportes" class="btn btn-secondary exec">
+                        <input type="button" name="r" value="Reportes" class="btn-sm btn-secondary exec">
                         &nbsp;&nbsp;&nbsp;
-                        <input type="button" name="o" value="Monitor de Ordenes" class="btn btn-primary exec">
+                        <input type="button" name="o" value="Monitor de Ordenes" class="btn-sm btn-primary exec">
+                        &nbsp;&nbsp;&nbsp;
+                        <input type="button" name="w" value="Ordenes Walmart" class="btn-sm btn-primary exec">
                       </div>  
                 </div>
             </div>

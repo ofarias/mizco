@@ -613,23 +613,29 @@ class intelisis extends sqlbase {
 
 
 	function valInt($regWms){
-			### stdClass Object ( [ID_INT_FP] => 10281 [ID] => 401 [RENGLON] => 2048 [RENGLONSUB] => 0 [RENGLONID] => 1 [RENGLONTIPO] => L [ALMACEN] => AL PT [CANTIDAD] => 12 [ARTICULO] => BT1400 [PRECIO] => 310 [IMPUESTO1] => 1.16 [UNIDAD] => 4 [DESCRIPCIONEXTRA] => [CANTIDADINVENTARIO] => 48 [ORDENCOMPRA] => 9950821199 ) 
-	### La validacion se hace por lista de precios, almacen y presentacion por el momento solo se hace por articulo. 
-		$valPart=array();$valCab=array();
-		foreach($regWms['partidas'] as $par){
-			$art= $par->COMPRADOR; $lista = $par->LISTA; $id=$par->ID_INT_FP;
-			//$this->query = "SELECT count(*) as valArt FROM ListaPreciosD WHERE CodigoCliente = '$art' and Lista = '$lista'";
-			$this->query = "SELECT count(*) as valArt FROM ListaPreciosD WHERE CodigoCliente = '$art'";
-			$res = $this->EjecutaQuerySimple();
-			$row=sqlsrv_fetch_array($res);
-			//echo '<br/> Revisa el Articulo: '.$art. ' con el resultado '.$row['valArt'];
-			//$this->query="SELECT * FROM ART WHERE "
-			$valPart[] = array("id"=>$id, "art"=>$art, "val"=>$row['valArt']);;
-		}
-		
+		$valPart=array();$valCab=array();$infoCab=array();$i=0;
 		foreach($regWms['cabecera'] as $cbc){
-			$enviarA = $cbc->ENVIARA;
-			$valCab[]=array("id"=>$cbc->ID_INT_F, "suc"=>$enviarA, "val"=>1);
+			$i++;$cliente=$cbc->CLIENTE; $cadena = $cbc->COMPRADOR;
+			$this->query="SELECT * FROM CteEnviarA where cliente = '$cliente' and Cadena = '$cadena'";
+			$res=$this->Ejecutaquerysimple();
+			$row=sqlsrv_fetch_array($res);
+			$suc = $row['ID'];
+			$valCab[]=array("id"=>$cbc->ID_INT_F, "suc"=>$suc, "val"=>$i);
+			if($suc > 0){
+				$this->query="SELECT * FROM CteEnviarA where cliente = '$cliente' and Cadena = '$cadena'";
+				$res=$this->Ejecutaquerysimple();
+				while($tsarray=sqlsrv_fetch_array($res)){
+					$infoCab[]=$tsarray;
+				}
+				foreach ($infoCab as $cab) {$lpe =$cab['ListaPreciosEsp'];}
+				foreach($regWms['partidas'] as $par){
+					$art= $par->COMPRADOR; $lista = $par->LISTA; $id=$par->ID_INT_FP;
+					$this->query = "SELECT count(*) as valArt, max(Articulo) as Articulo, max(Lista) as Lista FROM ListaPreciosD WHERE CodigoCliente = '$art' and Lista = '$lpe'";
+					$res = $this->EjecutaQuerySimple();
+					$row=sqlsrv_fetch_array($res);
+					$valPart[] = array("id"=>$id, "art"=>$art, "val"=>$row['valArt'], "art"=>$row['Articulo'], "lista"=>$row['Lista']);;
+				}
+			}
 		}
 		return array("valPart"=>$valPart, "valCab"=>$valCab);
 	}
@@ -638,11 +644,11 @@ class intelisis extends sqlbase {
 		$mov='Pedido';$docs=0;
 		foreach ($info['cabeceras'] as $c){
 			//echo '<br/> se intenta insertar el ID_INT_F: '.$c->ID_INT_F;
-			$empresa =$c->EMPRESA; $mov=$c->MOV; $moneda=$c->MONEDA; $tc = $c->TIPOCAMBIO; $usuario=$c->USUARIO; $estatus=$c->ESTATUS;$cliente=$c->CLIENTE;$almacen=$c->ALMACEN;$enviarA=$c->ENVIARA;$formaPago=$c->FORMAPAGOTIPO; $comentarios=$c->COMENTARIOS;$oc=$c->ORDENCOMPRA;$agente=$c->AGENTE;$atencion=$c->ATENCION;$obs=$c->OBSERVACIONES;$depto=$c->DEPTO;$lista='WAL-MART SC'; $cadena=$c->COMPRADOR;
+			$idInt=$c->ID_INT_F; $empresa =$c->EMPRESA; $mov=$c->MOV; $moneda=$c->MONEDA; $tc = $c->TIPOCAMBIO; $usuario=$c->USUARIO; $estatus=$c->ESTATUS;$cliente=$c->CLIENTE;$almacen=$c->ALMACEN;$enviarA=$c->ENVIARA;$formaPago=$c->FORMAPAGOTIPO; $comentarios=$c->COMENTARIOS;$oc=$c->ORDENCOMPRA;$agente=$c->AGENTE;$atencion=$c->ATENCION;$obs=$c->OBSERVACIONES;$depto=$c->DEPTO;$lista='WAL-MART SC'; $cadena=$c->COMPRADOR;
 				//$lista=$c->LISTAPRECIOSESP;
-			$this->query="INSERT INTO Venta (EMPRESA, MOV, FECHAEMISION, Moneda, TipoCambio, Usuario, Estatus, Cliente, Almacen, enviarA, FormaPagoTipo, comentarios, ORDENCOMPRA, Agente, Atencion, MovID, Observaciones, Referencia, ListaPreciosEsp) VALUES ('$empresa', '$mov',  GETDATE(), '$moneda', '$tc', '$usuario', '$estatus', '$cliente', '$almacen',
+			$this->query="INSERT INTO Venta (EMPRESA, MOV, FECHAEMISION, Moneda, TipoCambio, Usuario, Estatus, Cliente, Almacen, enviarA, FormaPagoTipo, comentarios, ORDENCOMPRA, Agente, Atencion, MovID, Observaciones, Referencia, ListaPreciosEsp, ReferenciaOrdenCompra) VALUES ('$empresa', '$mov',  GETDATE(), '$moneda', '$tc', '$usuario', '$estatus', '$cliente', '$almacen',
 				(SELECT ID FROM CteEnviarA where cliente='$cliente' and cadena = '$cadena'),
-				(SELECT Condicion FROM CteEnviarA where cliente='$cliente' and cadena = '$cadena'),
+				coalesce((select formaPago from CteEnviarA where cliente = '$cliente' and cadena = '$cadena'), (select DESAFormaPago from cte where cliente = '$cliente'), null),
 				'$obs',
 				'$oc',
 				'01', 
@@ -650,9 +656,9 @@ class intelisis extends sqlbase {
 				(SELECT Consecutivo + 1  FROM VENTAC WHERE MOV = '$mov'), 
 				'$obs', 
 				'$oc', 
-				'$lista'
+				(SELECT ListaPreciosEsp FROM CteEnviarA where cliente='$cliente' and cadena = '$cadena'), 
+				$idInt
 				)";
-			echo '<br/>Cabecera: '.$this->query.'<br/>';
 			$this->grabaBD();
 			$docs++;
 			$this->query="UPDATE VENTAC set Consecutivo = Consecutivo + 1 where MOV = '$mov'";
@@ -661,14 +667,16 @@ class intelisis extends sqlbase {
 			foreach ($info['partidas'] as $p){
 				if($p->ID = $c->ID_INT_F){
 					$i++;
-					$this->query="INSERT INTO VENTAD (ID, Renglon, RenglonID, RenglonTipo, Almacen, Cantidad, Articulo, Precio, Impuesto1, Unidad, DescripcionExtra, CantidadInventario, OrdenCompra )
-									VALUES ((SELECT MAX(ID) FROM VENTA), $p->RENGLON, $p->RENGLONID, '$p->RENGLONTIPO', '$almacen', $p->CANTIDAD, '$p->ARTICULO', $p->PRECIO, 16, '$p->UNIDAD', '$p->ORDENCOMPRA', $p->CANTIDADINVENTARIO, '$p->ORDENCOMPRA')";
-					echo '<br/> Partidas: '.$this->query.'<br/>';
+					$this->query="INSERT INTO VENTAD (ID, Renglon, RenglonID, RenglonTipo, Almacen, Cantidad, Articulo, Precio, Impuesto1, Unidad, DescripcionExtra, CantidadInventario, OrdenCompra, Factor )
+									VALUES ((SELECT MAX(ID) FROM VENTA), $p->RENGLON, $p->RENGLONID, '$p->RENGLONTIPO', '$almacen', ($p->CANTIDAD / $p->UNIDAD),
+									 (SELECT TOP 1 Articulo from listaPreciosD where CodigoCliente = '$p->COMPRADOR' and Lista = (SELECT ListaPreciosEsp FROM Venta where id = (SELECT MAX(ID) FROM VENTA))),
+									  $p->PRECIO, 16, (SELECT TOP 1 UNIDAD FROM ArtUnidad u where u.Articulo = '$p->ARTICULO' and u.Factor = $p->UNIDAD), '$p->ORDENCOMPRA', $p->CANTIDADINVENTARIO, '$p->ORDENCOMPRA', $p->UNIDAD)";
 					$this->grabaBD();
 				}
 			}
 		}
-		return array("docs"=>count($info['cabeceras']));
+		$errors = array();
+		return array("docs"=>count($info['cabeceras']), "errors"=>$errors);
 	}
 
 	function actMov($movs){
@@ -697,5 +705,32 @@ class intelisis extends sqlbase {
 			$movimiento = $d['Mov'].'-'.$d['MovID'];
 		}
 		return array("doc"=>$movimiento);
+	}
+
+	function sincCab($idwms){
+		$data = array();
+		$this->query="SELECT v.FechaEmision, v.FormaPagoTipo, v.cliente, v.EnviarA, v.movID, v.Agente, v.Observaciones, v.Referencia,v.ListaPreciosEsp, v.ReferenciaOrdenCompra, (SELECT cea.NOMBRE FROM CteEnviarA cea where cea.id = v.enviarA and cea.cliente = v.cliente ) as detInt, v.ID from venta v where v.ReferenciaOrdenCompra = '$idwms'";
+		$res=$this->Ejecutaquerysimple();
+		while ($tsArray=sqlsrv_fetch_array($res)) {
+			$data[]=$tsArray;
+		}
+		return $data; 
+	}
+
+	function enviarA($cte, $det){
+		$data=array();
+		$determinante = empty($det)? '':' and id = '.$det; 
+		$this->query="SELECT  ListaPreciosEsp, id, nombre, direccion, observaciones, colonia, delegacion, poblacion, estado, pais, codigoPostal, estatus, condicion, cadena, direccionNUmero, coalesce(formaPago, (SELECT DESAFormaPago from cte where cliente = '$cte') ) as formaPago FROM CteEnviarA where cliente = '$cte' $determinante";
+		$res=$this->Ejecutaquerysimple();
+		while($tsArray=sqlsrv_fetch_array($res)){
+			$data[]=$tsArray;
+		}
+		return array("datos"=>$data, "ln"=>count($data));
+	}
+
+	function actDetInt($cte, $det, $comp){
+		$this->query="UPDATE CteEnviarA set cadena = '$comp' where cliente = '$cte' and id = $det and (cadena is null or cadena = '')";
+		$this->grabaBD();
+		return;
 	}
 }

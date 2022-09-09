@@ -9,6 +9,7 @@ require_once ('app/model/database.php');
 require_once('app/model/wms.model.php');
 require_once 'app/model/model.sql.php';
 require_once('app/Classes/PHPExcel.php');
+require_once('app/model/order.model.php');
 
 class wms_controller {
     var $contexto = "http://SERVIDOR:8081/pegasoFTC/app/";

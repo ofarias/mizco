@@ -172,7 +172,6 @@
         })
     })
     
-
     $(".marcar").click(function(){
         var lin = $(this).attr("lin");
         var linea= document.getElementById("lin_" + lin);

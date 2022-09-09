@@ -6,9 +6,12 @@ date_default_timezone_set('America/Mexico_City');
 require_once('app/controller/pegaso.controller.php');
 require_once('app/controller/sql.controller.php');
 require_once('app/controller/wms.controller.php');
+require_once('app/controller/order.controller.php');
+
 $controller = new pegaso_controller;
 $controller_int = new sql_controller;
 $controller_wms = new wms_controller;
+$controller_ord = new order_controller;
 //echo $_POST['nombre'];
 //echo $_POST['actualizausr'];
 if (isset($_GET['action'])) {
