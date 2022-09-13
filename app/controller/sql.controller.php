@@ -149,7 +149,7 @@ class sql_controller {
     }
 
     function OrdenesWalmart(){
-        if (isset($_SESSION['user'])) {
+        if (isset($_SESSION['user']) and $_SESSION['user']->CR == 5) {
             $orders = new orders;
             $pagina = $this->load_template('Ordenes walmart');
             $html = $this->load_page('app/views/pages/intelisis/p.ordenesWalmart.php');

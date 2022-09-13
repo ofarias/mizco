@@ -135,9 +135,13 @@ else{
             break;
         case 'wms_menu':
             $opc=isset($_GET['opc'])? $_GET['opc']:'';
-            if($opc == 'w'){
+            $cr_user=$_SESSION['user']->CR;
+            if($opc == 'w' and $cr_user == 5){
                 $controller_int->OrdenesWalmart();
                 break;
+            }else{
+                echo '<b>El usuario: '.$_SESSION['user']->NOMBRE.', no esta autorizado<b/>';
+                $opc == '';
             }
             $controller_wms->wms_menu($opc);
             break;
