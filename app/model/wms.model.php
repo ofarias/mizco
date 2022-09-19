@@ -3642,7 +3642,7 @@ class wms extends database {
             $this->query="EXECUTE PROCEDURE FTC_INT_VAL_FAT_PART ($idc)";
             $this->EjecutaQuerySimple();
         }
-        $this->query = "SELECT (select first 1 status from FTC_INT_FACT_LOG l where l.ID_INT_FP is null and l.id_int_f = f.ID_INT_F order by l.id desc) as val, f.* FROM FTC_INT_FACT f where ENVIARA > 0 ";
+        $this->query = "SELECT (select first 1 status from FTC_INT_FACT_LOG l where l.ID_INT_FP is null and l.id_int_f = f.ID_INT_F order by l.id desc) as val, f.* FROM FTC_INT_FACT f where ENVIARA > 0 and id_int_f = $idc";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
