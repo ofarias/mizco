@@ -521,7 +521,14 @@ class intelisis extends sqlbase {
 	function iCambioPres($base, $nuevo, $cant, $part, $idord, $movID){
 		//// Buscamos si hay un documento abierto, si existe introducimos las partidas en el, si no existe, creamos uno nuevo.
 			$id = $this->findCambio('Cambio Presentacion');
-			$this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonTipo, RenglonID,  CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) 
+			$this->query = "SELECT coalesce (count(*), 0) as val, max(RENGLON) as renglon FROM INVD where ARTICULO = '$nuevo' and ArticuloDestino = '$base'";
+			$res=$this->Ejecutaquerysimple();
+			$row=sqlsrv_fetch_array($res);
+			if($row['val']>0){
+				$renglon=$row['renglon'];
+				$this->query="UPDATE INVD SET CANTIDAD = CANTIDAD + $cant where id = $id and ARTICULO = '$nuevo' and ArticuloDestino = '$base' and renglon = $renglon";
+			}else{
+				$this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonTipo, RenglonID,  CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) 
 				VALUES ( $id,
 					(SELECT COALESCE (MAX(Renglon), 0) + 2048 FROM INVD WHERE ID = $id),
 					0,
@@ -537,6 +544,7 @@ class intelisis extends sqlbase {
 					0,
 					'$movID --> $idord --> $part')";
 			//echo '<br/>Detalle: '.$this->query.'<br/>';
+			}
 			$this->Ejecutaquerysimple();
 	}
 
@@ -646,6 +654,10 @@ class intelisis extends sqlbase {
 			//echo '<br/> se intenta insertar el ID_INT_F: '.$c->ID_INT_F;
 			$idInt=$c->ID_INT_F; $empresa =$c->EMPRESA; $mov=$c->MOV; $moneda=$c->MONEDA; $tc = $c->TIPOCAMBIO; $usuario=$c->USUARIO; $estatus=$c->ESTATUS;$cliente=$c->CLIENTE;$almacen=$c->ALMACEN;$enviarA=$c->ENVIARA;$formaPago=$c->FORMAPAGOTIPO; $comentarios=$c->COMENTARIOS;$oc=$c->ORDENCOMPRA;$agente=$c->AGENTE;$atencion=$c->ATENCION;$obs=$c->OBSERVACIONES;$depto=$c->DEPTO;$lista='WAL-MART SC'; $cadena=$c->COMPRADOR;
 				//$lista=$c->LISTAPRECIOSESP;
+			$depto = $depto==5? '05':$depto;
+			$depto = $depto==6? '06':$depto;
+			$depto = $depto=='5B'? '05B':$depto;
+
 			$this->query="INSERT INTO Venta (EMPRESA, MOV, FECHAEMISION, Moneda, TipoCambio, Usuario, Estatus, Cliente, Almacen, enviarA, FormaPagoTipo, comentarios, ORDENCOMPRA, Agente, Atencion, MovID, Observaciones, Referencia, ListaPreciosEsp, ReferenciaOrdenCompra) VALUES ('$empresa', '$mov',  GETDATE(), '$moneda', '$tc', '$usuario', '$estatus', '$cliente', '$almacen',
 				$enviarA,
 				coalesce((select formaPago from CteEnviarA where cliente = '$cliente' and cadena = '$cadena' and ID = $enviarA), (select DESAFormaPago from cte where cliente = '$cliente'), null),

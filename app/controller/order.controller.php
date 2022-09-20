@@ -78,6 +78,12 @@ class order_controller {
 
         return $res;
     }
+
+    function articulos($id){
+        $data = new orders;
+        $res = $data->articulos($id);
+        return $res;
+    }
 }
 ?>
 

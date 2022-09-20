@@ -22,8 +22,8 @@ if (isset($_POST['enviarA'])) {
     $res=$controller_ord->asigDet($_POST['asigDet'], $_POST['det'], $_POST['cte'],$_POST['comp']); echo json_encode($res); exit();
 }elseif (isset($_POST['valInt'])) {
     $res=$controller_ord->valInt($_POST['valInt']); echo json_encode($res); exit();
-}elseif (isset($_POST['idwms'])) {
-    $res=$controller_ord->articulos($_POST['idwms']); echo json_encode($res); exit();
+}elseif (isset($_POST['articulos'])) {
+    $res=$controller_ord->articulos($_POST['articulos']); echo json_encode($res); exit();
 }else{
     switch ($_GET['action']) {
         case 'login':

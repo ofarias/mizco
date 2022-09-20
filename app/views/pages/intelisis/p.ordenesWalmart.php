@@ -38,7 +38,10 @@
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                                 Ordenes Walmart
+                                 Ordenes Walmart <br/><br/>
+                                 <a class="filtro" t="t"><font color="white">Todas</font></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                 <a class="filtro" t="e"><font color="white">Sin Enviar</font></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                 <a class="filtro" t="s"><font color="white">Enviadas</font></a>
                         </div>
                            <div class="panel-body">
                             <div class="table-responsive">                            
@@ -60,9 +63,11 @@
                                   <tbody>
                                    <?php $ln=0; foreach($ordenes as $ord):
                                             $ln++;
-                                            $color=""; 
+                                            $color="";
+                                            $tipo = empty($ord->MOVID)? "ord_s":"ord_e";
+                                            
                                     ?>
-                                       <tr>  
+                                       <tr class="<?php echo $tipo?> , ord" >  
                                             <td><?php echo $ln ?></td>
                                             <td><?php echo substr($ord->FECHAEMISION,0,10)?><br/><font color=" #0197a3"><?php echo $ord->ORDENCOMPRA?></font></td>
                                             <td align="center"><font color="green"><?php echo $ord->CLIENTE;?></font><br/><a class="enviarA" cte="<?php echo $ord->CLIENTE?>" comp="<?php echo $ord->DETERMINANTE.'-->'.$ord->COMPRADOR.'-->'.$ord->SUB_DETERMINANTE?>" idwms ="<?php echo $ord->ID_INT_F?>" comprador="<?php echo $ord->COMPRADOR?>"> <?php echo $ord->ENVIARA?></a></td>
@@ -95,6 +100,19 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(".filtro").click(function(){
+        var tipo = $(this).attr("t")
+        $(".ord").each(function(){
+                $(this).removeClass("hidden")
+            })
+        if(tipo == 'e' || tipo == 's'){
+            $(".ord_"+tipo).each(function(){
+                $(this).addClass("hidden")
+            })
+        }
+
+    })
     
     $(".valInt").click(function(){
         var id = $(this).attr("idwms")
@@ -212,6 +230,9 @@
 
     $(".art").click(function(){
         var idwms = $(this).attr('idwms')
+        var info = ''
+        var tipo = ' <font color="green"> se encuenta en la lista: </font>'
+        var lin = 0
         $.ajax({
             url:'index.order.php', 
             type:'post',
@@ -221,18 +242,25 @@
                     for(const [key, value] of Object.entries(data.datos)){
                         lin++
                         for(const[k,val] of Object.entries(value)){
-                            if(k == 'Articulo'){var lpe = val}
-                            if(k == 'Cantidad'){var lpe = val}
-                            if(k == 'Precio'){var lpe = val}
-                            if(k == 'Unidad'){var lpe = val}
-                            if(k == 'Factor'){var lpe = val}
-                            if(k == 'Lista'){var lpe = val}
-                            if(k == 'Val'){var validacion = val}
+                            if(k == 'ARTICULO'){var art = val}
+                            if(k == 'CANTIDAD'){var cant = val}
+                            if(k == 'PRECIO'){var pre = val}
+                            if(k == 'UNIDAD'){var uni = val}
+                            if(k == 'COMPRADOR'){var comp = val}
+                            if(k == 'LISTAORDEN'){var list = val}
+                            if(k == 'VALIDACION'){var validacion = val}
                         }
+                        if(validacion == 0){
+                            tipo = '<font color = "red"> NO se encuenta en la lista: </font>'
+                        }
+                            info += '<p> '+ lin +': El articulo: '+ art + tipo + list + ' codigo: <font color="blue">'+ comp +'</font> </p>' 
+
                     }
-                    /*$.confirm({
+                    $.confirm({
+                        columnClass:'col-md-8',
                         title:'Articulos',
-                    })*/
+                        content:'' + info
+                    })
             }, 
             error:function(){
 
