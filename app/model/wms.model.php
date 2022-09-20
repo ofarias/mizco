@@ -881,7 +881,7 @@ class wms extends database {
             if(!empty($param[1])){$p.= " and dia_carga >= '". $param[1]."'";}
             if(!empty($param[2])){$p.= " and dia_carga <= '". $param[2]."'";}
             //$p.= ($param[3]==0)? " ":" and id_status = ". $param[3];
-            $p.= ($param[3]=='' or isset($param[3]))? " and (archivo starting with 'Pedido' or archivo starting with 'Salida')  ":" and archivo starting with '$param[3]' "; /// Forzando a que siempre jale pedidos
+            $p.= ($param[3]=='' or isset($param[3]))? " and (archivo starting with 'Pedido' or archivo starting with 'Salida' or archivo starting with 'Traspaso' )  ":" and archivo starting with '$param[3]' "; /// Forzando a que siempre jale pedidos
         }
         $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD > 0 $op $p";
         //echo $this->query;
@@ -3161,6 +3161,7 @@ class wms extends database {
     function posiciones($prod){
         $data=array();
         $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE id_PROD = $prod order by fecha_ingreso asc, id_am asc ";
+        //$this->query="  SELECT LINEA,TARIMA,SUM(DISPONIBLE) AS DISPONIBLE ,ID_COMPS,CATEGORIA,ID_AM,ALMACEN,SUM(PIEZAS),SUM(PIEZAS_SAL),SUM(PIEZAS_SURT) FROM FTC_ALMACEN_MOV_DET WHERE id_PROD = $prod group by Almacen, linea, tarima,  fecha_ingreso, id_am, id_comps, categoria order by fecha_ingreso asc, id_am asc";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -3323,13 +3324,18 @@ class wms extends database {
             $destino=array();
             $origen=$comps[$i];
             $almacen=$almacenes[$i]; $linea=$lineas[$i];  $tarima=$tarimas[$i]; $cant=$piezas[$i]; $categoria=$categorias[$i];$idmov=$movs[$i];
-            echo '<br/> Busca registro'.$i.' Tarima : '.$tarima.' Catidad: '.$cant.' Categoria '.$categoria;
+            //echo '<br/> Busca registro'.$i.' Tarima : '.$tarima.' Catidad: '.$cant.' Categoria '.$categoria;
             if(!empty($almacen) and !empty($linea) and !empty($tarima) and !empty($categoria)){   
                 $this->query = "SELECT * FROM FTC_ALMACEN_COMPS WHERE COMPP =(SELECT ID_COMP FROM FTC_ALMACEN_COMP c WHERE ALMACEN = $almacen and ETIQUETA = 'LINEA $linea' and status = 1 and compp is null) and replace(ETI, ' ', '') = 'T$tarima' ";
                 $res=$this->EjecutaQuerySimple();
                 while($tsArray=ibase_fetch_object($res)){
                     $destino[]=$tsArray;
                 }
+                #### aqui debemos meter de donde se va a sacar y la cantidad a sacar...
+
+
+                #### Despues ya afectamos.
+
                 if(count($destino) == 1){
                     $this->query="SELECT DISPONIBLE FROM FTC_ALMACEN_MOV_DET WHERE ID_AM = $idmov";
                     $result=$this->EjecutaQuerySimple();
@@ -3469,6 +3475,11 @@ class wms extends database {
             $res=$this->leeWalmart($file);
             return $res;
         }
+        $a = trim($sheet->getCell('A1')->getValue()) == 'SKU' and trim($sheet->getCell('B1')->getValue()) == 'PZ'? 'trans':'';
+        if($a == 'trans'){
+            $res = $this->leeTransferencia($file);
+            return $res;
+        }
         $ruta="C:\\xampp\\htdocs\\remisiones\\";
         if(!file_exists($ruta)){mkdir($ruta, null, true);}
         $d=date('s');
@@ -3573,6 +3584,40 @@ class wms extends database {
         return array("status"=>'ok', "info"=>$data, "errors"=>$errors, "te"=>$te, 'tipo'=>'walmart');
     }
 
+    function leeTransferencia($file){
+        $data= array();
+        $usuario = $_SESSION['user']->NOMBRE;
+        $inputFileType=PHPExcel_IOFactory::identify($file);
+        $objReader=PHPExcel_IOFactory::createReader($inputFileType);
+        $objPHPExcel=$objReader->load($file);
+        $sheet=$objPHPExcel->getSheet();
+        $highestRow = $sheet->getHighestRow(); 
+        $highestColumn = $sheet->getHighestColumn();
+        
+        $ruta="C:\\xampp\\htdocs\\transferencias\\";
+        if(!file_exists($ruta)){mkdir($ruta, null, true);}
+        $d=date('s');
+        $errors = '';
+        $te=0;
+        $data = array(); 
+        for ($row=2; $row <= $highestRow; $row++){ //10
+            $col = 'A';
+            $A = $sheet->getCell($col.$row)->getValue();//SKU
+            $B = $sheet->getCell(++$col.$row)->getValue();//Piezas
+            
+            if(strpos(($A.$B),"|")){
+                    $errors .= $row.',';
+                    $te++;
+            }else{
+                $info[] = $A.'|'.$B;
+                $info1[] = array("articulo"=>$A,"cantidad"=>$B);
+            }
+        }
+        $tipo = 'transferencias';
+        $this->insertaTransferencia($info1);
+        return array("status"=>'ok', "info"=>$info1, "errors"=>$errors, "te"=>$te, 'tipo'=>$tipo);
+    }
+
     function insertaMovInt($info,  $tipo, $movID, $idint){
         $usuario = $_SESSION['user']->ID;
         $this->query="INSERT INTO FTC_INT_MVI (ID_MVI, id_mov_int, MOV, MOVID, FECHA, ESTATUS, USUARIO, OBS, ALMACEN, CONCEPTO, REFERENCIA, FECHA_ELAB ) VALUES (NULL, $idint, '$tipo', $movID, CURRENT_DATE, '', $usuario, '', '', '', '', current_timestamp) RETURNING ID_MVI";
@@ -3606,6 +3651,23 @@ class wms extends database {
         }
         $ids = substr($ids, 0 , strlen($ids)-1);
         return $this->validaInt($ids);
+    }
+
+    function insertaTransferencia($data){
+        $usuario =$_SESSION['user']->ID;
+        $this->query = "INSERT INTO FTC_INT_MVI (ID_MVI, id_mov_int, mov, movid, fecha, estatus, usuario, concepto, Referencia, fecha_elab, id_ord) VALUES (null, null, 'Traspaso', null, current_date, '', $usuario, 'Transferencia','', current_timestamp, null) returning ID_MVI";
+        $res=$this->grabaBD();
+        $row=ibase_fetch_object($res);
+        $id=$row->ID_MVI; $renglon = 0; $renglonid=0;
+        for($i=0; $i < count($data); $i++){
+            $renglon = $renglon + 2048; $renglonid++;
+            $articulo=$data[$i]['articulo'];$cantidad=$data[$i]['cantidad'];
+            if(!empty($articulo)){
+                $this->query="INSERT INTO FTC_INT_MVI_DET (id_mvid, ID_MVI, renglon , RENGLON_SUB, renglon_id, RENGLON_TIPO, cantidad, alamcen, articulo, unidad, factor, cantidad_Inventario, Sucursal, fecha, usuario, estatus, status_wms, fecha_elab) VALUES (null, $id, $renglon, 0, $renglonid, 'L', $cantidad, 'AL-PT', '$articulo', 'PZA', 1, $cantidad, 0, null, $usuario, '', 0, current_timestamp)";
+                $this->grabaBD();
+            }
+        }
+        return;
     }
 
     function validaInt($ids){
@@ -3685,11 +3747,34 @@ class wms extends database {
         return $data;
     }
 
+    function revTrans(){
+        $data=array();
+        $this->query="SELECT m.ID_MVI AS ID_MOV_INT, m.* FROM FTC_INT_MVI m WHERE m.ESTATUS ='' AND m.id_ord is null and m.MOV='Traspaso'";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        if(count($data)>0){
+            foreach ($data as $key){
+                $this->query="SELECT * FROM FTC_INT_MVI_DET WHERE ID_MVI = $key->ID_MVI";
+                $res=$this->EjecutaQuerySimple();
+                while($tsArray=ibase_fetch_object($res)){
+                    $part[]=$tsArray;
+                }
+                $this->insertMov($key, $part);
+                $this->query ="UPDATE FTC_INT_MVI SET ID_ORD = $id, status_wms = 0 where ID_ORD = $key->ID_MOV_INT";
+                $this->queryActualiza();
+            }
+        }
+        return $data;    
+    }
+
     function insertMov($cabecera, $partidas){
             $idmiv=$cabecera->ID_MOV_INT;
             $arts = count($partidas);
             $usuario = $_SESSION['user']->ID;
             $this->query="INSERT INTO FTC_ALMACEN_ORDEN ( ID_ORD, IDCLIENTE, CLIENTE, CEDIS, FECHA_CARGA, FECHA_ASIGNA, FECHA_ALMACEN, FECHA_CARGA_F, FECHA_ASIGNA_F, FECHA_ALMACEN_F, STATUS, NUM_PROD, CAJAS, PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL, MOV, MOVID, STA_INT, ID_INT ) VALUES ($idmiv, '', '$cabecera->MOV', '', CURRENT_TIMESTAMP, NULL, NULL, NULL, NULL, NULL, 1, $arts, 0, 0,'$cabecera->MOV'||'$cabecera->MOVID', $usuario,'', '$cabecera->MOV', '$cabecera->MOVID', '$cabecera->ESTATUS', $cabecera->ID_MOV_INT) returning ID_ORD";
+            //echo '<br/>'.$this->query;
             $res=$this->grabaBD();
             $id=ibase_fetch_object($res)->ID_ORD;    
         
@@ -3706,7 +3791,7 @@ class wms extends database {
 
     function movsInv(){
         $data = array();
-        $this->query="SELECT * FROM FTC_INT_MVI WHERE ID_ORD  IS NULL ";
+        $this->query="SELECT * FROM FTC_INT_MVI WHERE ID_ORD  IS NULL and mov != 'Traspaso'";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;

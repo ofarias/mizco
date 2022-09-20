@@ -107,7 +107,10 @@ class sql_controller {
                                     }
                                 }
                                 $this->redirect("w");
-                            }else{
+                            }elseif($tipo['tipo']=='transferencias'){
+                                $res= array("docs"=>0, "errors"=>0);
+                            }
+                            else{
                                 $idf=$order->regFile($name, 'ML');
                                 $res=$data->insertaVentas($target_dir.$name);
                             }

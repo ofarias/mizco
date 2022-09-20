@@ -1404,6 +1404,7 @@ class wms_controller {
                 $actMov=$data->actMov($actMov);
             }
             $revMovs=$data->revMovs();
+            $revTrans=$data->revTrans();
             if(strrpos($op, 'all') or $op=='all'){
                 $lt = $_SESSION['user']->CR;
                 $pagina = $this->load_template('Reportes');
