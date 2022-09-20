@@ -52,10 +52,7 @@ class order_controller {
             $valWms=$wms->valWms($infoInt);
             foreach($valWms as $insInt){
                 $movID='';
-                //echo "<br/>Validación: ".$insInt->VAL;
-                //echo "<br/>Mov ID: ".$insInt->MOVID;
-                //echo "<br/>Final id: ".$insInt->ID_INT_F; 
-                if($insInt->VAL == 1 and (empty($insInt->MOVID) or is_null($insInt->MOVID))){
+                if($insInt->VAL == 1 and empty($insInt->MOVID)){
                     $res= $wms->traeDatosInt($insInt->ID_INT_F);
                     $resInt=$sql->insertaVtaInt($res); /// despues de insertar la venta se tiene que actualizar
                     $valCab = $sql->sincCab($insInt->ID_INT_F);

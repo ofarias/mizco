@@ -647,8 +647,8 @@ class intelisis extends sqlbase {
 			$idInt=$c->ID_INT_F; $empresa =$c->EMPRESA; $mov=$c->MOV; $moneda=$c->MONEDA; $tc = $c->TIPOCAMBIO; $usuario=$c->USUARIO; $estatus=$c->ESTATUS;$cliente=$c->CLIENTE;$almacen=$c->ALMACEN;$enviarA=$c->ENVIARA;$formaPago=$c->FORMAPAGOTIPO; $comentarios=$c->COMENTARIOS;$oc=$c->ORDENCOMPRA;$agente=$c->AGENTE;$atencion=$c->ATENCION;$obs=$c->OBSERVACIONES;$depto=$c->DEPTO;$lista='WAL-MART SC'; $cadena=$c->COMPRADOR;
 				//$lista=$c->LISTAPRECIOSESP;
 			$this->query="INSERT INTO Venta (EMPRESA, MOV, FECHAEMISION, Moneda, TipoCambio, Usuario, Estatus, Cliente, Almacen, enviarA, FormaPagoTipo, comentarios, ORDENCOMPRA, Agente, Atencion, MovID, Observaciones, Referencia, ListaPreciosEsp, ReferenciaOrdenCompra) VALUES ('$empresa', '$mov',  GETDATE(), '$moneda', '$tc', '$usuario', '$estatus', '$cliente', '$almacen',
-				(SELECT ID FROM CteEnviarA where cliente='$cliente' and cadena = '$cadena'),
-				coalesce((select formaPago from CteEnviarA where cliente = '$cliente' and cadena = '$cadena'), (select DESAFormaPago from cte where cliente = '$cliente'), null),
+				$enviarA,
+				coalesce((select formaPago from CteEnviarA where cliente = '$cliente' and cadena = '$cadena' and ID = $enviarA), (select DESAFormaPago from cte where cliente = '$cliente'), null),
 				'$obs',
 				'$oc',
 				'01', 
@@ -656,13 +656,14 @@ class intelisis extends sqlbase {
 				(SELECT Consecutivo + 1  FROM VENTAC WHERE MOV = '$mov'), 
 				'$obs', 
 				'$oc', 
-				(SELECT ListaPreciosEsp FROM CteEnviarA where cliente='$cliente' and cadena = '$cadena'), 
+				(SELECT ListaPreciosEsp FROM CteEnviarA where cliente='$cliente' and cadena = '$cadena' and ID = $enviarA), 
 				$idInt
 				)";
-			//echo '<br/>Cabecera: '.$this->query.'<br/>';
+			//echo '<br/>'.$this->query.'<br/>';
 			$this->grabaBD();
 			$docs++;
 			$this->query="UPDATE VENTAC set Consecutivo = Consecutivo + 1 where MOV = '$mov'";
+			//echo '<br/>'.$this->query.'<br/>';
 			$this->grabaBD();
 			$i=0;
 			foreach ($info['partidas'] as $p){
@@ -672,7 +673,7 @@ class intelisis extends sqlbase {
 									VALUES ((SELECT MAX(ID) FROM VENTA), $p->RENGLON, $p->RENGLONID, '$p->RENGLONTIPO', '$almacen', ($p->CANTIDAD / $p->UNIDAD),
 									 (SELECT TOP 1 Articulo from listaPreciosD where CodigoCliente = '$p->COMPRADOR' and Lista = (SELECT ListaPreciosEsp FROM Venta where id = (SELECT MAX(ID) FROM VENTA))),
 									  ($p->PRECIO * $p->UNIDAD), 16, (SELECT TOP 1 UNIDAD FROM ArtUnidad u where u.Articulo = '$p->ARTICULO' and u.Factor = $p->UNIDAD), '$p->ORDENCOMPRA', $p->CANTIDADINVENTARIO, '$p->ORDENCOMPRA', $p->UNIDAD)";
-					//echo '<br/>Partida: '.$this->query.'<br/>';
+					//echo '<br/> '.$this->query.'<br/>';
 					$this->grabaBD();
 				}
 			}
