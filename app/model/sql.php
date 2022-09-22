@@ -23,8 +23,8 @@ abstract class sqlbase {
     
     private $cnx;
     protected $query;
-    private $host = "localhost";
-    //private $host = '192.168.0.132\\';
+    //private $host = "localhost";
+    private $host = '192.168.0.132\\';
     //private $dataBase="MizcoPruebas";
     //private $host = "ofa.dyndns.org:c:\\ftcData\\SAE\\MIZCOSAE.FDB"
 

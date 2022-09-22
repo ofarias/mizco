@@ -140,7 +140,7 @@ else{
                 $controller_int->OrdenesWalmart();
                 break;
             }else{
-                echo '<b>El usuario: '.$_SESSION['user']->NOMBRE.', no esta autorizado<b/>';
+                //echo '<b>El usuario: '.$_SESSION['user']->NOMBRE.', no esta autorizado<b/>';
                 $opc == '';
             }
             $controller_wms->wms_menu($opc);
