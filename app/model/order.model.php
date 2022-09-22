@@ -21,8 +21,11 @@ class orders extends database {
     }
 
     function ordenesWalmart($param){
-        $data = array();
-        $this->query ="SELECT * FROM FTC_INT_FACT";
+        $data = array(); $p='';
+        if(!empty($param)){
+            $p = " and id_file = $param";
+        }
+        $this->query ="SELECT f.*, (SELECT m.ARCHIVO FROM FTC_INT_MEDIA m WHERE m.ID_F = f.id_file) AS ARCHIVO, (SELECT m.STATUS FROM FTC_INT_MEDIA m WHERE m.ID_F = f.id_file) AS F_STATUS FROM FTC_INT_FACT f where f.id_int_f > 0 $p";
         $res=$this->EjecutaQuerySimple();
         while($tsarray=ibase_fetch_object($res)){
             $data[]=$tsarray;
@@ -73,6 +76,31 @@ class orders extends database {
         }
         return array("status"=>'ok', "datos"=>$data);
     }
+
+    function archivos($tipo, $param){
+        $data=array();
+        if(empty($tipo) and empty($param)){
+            $p = " and status = 0 ";
+        }elseif($tipo == 's' and $param != ''){
+            $p = " and status = $param ";
+        }else{
+            $p = '';
+        }
+        $this->query="SELECT * FROM FTC_INT_MEDIA WHERE TIPO = 'walmart' $p";
+        $res=$this->Ejecutaquerysimple();
+        while($tsarray=ibase_fetch_object($res)){
+            $data[]=$tsarray;
+        }
+        return $data;
+    }
+
+    function chgSta($file, $sta){
+        $sta= $sta=='can'? 9:1;
+        $this->query="UPDATE FTC_INT_MEDIA SET STATUS = $sta where id_f = $file";
+        $this->queryActualiza();
+        return array("status"=>'ok');
+    }
+
 }?>
 
 

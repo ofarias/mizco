@@ -157,7 +157,9 @@ class sql_controller {
             $pagina = $this->load_template('Ordenes walmart');
             $html = $this->load_page('app/views/pages/intelisis/p.ordenesWalmart.php');
             ob_start();
-            $ordenes = $orders->ordenesWalmart($param='');
+            $archivos = $orders->archivos($tipo = '', $param = '');
+            //$ordenes = $orders->ordenesWalmart($param='');
+            $ordenes = array();
             include 'app/views/pages/intelisis/p.ordenesWalmart.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);

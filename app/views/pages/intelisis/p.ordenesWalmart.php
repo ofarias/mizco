@@ -1,4 +1,24 @@
 <br /><br />
+<?php 
+    $nombre = ''; $status = ''; $n_s='';
+    if(count($ordenes) > 0 ){
+        foreach ($ordenes as $k) {
+        $nombre = $k->ARCHIVO;
+        $status = $k->F_STATUS;
+        if($status == 0){
+            $n_s = 'Pendiente';
+        }elseif($status == 1 ){
+            $n_s = 'Concluido';
+        }elseif($status==9){
+            $n_s = 'Cancelado';
+        }else{
+            $n_s = 'En Proceso';
+        }
+
+    }?>
+<input type="hidden" class="file" value="<?php echo $param?>">
+<?php }?>
+
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
@@ -10,19 +30,33 @@
                                 <table class="table table-striped table-bordered table-hover" id="dataTables">
                                     <thead>
                                         <tr>
-                                            <th>Fecha</th>
-                                            <th>Archivo</th>
-                                            <th>Descargar</th>
+                                            <th>Archivos</th>
+                                           
                                             <th>Traer</th>
                                         </tr>
                                     </thead>
                                   <tbody>
                                        <tr>  
                                        <form action = "index.php" method="post" >
-                                            <td><input type="text" name="fechaedo" class = "fecha" value="<?php echo $fechaedo?>" required= "required"></td>
-                                            <td><input type="number" step ="any" name="monto" required="required"></td>
                                             <td>
-                                                <button name="guardaTransPago" value="enviar" type ="submit" class="btn btn-success"> Ver </button>
+                                                <select class="selector">
+                                                    <option value="9999999">Seleccione el archivo a visualizar</option>
+                                                    <?php foreach ($archivos as $archivo) {?>
+                                                      <option value="<?php echo $archivo->ID_F?>" status="<?php echo $archivo->STATUS?>"><?php echo $archivo->ARCHIVO.' FECHA CARGA --> '.$archivo->FECHA.' Status: '.$archivo->STATUS?> </option>  
+                                                    <?php }?>
+                                                </select>
+                                                &nbsp;&nbsp;&nbsp;
+                                            </td>
+                                           
+                                                
+                                            <td>
+                                                <select class="filtroArchivo">
+                                                    <option value="999999"> Archivos: </option>
+                                                    <option value="0">Pendientes</option>
+                                                    <option value="1">Concluidos</option>
+                                                    <option value="9">Cancelados</option>
+                                                    <option value=""> Todos</option>
+                                                </select>
                                             </td>
                                         </form>
                                         </tr> 
@@ -38,7 +72,15 @@
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                                 Ordenes Walmart <br/><br/>
+                                 Ordenes Walmart : <b><?php echo $nombre ?></b> ---> <font color="yellow" ><b><?php echo $n_s?></b></font> 
+                                                <?php if($status === 0){?>
+                                                    <button class="chgStatus btn-sm btn-danger" value="can">Cancelar</button>
+                                                    &nbsp;&nbsp;&nbsp; 
+                                                    <button class="chgStatus btn-sm btn-info" value="con">Concluir</button>
+                                                <?php }?>
+                                            --->
+                                                <b><a href="../uploads/xls/remisiones/<?php echo $nombre?>", download> Descargar</a></b>
+                                 <br/><br/>
                                  <a class="filtro" t="t"><font color="white">Todas</font></a>&nbsp;&nbsp;&nbsp;&nbsp;
                                  <a class="filtro" t="e"><font color="white">Sin Enviar</font></a>&nbsp;&nbsp;&nbsp;&nbsp;
                                  <a class="filtro" t="s"><font color="white">Enviadas</font></a>
@@ -90,7 +132,7 @@
                       </div>
             </div>
         </div>
-</div>
+    </div>
 </div>
 
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
@@ -100,6 +142,40 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(".selector").change(function(){
+        var status = $('.selector option:selected' ).attr("status")
+        var file = $(this).val()
+        window.open("index.order.php?action=ordenesW&tipo=f&param="+ file, "_self")
+    })
+
+    $(".chgStatus").click(function(){
+        var tipo = $(this).val()
+        var file = $(".file").val()
+        $.ajax({
+            url:'index.order.php',
+            type:'post',
+            dataType:'json',
+            data:{chgSta:tipo, file},
+            success:function(data){
+                location.reload()
+            },
+            error:function(){
+
+            }
+        })
+    })
+
+    $(".filtroArchivo").change(function(){
+        var status = $(this).val()
+        if(status < 999999){
+            window.open("index.order.php?action=ordenesW&tipo=s&param="+status, "_self")
+        }
+    })
+
+    $(".download").click(function (){
+        window.open("../uploads/xls/remisiones/2022.08.26_08.09.20_LayOut%2009.08.2022%20FULL.xlsx", "download")
+    })
 
     $(".filtro").click(function(){
         var tipo = $(this).attr("t")

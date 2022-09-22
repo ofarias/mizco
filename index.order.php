@@ -24,10 +24,15 @@ if (isset($_POST['enviarA'])) {
     $res=$controller_ord->valInt($_POST['valInt']); echo json_encode($res); exit();
 }elseif (isset($_POST['articulos'])) {
     $res=$controller_ord->articulos($_POST['articulos']); echo json_encode($res); exit();
+}elseif (isset($_POST['chgSta'])) {
+    $res=$controller_ord->chgSta($_POST['file'], $_POST['chgSta']); echo json_encode($res); exit();
 }else{
     switch ($_GET['action']) {
         case 'login':
             $controller->Login();
+            break;
+        case 'ordenesW':
+            $controller_ord->ordenesW($_GET['tipo'], $_GET['param']);
             break;
         default:
             header('Location: index.php?action=login');

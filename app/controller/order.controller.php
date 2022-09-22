@@ -84,6 +84,34 @@ class order_controller {
         $res = $data->articulos($id);
         return $res;
     }
+
+    function ordenesW($tipo, $param){
+        if (isset($_SESSION['user']) and $_SESSION['user']->CR == 5) {
+            $orders = new orders;
+            $pagina = $this->load_template('Ordenes walmart');
+            $html = $this->load_page('app/views/pages/intelisis/p.ordenesWalmart.php');
+            ob_start();
+            $archivos = $orders->archivos($tipo, $param);
+            $ordenes = array();
+            if($tipo == 'f'){
+                $ordenes = $orders->ordenesWalmart($param);
+            }
+            include 'app/views/pages/intelisis/p.ordenesWalmart.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this->view_page($pagina);
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+    }
+
+    function chgSta($file, $sta){
+        $orders = new orders;
+        $res=$orders->chgSta($file, $sta);
+        return $res;
+    }
 }
 ?>
 
