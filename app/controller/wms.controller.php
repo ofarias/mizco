@@ -1484,6 +1484,7 @@ class wms_controller {
             $orden = $data->orden($id_o, $t, $param);
             $persona = $data->perSurt($id_o, $t, $param);
             if($out=='i'){/// la salida es la impresion.
+                $data->iniciaSurt($id_o);
                 $this->impOrden($cabecera, $orden, $param);
             }
             include $p;
@@ -1716,11 +1717,14 @@ class wms_controller {
         $pdf->SetX(40);
         $pdf->write(5, "Cliente : ". $cabecera->CLIENTE."");
         $pdf->SetX(150);
-        $pdf->write(5, "Archivo : ".$cabecera->ARCHIVO." Orden :". $cabecera->ID_ORD."\n");
+        $pdf->write(5, "".$cabecera->ARCHIVO." Orden :". $cabecera->ID_ORD."\n");
         $pdf->SetX(40);
         $pdf->write(5, "Cedis : ". $cedis."");
         $pdf->SetX(150);
-        $pdf->write(5, "Fecha Surtido : ". $cabecera->FECHA_CARGA."\n");
+        $pdf->write(5, "Fecha Inicio Surtido : ". $cabecera->FECHA_CARGA_F."\n");
+        $pdf->SetX(40);
+        $pdf->SetX(150);
+        $pdf->write(5, "Fecha Final Surtido : ". $cabecera->FECHA_ALMACEN_F."\n");
         $pdf->SetX(40);
         $pdf->write(5, "Partidas : ". count($orden)."");
         $pdf->SetX(150);
@@ -1888,9 +1892,16 @@ class wms_controller {
         $pdf->Ln();
         $pdf->Ln();
         $encargado='';
-        $persona = $data->perSurt($cabecera->ID_ORD, $t='', $param);
-        if(count($persona)>0){foreach($persona as $pers){$encargado=$pers->NOMBRE;}}
-        $pdf->Write(6,"Asignado a: ".$encargado);
+        $personas = $data->histPerSurt($cabecera->ID_ORD, $t='', $param);
+        $pdf->SetFont('Arial', 'I',8);
+        if(count($personas)>0){
+            foreach($personas as $persona){
+                $encargado=$persona->NOMBRE;
+                $fecha = $persona->FECHA;
+                $pdf->Write(6,"Asignado a: ".$encargado." el ".$fecha);
+                $pdf->Ln(3);
+            }
+        }
         $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
         ob_end_clean();
         $pdf->Output($ruta.'Picking list'.$cabecera->ID_ORD.'_'.$param.'.pdf', 'i');

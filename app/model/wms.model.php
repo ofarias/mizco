@@ -2063,6 +2063,16 @@ class wms extends database {
     function marcaOrden($id_o){
         $this->query="UPDATE FTC_ALMACEN_ORDEN SET NUM_PROD = NUM_PROD + 1 WHERE ID_ORD = $id_o";
         $this->queryActualiza();
+
+        $this->query="UPDATE FTC_ALMACEN_ORDEN SET FECHA_ALMACEN = current_timestamp where id_ord = $id_o and FECHA_ALMACEN is null";
+        $this->queryActualiza();
+
+        return;
+    }
+
+    function iniciaSurt($id_o){
+        $this->query="UPDATE FTC_ALMACEN_ORDEN SET FECHA_CARGA_F = current_timestamp WHERE ID_ORD = $id_o and FECHA_CARGA_F is null";
+        $this->queryActualiza();
         return;
     }
 
@@ -3060,6 +3070,16 @@ class wms extends database {
             $data[]=$tsArray;
         }
         return $data;
+    }
+
+    function histPerSurt($ido, $t, $cedis){
+        $data=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_ASI_SURT WHERE ID_ORD = $ido and cedis ='$cedis' order by fecha desc";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;   
     }
 
     function finSurt($ord, $cedis){
