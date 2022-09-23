@@ -12,8 +12,6 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;<select id="pp">Seleccione
                                                     <option value="x">Excel</option>
                                                     <option value="p">PDF</option>
-                                                    <!--<option value="b">Excel y PDF</option>
-                                                    <option>Impresora</option>-->
                                                 </select>
                 </p>
                 <p><label>Muestra en la posicion de cada uno de los productos en la bodega, con sus respectivas cantidades, su uso principal es la realizacion de revisiones (arqueos) para el control del almacen.</label></p>
@@ -24,8 +22,6 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;<select id="pc">Seleccione
                                                     <option value="x">Excel</option>
                                                     <option value="p">PDF</option>
-                                                    <!--<option value="b">Excel y PDF</option>
-                                                    <option>Impresora</option>-->
                                                 </select>
                 </p>
                 <p><label>Muesta los productos que contiene cada uno de los componentes primarios y secundarios del almacen.</label></p>

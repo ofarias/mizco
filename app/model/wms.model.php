@@ -859,9 +859,10 @@ class wms extends database {
                                 max(secundario) as secundario, 
                                 iif(m.id_tipo = 'e' or m.id_tipo = 'E', sum(piezas), 0) as entradas, 
                                 (SELECT coalesce(SUM(PIEZAS), 0) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'F' and ms.id_prod = m.id_prod and ms.id_mov = m.id_am )  as salidas,
-                                (SELECT coalesce(SUM(PIEZAS), 0) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'P' and ms.id_prod = m.id_prod and ms.id_mov = m.id_am )  as pendientes
+                                (SELECT coalesce(SUM(PIEZAS), 0) FROM FTC_ALMACEN_MOV_SAL ms WHERE ms.ID_COMPS = m.id_comps and ms.status = 'P' and ms.id_prod = m.id_prod and ms.id_mov = m.id_am )  as pendientes,
+                                m.categoria
                         from FTC_ALMACEN_MOVimiento m
-                        where id_status='F' group by m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, m.almacen, m.fecha, m.secundario, m.color, m.id_am order by  m.fecha asc, m.id_comps asc, m.secundario asc";
+                        where id_status='F' group by m.id_comps, m.compp, m.comps, m.id_prod, m.id_tipo, m.almacen, m.fecha, m.secundario, m.color, m.id_am, m.categoria order by  m.fecha asc, m.id_comps asc, m.secundario asc";
         }
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){

@@ -980,6 +980,7 @@ class wms_controller {
             ->setCellValue(++$col.$ln,"Reservado")
             ->setCellValue(++$col.$ln,"Disponible")
             ->setCellValue(++$col.$ln,"Descripción")
+            ->setCellValue(++$col.$ln,"Categoria")            
         ;
             foreach ($info['primary'] as $row) {
                 $i++;
@@ -1021,6 +1022,7 @@ class wms_controller {
                                     ->setCellValue(++$col.$ln,($key->PENDIENTES)) /// Reservado
                                     ->setCellValue(++$col.$ln,($disp - $asig)) /// Disponible
                                     ->setCellValue(++$col.$ln,$row->DESC)
+                                    ->setCellValue(++$col.$ln,$key->CATEGORIA)
                             ;
                             /*
                             $xls->getActiveSheet()->getStyle("B".$ln.':'.$col.$ln)->applyFromArray(
@@ -1080,7 +1082,7 @@ class wms_controller {
             $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
             $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
             $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
-            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(35);
 
             $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
             /// Unir celdas
