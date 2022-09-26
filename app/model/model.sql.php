@@ -623,14 +623,14 @@ class intelisis extends sqlbase {
 	function valInt($regWms){
 		$valPart=array();$valCab=array();$infoCab=array();$i=0;
 		foreach($regWms['cabecera'] as $cbc){
-			$i++;$cliente=$cbc->CLIENTE; $cadena = $cbc->COMPRADOR;
-			$this->query="SELECT * FROM CteEnviarA where cliente = '$cliente' and Cadena = '$cadena'";
+			$i++;$cliente=$cbc->CLIENTE; $cadena = $cbc->COMPRADOR; $enviarA = $cbc->ENVIARA;
+			$this->query="SELECT * FROM CteEnviarA where cliente = '$cliente' and Cadena = '$cadena' and id = $enviarA";
 			$res=$this->Ejecutaquerysimple();
 			$row=sqlsrv_fetch_array($res);
 			$suc = $row['ID'];
 			$valCab[]=array("id"=>$cbc->ID_INT_F, "suc"=>$suc, "val"=>$i);
 			if($suc > 0){
-				$this->query="SELECT * FROM CteEnviarA where cliente = '$cliente' and Cadena = '$cadena'";
+				$this->query="SELECT * FROM CteEnviarA where cliente = '$cliente' and Cadena = '$cadena' and id = $enviarA";
 				$res=$this->Ejecutaquerysimple();
 				while($tsarray=sqlsrv_fetch_array($res)){
 					$infoCab[]=$tsarray;

@@ -70,6 +70,7 @@ class orders extends database {
     function articulos($idwms){
         $data=array();
         $this->query="SELECT fp.*, (SELECT FIRST 1 val_articulo FROM FTC_INT_VAL_PART V WHERE V.id_int_fp = fp.id_int_fp) as validacion , (SELECT ListaPreciosEsp FROM ftc_int_fact WHERE id_int_f = fp.id ) as listaOrden from ftc_int_fact_par fp where id = $idwms";
+        //echo '<br/>'.$this->query;
         $res=$this->EjecutaQuerySimple();
         while($tsarray=ibase_fetch_object($res)){
             $data[]=$tsarray;
