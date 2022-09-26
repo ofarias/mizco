@@ -93,7 +93,7 @@
                                             <th>Ln</th>
                                             <th>Fecha Pedido <br/> Intelisis <br/><font color=" #0197a3"> Orden</font></th>
                                             <th><font color="green">Cliente </font><br/>/ Sucursal</th>
-                                            <th>Determinante Walmart <br/> Determinante Mizco</th>
+                                            <th>Determinante Walmart <font color="blue">- Proveedor -</font><br/> Determinante Mizco</th>
                                             <th>Mov<br/>Mov ID</th>
                                             <th>Estatus<br/> Intelisis</th>
                                             <th>Monto</th>
@@ -112,8 +112,9 @@
                                        <tr class="<?php echo $tipo?> , ord" >  
                                             <td><?php echo $ln ?></td>
                                             <td><?php echo substr($ord->FECHAEMISION,0,10)?><br/><font color=" #0197a3"><?php echo $ord->ORDENCOMPRA?></font></td>
-                                            <td align="center"><font color="green"><?php echo $ord->CLIENTE;?></font><br/><a class="enviarA" cte="<?php echo $ord->CLIENTE?>" comp="<?php echo $ord->DETERMINANTE.'-->'.$ord->COMPRADOR.'-->'.$ord->SUB_DETERMINANTE?>" idwms ="<?php echo $ord->ID_INT_F?>" comprador="<?php echo $ord->COMPRADOR?>"> <?php echo $ord->ENVIARA?></a></td>
-                                            <td><?php echo $ord->DETERMINANTE.' <font color="purple">'.$ord->SUB_DETERMINANTE.'</font><br/> <font color="blue">'.$ord->DET_INTELISIS.'</font>'?> Lista: <font color="orange"><?php echo $ord->LISTAPRECIOSESP?></font></td>
+                                            <td align="center"><font color="green"><?php echo $ord->CLIENTE;?></font><br/><a class="enviarA" cte="<?php echo $ord->CLIENTE?>" 
+                                                comp="<?php echo $ord->DETERMINANTE.'-->'.$ord->COMPRADOR.'-->'.$ord->SUB_DETERMINANTE.'<br/><br/><b>'.$ord->PROVEEDOR.'</b>'?>" idwms ="<?php echo $ord->ID_INT_F?>" comprador="<?php echo $ord->COMPRADOR?>"> <?php echo $ord->ENVIARA?></a></td>
+                                            <td><?php echo $ord->DETERMINANTE.' <font color="purple">'.$ord->SUB_DETERMINANTE.'<font color="blue">-'.$ord->PROVEEDOR.'-</font><br/> <font color="blue">'.$ord->DET_INTELISIS.'</font>'?> Lista: <font color="orange"><?php echo $ord->LISTAPRECIOSESP?></font></td>
                                             <td title="<?php echo $ord->ID_INT_F?> / <?php echo $ord->ID_INT?>"><?php echo $ord->MOV;?><br/><?php echo $ord->MOVID?></td>
                                             <td><?php echo $ord->ESTATUS?></td>
                                             <td align="right"><?php echo '$ '. number_format($ord->MONTO,2)?></td>
