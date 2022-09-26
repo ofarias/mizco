@@ -1406,7 +1406,7 @@ class wms_controller {
                 $actMov=$data->actMov($actMov);
             }
             $revMovs=$data->revMovs();
-            //$revTrans=$data->revTrans();
+            $revTrans=$data->revTrans();
             if(strrpos($op, 'all') or $op=='all'){
                 $lt = $_SESSION['user']->CR;
                 $pagina = $this->load_template('Reportes');
@@ -1731,7 +1731,8 @@ class wms_controller {
         $pdf->write(5, "Elaborado por :". $usuario. " el ".date("d-m-Y h:i:s")."\n");
         $pdf->SetX(40);
         $pdf->write(5, "Orden de Compra : ". $cabecera->ORDEN."");
-        
+        $pdf->SetX(10);
+        $pdf->write(3, "1");
         $pdf->Ln();
         $pdf->write(5, "Picking List ");
         $pdf->Ln(8);

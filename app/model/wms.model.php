@@ -3795,16 +3795,14 @@ class wms extends database {
             $arts = count($partidas);
             $usuario = $_SESSION['user']->ID;
             $this->query="INSERT INTO FTC_ALMACEN_ORDEN ( ID_ORD, IDCLIENTE, CLIENTE, CEDIS, FECHA_CARGA, FECHA_ASIGNA, FECHA_ALMACEN, FECHA_CARGA_F, FECHA_ASIGNA_F, FECHA_ALMACEN_F, STATUS, NUM_PROD, CAJAS, PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL, MOV, MOVID, STA_INT, ID_INT ) VALUES ($idmiv, '', '$cabecera->MOV', '', CURRENT_TIMESTAMP, NULL, NULL, NULL, NULL, NULL, 1, $arts, 0, 0,'$cabecera->MOV'||'$cabecera->MOVID', $usuario,'', '$cabecera->MOV', '$cabecera->MOVID', '$cabecera->ESTATUS', $cabecera->ID_MOV_INT) returning ID_ORD";
-            //echo '<br/>'.$this->query;
             $res=$this->grabaBD();
-            $id=ibase_fetch_object($res)->ID_ORD;    
         
         foreach ($partidas as $p ){
-            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD, CADENA, ASIG, ETIQUETA, PARTIDA) VALUES (NULL, $id, '$p->ARTICULO', (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$p->ARTICULO'), $p->CANTIDAD, 1, '', '', 0,0,1, '$p->OBS -->'||'$p->MOTIVO -->'||'$p->SOLICITANTE', '', '', '', '', 1, NULL, 0, NULL, $p->RENGLON)";
+            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD, CADENA, ASIG, ETIQUETA, PARTIDA) VALUES (NULL, $idmiv, '$p->ARTICULO', (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$p->ARTICULO'), $p->CANTIDAD, 1, '', '', 0,0,1, '$p->OBS -->'||'$p->MOTIVO -->'||'$p->SOLICITANTE', '', '', '', '', 1, NULL, 0, NULL, $p->RENGLON)";
             $this->grabaBD();
         }
 
-        $this->query ="UPDATE FTC_INT_MVI SET ID_ORD = $id, status_wms = 0 where ID_MOV_INT = $idmiv";
+        $this->query ="UPDATE FTC_INT_MVI SET ID_ORD = $idmiv, status_wms = 0 where ID_MVI = $idmiv";
         $this->queryActualiza();
 
         return;
