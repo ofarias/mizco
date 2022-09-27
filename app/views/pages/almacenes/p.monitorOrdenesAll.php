@@ -144,7 +144,7 @@
                 formSubmit:{
                     text:'Aceptar',
                     btnClass: 'btn-primary',
-                    keys:['enter'],
+                    //keys:[''],
                     action:function(){
                         var obs = this.$content.find('.obs').val();
                         $.ajax({

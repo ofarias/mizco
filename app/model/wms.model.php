@@ -3452,7 +3452,7 @@ class wms extends database {
         $row = ibase_fetch_row($res);
                 
         $this->query="EXECUTE PROCEDURE SP_ALMACEN_LIBERA_ASIGNACION ($ido, $usr, $t, '$obs')";
-        echo $this->query;
+        //echo $this->query;
         $this->grabaBD();
 
         return array("status"=> 'ok', "msg"=>'');
@@ -3786,9 +3786,10 @@ class wms extends database {
                 $this->insertMov($key, $part);
             }
         }
-        $this->query ="UPDATE FTC_INT_MVI SET ID_ORD = $id, status_wms = 0 where ID_MVI = $id";
-        //$this->query ="UPDATE FTC_INT_MVI SET ID_ORD = $idmiv, status_wms = 0 where ID_MVI = $idmiv";
-        $this->queryActualiza();
+        if(!empty($id)){
+            $this->query ="UPDATE FTC_INT_MVI SET ID_ORD = $id, status_wms = 0 where ID_MVI = $id";
+            $this->queryActualiza();
+        }
         return $data;    
     }
 
