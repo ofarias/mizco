@@ -1994,7 +1994,13 @@ class wms_controller {
     function finSurt($ord, $cedis){
         if($_SESSION['user']){
             $data = new wms;
+            $int = new intelisis;
             $res=$data->finSurt($ord, $cedis);
+            $info = $data->esTrans($ord);
+            if($info["status"] == 'si'){
+                $instSQL =$int->insertaTrans($ord, $info);
+                $updateWms = $data->actTrans($ord, $instSQL);
+            }          
             return $res;
         }    
     }

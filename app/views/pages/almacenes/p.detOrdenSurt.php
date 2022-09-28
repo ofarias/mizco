@@ -186,6 +186,7 @@ foreach($orden as $od){
 
     $(".finSurt").click(function(){
         var cedis = $(this).attr('cedis')
+        $(".finSurt").addClass('hidden')
         $.ajax({
             url:'index.wms.php',
             type:'post',

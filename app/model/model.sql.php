@@ -583,13 +583,48 @@ class intelisis extends sqlbase {
 				'(TRANSITO)', 0, CURRENT_TIMESTAMP , CURRENT_TIMESTAMP, 0,  YEAR(GETDATE()),  MONTH(GETDATE()), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0
 				, 0, 0, 'INV' ) ";
 			$this->query .="SET IDENTITY_INSERT INV OFF";
-			//echo '<br/>Cabecera: '.$this->query.'<br/>';
 			$this->Ejecutaquerysimple();
 			
 			$this->query="UPDATE InvC SET Consecutivo = Consecutivo + 1 where mov = '$tipo'";
-			//echo '<br/>Folio: '.$this->query.'<br/>';
 			$this->Ejecutaquerysimple();
+			if($tipo == 'Transferencia'){
+				$this->query="SELECT * FROM InvC WHERE mov = '$tipo'";
+				$res=$this->Ejecutaquerysimple();
+				$row=sqlsrv_fetch_array($res);
+				return $id= ($row['Consecutivo']);
+			}
 			return $this->findCambio($tipo);
+	}
+
+	function creaFolioTras($tipo, $ido){
+			//echo '<br/> No existe el documento entonces creamos el registro';
+			$almDes='AL ECM'; $almTrans='(TRANSITO)';
+			$this->query="SET IDENTITY_INSERT INV ON ";
+			$this->query .="INSERT INTO inv (ID, Empresa, Mov, MovID, FechaEmision, UltimoCambio, Moneda, TipoCambio, Usuario, Estatus, Directo, RenglonID, Almacen, AlmacenDestino, AlmacenTransito, Largo, FechaRequerida, Vencimiento, GenerarPoliza, Ejercicio, Periodo, FechaRegistro, FechaConclusion, Peso, 
+				Sucursal, SucursalOrigen, SubModulo, MizcoComentarios) 
+				output inserted.ID 
+				values (
+				(select max(id)+1 from inv),
+				 'MIZCO', 
+				 '$tipo', 
+				 (SELECT Consecutivo + 1 FROM InvC where mov = '$tipo'),
+				CURRENT_TIMESTAMP, 
+				CURRENT_TIMESTAMP, 
+				'Pesos', 
+				1, 
+				'FGARCIA', 
+				'SINAFECTAR', 1, 0, 'AL PT', '$almDes','$almTrans',
+				0, CURRENT_TIMESTAMP , CURRENT_TIMESTAMP, 0,  YEAR(GETDATE()),  MONTH(GETDATE()), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0
+				, 0, 0, 'INV', '$ido' ) ";
+			$this->query .="SET IDENTITY_INSERT INV OFF";
+			//echo '<br/>'.$this->query;
+			$this->Ejecutaquerysimple();
+			$this->query="UPDATE InvC SET Consecutivo = Consecutivo + 1 where mov = '$tipo'";
+			$this->Ejecutaquerysimple();
+			$this->query="SELECT MAX(ID) AS ID FROM Inv WHERE mov = '$tipo'";
+			$res=$this->Ejecutaquerysimple();
+			$row=sqlsrv_fetch_array($res);
+			return $id= ($row['ID']);
 	}
 
 	function insertaMovInv($info){
@@ -688,7 +723,7 @@ class intelisis extends sqlbase {
 									VALUES ((SELECT MAX(ID) FROM VENTA), $p->RENGLON, $p->RENGLONID, '$p->RENGLONTIPO', '$almacen', ($p->CANTIDAD / $p->UNIDAD),
 									 (SELECT TOP 1 Articulo from listaPreciosD where CodigoCliente = '$p->COMPRADOR' and Lista = (SELECT ListaPreciosEsp FROM Venta where id = (SELECT MAX(ID) FROM VENTA))),
 									  ($p->PRECIO * $p->UNIDAD), 16, (SELECT TOP 1 UNIDAD FROM ArtUnidad u where u.Articulo = '$p->ARTICULO' and u.Factor = $p->UNIDAD), '$p->ORDENCOMPRA', $p->CANTIDADINVENTARIO, '$p->ORDENCOMPRA', $p->UNIDAD)";
-					//echo '<br/> '.$this->query.'<br/>';
+					echo '<br/> '.$this->query.'<br/>';
 					$this->grabaBD();
 				}
 			}
@@ -750,5 +785,37 @@ class intelisis extends sqlbase {
 		$this->query="UPDATE CteEnviarA set cadena = '$comp' where cliente = '$cte' and id = $det and (cadena is null or cadena = '')";
 		$this->grabaBD();
 		return;
+	}
+
+	function insertaTrans($ido, $info){
+		$id = $this->creaFolioTras($tipo='Transferencia', $ido);
+            foreach ($info['par'] as $par) {
+            	$cant = $par->PZAS_SUR;$alm='AL PT';$art=$par->PROD;$uni = 'PIEZA';$factor = 1; $suc = 0; $obs='';$guia=''; 
+            	$this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonID, RenglonTipo, CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) 
+					VALUES ( $id,
+						(SELECT COALESCE (MAX(Renglon), 0) + 2048 FROM INVD WHERE ID = $id),
+						0,
+						(SELECT COALESCE (MAX(RenglonID),0) + 1 FROM INVD WHERE ID = $id),
+						'L',
+						$cant,
+						'$alm',
+						'$art',
+						'',  
+						CURRENT_TIMESTAMP,
+						'$uni', 
+						$factor,
+						$cant,
+						$suc,
+						0,
+						'$ido')";
+				//echo '<br/>Detalle: '.$this->query.'<br/>';
+				$this->Ejecutaquerysimple();
+            }
+        $this->query ="SELECT MOVID FROM INV WHERE ID = $id ";
+        //echo $this->query;
+        $res=$this->Ejecutaquerysimple();
+        $movid = sqlsrv_fetch_array($res);
+        $movid = $movid[0];
+		return array("movid"=>$movid, "idint"=>$id, "docs"=> 1, "errors"=>0);
 	}
 }

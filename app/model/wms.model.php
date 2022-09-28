@@ -3842,6 +3842,37 @@ class wms extends database {
         }
     }
 
+    function esTrans($ord){
+        $cab=array(); $par=array();
+        $this->query="SELECT * FROM FTC_ALMACEN_ORDEN WHERE ID_ORD = $ord";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($res);
+        $mov=$row->ARCHIVO == 'Traspaso'? 'si':'no';
+        if($mov == 'si'){
+            $this->query="SELECT * FROM FTC_INT_MVI WHERE ID_MVI = $ord";
+            $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)) {
+                $cab[]=$tsArray;
+            }
+            $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $ord";
+            $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)) {
+                $par[]=$tsArray;
+            }
+        }
+        return array("status"=>$mov, "cab"=>$cab, "par"=>$par);
+    }
+
+    function actTrans($id, $info){
+        $movId = $info['movid'];$idInt=$info['idint'];
+        $this->query =" UPDATE FTC_INT_MVI SET ID_MOV_INT = $idInt, MovID = $movId where id_mvi = $id";
+        $this->queryActualiza();
+        $this->query ="UPDATE FTC_ALMACEN_ORDEN SET MOVID = $movId, STA_INT = 'SINAFECTAR', ID_INT = $idInt where id_ord = $id";
+        $this->queryActualiza();
+        
+        return;
+    }
+
 }?>
 
 
