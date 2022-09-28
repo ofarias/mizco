@@ -528,7 +528,7 @@ class intelisis extends sqlbase {
 			//echo 'Valor de la validacion:'.$row['val'];
 			if($row['val']>0){
 				$renglon=$row['renglon'];
-				$this->query="UPDATE INVD SET CANTIDAD = CANTIDAD + $cant where id = $id and ARTICULO = '$nuevo' and ArticuloDestino = '$base' and renglon = $renglon";
+				$this->query="UPDATE INVD SET CANTIDAD = CANTIDAD + $cant, CANTIDADINVENTARIO = CANTIDADINVENTARIO + $cant where id = $id and ARTICULO = '$nuevo' and ArticuloDestino = '$base' and renglon = $renglon";
 				//echo 'Actualizacion: '.$this->query;
 			}else{
 				$this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonTipo, RenglonID,  CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) 

@@ -3867,7 +3867,7 @@ class wms extends database {
         $movId = $info['movid'];$idInt=$info['idint'];
         $this->query =" UPDATE FTC_INT_MVI SET ID_MOV_INT = $idInt, MovID = $movId where id_mvi = $id";
         $this->queryActualiza();
-        $this->query ="UPDATE FTC_ALMACEN_ORDEN SET MOVID = $movId, STA_INT = 'SINAFECTAR', ID_INT = $idInt where id_ord = $id";
+        $this->query ="UPDATE FTC_ALMACEN_ORDEN SET MOVID = $movId, STA_INT = 'SINAFECTAR', ID_INT = $idInt, ARCHIVO = archivo||'$movId' where id_ord = $id";
         $this->queryActualiza();
         
         return;
