@@ -23,12 +23,9 @@ abstract class sqlbase {
     
     private $cnx;
     protected $query;
-    private $host = "localhost";
-    //private $host = '192.168.0.117\\';
-    //private $host = 'sql-server\\';
-    //private $dataBase="MizcoPruebas";
-    //private $host = "ofa.dyndns.org:c:\\ftcData\\SAE\\MIZCOSAE.FDB"
-
+    //private $host = "localhost";
+    private $host = 'sql-server\\';
+    
     private function AbreCnx(){
         $connectionInfo= array("Database"=>'Mizco', "UID"=>'php_mizco',"PWD"=>'4phP2018+',"CharacterSet"=>'UTF-8');
         $this->cnx = sqlsrv_connect($this->host, $connectionInfo);

@@ -2051,7 +2051,6 @@ class wms extends database {
                 $p= " and cedis = '".$param."'";
             }
             $this->query="SELECT ID_ORDD,UPC, ITEM, PROD, DESCR, PZAS, ASIG, CAJAS, UNIDAD, PROD_SKU, orden, cedis,PZAS_SUR, CAJAS_SUR, status, ETIQUETA, id_status FROM FTC_ALMACEN_ORDENES_DETALLES WHERE ID_ORD = $id_o and id_status >=3 $p";
-            //echo $this->query;
             $res=$this->EjecutaQuerySimple();
             while($tsArray=ibase_fetch_object($res)){
                 $data[]=$tsArray;

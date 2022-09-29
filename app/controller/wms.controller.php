@@ -1773,8 +1773,9 @@ class wms_controller {
                 $m = (count($pos)>1)? 'LRT':'LRTB';
                 $pdf->Cell(28, 6, $ord->UPC, 'LRTB');
                 $pdf->Cell(20, 6, $ord->PROD, 'LRTB');/// Producto de la Orden
-                if($sust == 0 ){
-                    $pdf->Cell(20, 6,'' , 'LRTB'); // Imprime cuanto tiene sustitutos, como no tiene es una linea directa. 
+                
+                if($sust == 0 ){  // Imprime cuanto tiene sustitutos, como no tiene es una linea directa. (aqui no hay falla) 
+                    $pdf->Cell(20, 6,'' , 'LRTB');  
                     $pdf->Cell(20, 6, number_format($ord->ASIG,0), 'LRTB',0,'R');
                     $pdf->Cell(20, 6, number_format($ord->CAJAS,0), 'LRTB',0,'R');
                     $asig = $ord->ASIG;
@@ -1808,6 +1809,7 @@ class wms_controller {
                     #### Ipresion de las ubicaciones cuando se tienen una o mas.
                         if($i>= 2){
                             for($l=0; $l < count($ubi)-1 ; $l++) { 
+                                $pdf->Ln(); /// Oiginalmente estaba al final, lo cambie el 29 de Sep para que imprima las 2 partidas
                                 $pdf->Cell(28, 4,"",'LB',0,'R');
                                 $pdf->Cell(20, 4,"",'B',0,'R');
                                 $pdf->Cell(20, 4,"",'B',0,'R');
@@ -1816,11 +1818,10 @@ class wms_controller {
                                 $pdf->Cell(20, 4,"",'B',0,'R');
                                 $pdf->Cell(70, 4,$ubi[$l],'LR',0,'R');
                                 $pdf->Cell(40, 4,"",'RBT',0,'R');
-                                $pdf->Ln();
                             }
                         }
                     #### Finaliza la impresion.
-            }else{ // aqui si tiene sustitutos.
+                }else{ // aqui si tiene sustitutos.
                     $sus=0;
                     $asig = $ord->ASIG;
                     ##### Impresion de las posiciones de los productos

@@ -791,7 +791,7 @@
                                     dataType:'json',
                                     data:{asigCol:1, ln, col:dist, t:''},
                                     success:function(data){
-                                        alert(data.msg);
+                                        //alert(data.msg);
                                         if(data.status =='ok'){
                                         }
                                     }
