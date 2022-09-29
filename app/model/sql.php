@@ -23,8 +23,8 @@ abstract class sqlbase {
     
     private $cnx;
     protected $query;
-    //private $host = "localhost";
-    private $host = 'sql-server\\';
+    private $host = "localhost";
+    //private $host = 'sql-server\\';
     
     private function AbreCnx(){
         $connectionInfo= array("Database"=>'Mizco', "UID"=>'php_mizco',"PWD"=>'4phP2018+',"CharacterSet"=>'UTF-8');
