@@ -59,6 +59,7 @@ class sql_controller {
 	}
 
 	function cargaSQL($files2upload){
+        $ids='';
 		if (isset($_SESSION['user'])) {            
             $data = new intelisis;
             $wms = new wms;
@@ -96,6 +97,12 @@ class sql_controller {
                             }elseif($tipo['tipo']=='walmart'){
                                 $idf=$order->regFile($name, $tipo['tipo']);
                                 $regWms=$wms->insertaVtaInt($tipo['info'],$tipo['tipo'],$idf);
+                                /// 
+                                $find = $data->findCdn($regWms);
+                                $act = $order->actCdn($find);
+                                foreach ($regWms['cabecera'] as $k){$ids.=$k->ID_INT_F.',';}
+                                $ids = substr($ids, 0 , strlen($ids)-1);
+                                $regWms=$wms->validaInt($ids);
                                 $valInt=$data->valInt($regWms);
                                 $valWms=$wms->valWms($valInt);
                                 foreach($valWms as $insInt){
@@ -106,6 +113,7 @@ class sql_controller {
                                         $valCab = $wms->sincCab($valCab);
                                     }
                                 }
+                                //die();
                                 $this->redirect("w");
                             }elseif($tipo['tipo']=='transferencias'){
                                 $res= array("docs"=>0, "errors"=>0);

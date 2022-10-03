@@ -102,6 +102,19 @@ class orders extends database {
         return array("status"=>'ok');
     }
 
+    function actCdn($info){
+        foreach ($info['info'] as $key => $value ){
+            $this->query="UPDATE FTC_INT_FACT SET ENVIARA = $value where id_int_f = $key";
+            $this->queryActualiza();
+        }
+
+        foreach ($info['listas'] as $k => $v){
+            $this->query="UPDATE FTC_INT_FACT SET LISTAPRECIOSESP = '$v' where id_int_f = $k";
+            $this->queryActualiza();
+        }
+        return;
+    }
+
 }?>
 
 

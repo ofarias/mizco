@@ -658,6 +658,19 @@ class intelisis extends sqlbase {
 	}
 
 
+	function findCdn($regWms){
+		$info=array();
+		foreach ($regWms['cabecera'] as $c){
+			$id=$c->ID_INT_F; $cadena = $c->COMPRADOR; $cliente = $c->CLIENTE;
+			$this->query = "SELECT * FROM CteEnviarA where cliente = '$cliente' and cadena = '$cadena'"; 
+			$res = $this->EjecutaQuerySimple();
+			$row=sqlsrv_fetch_array($res);
+			$info[$id]=$row['ID'];
+			$listas[$id]=$row['ListaPreciosEsp']; 
+		}
+		return array("info"=>$info, "listas"=>$listas);
+	}
+
 	function valInt($regWms){
 		$valPart=array();$valCab=array();$infoCab=array();$i=0;
 		foreach($regWms['cabecera'] as $cbc){
@@ -674,12 +687,15 @@ class intelisis extends sqlbase {
 					$infoCab[]=$tsarray;
 				}
 				foreach ($infoCab as $cab) {$lpe =$cab['ListaPreciosEsp'];}
+				//
 				foreach($regWms['partidas'] as $par){
-					$art= $par->COMPRADOR; $lista = $par->LISTA; $id=$par->ID_INT_FP;
-					$this->query = "SELECT count(*) as valArt, max(Articulo) as Articulo, max(Lista) as Lista FROM ListaPreciosD WHERE CodigoCliente = '$art' and Lista = '$lpe'";
-					$res = $this->EjecutaQuerySimple();
-					$row=sqlsrv_fetch_array($res);
-					$valPart[] = array("id"=>$id, "art"=>$art, "val"=>$row['valArt'], "art"=>$row['Articulo'], "lista"=>$row['Lista']);;
+					if($par->ID == $cbc->ID_INT_F){
+						$art= $par->COMPRADOR; $lista = $par->LISTA; $id=$par->ID_INT_FP;
+						$this->query = "SELECT count(*) as valArt, max(Articulo) as Articulo, max(Lista) as Lista FROM ListaPreciosD WHERE CodigoCliente = '$art' and Lista = '$lpe'";
+						$res = $this->EjecutaQuerySimple();
+						$row=sqlsrv_fetch_array($res);
+						$valPart[] = array("id"=>$id, "art"=>$art, "val"=>$row['valArt'], "art"=>$row['Articulo'], "lista"=>$row['Lista']);;
+					}
 				}
 			}
 		}
@@ -723,7 +739,7 @@ class intelisis extends sqlbase {
 									VALUES ((SELECT MAX(ID) FROM VENTA), $p->RENGLON, $p->RENGLONID, '$p->RENGLONTIPO', '$almacen', ($p->CANTIDAD / $p->UNIDAD),
 									 (SELECT TOP 1 Articulo from listaPreciosD where CodigoCliente = '$p->COMPRADOR' and Lista = (SELECT ListaPreciosEsp FROM Venta where id = (SELECT MAX(ID) FROM VENTA))),
 									  ($p->PRECIO * $p->UNIDAD), 16, (SELECT TOP 1 UNIDAD FROM ArtUnidad u where u.Articulo = '$p->ARTICULO' and u.Factor = $p->UNIDAD), '$p->ORDENCOMPRA', $p->CANTIDADINVENTARIO, '$p->ORDENCOMPRA', $p->UNIDAD)";
-					echo '<br/> '.$this->query.'<br/>';
+					//echo '<br/> '.$this->query.'<br/>';
 					$this->grabaBD();
 				}
 			}
