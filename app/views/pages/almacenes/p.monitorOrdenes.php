@@ -59,8 +59,10 @@
                                             <th> Piezas </th>
                                             <th> Documento </th>
                                             <th> Estado WMS<br/> <font color="blue">Intelisis</font></th>
-                                            <th> Fecha Asigna <br/> <font color="brown">Final</font></th>
-                                            <th> Fecha Almacen <br/><font color="green">Final</font></th>
+                                            <th> Fecha Asigna </th>
+                                            <th><font color="brown">Final Asigna</font></th>
+                                            <th> Fecha Surtido </th>
+                                            <th><font color="green">Final Surtido</font></th>
                                             <th> Usuario </th>
                                             <th> Prioridad </th>
                                             <th> Trabajar </th>
@@ -105,13 +107,12 @@
                                             <td><?php echo $ord->ARCHIVO?></td>
                                             <td><b><?php echo $ord->STATUS?></b> <br/> <font color="blue"><?php echo $ord->STA_INT?></font></td>
                                             
-                                            <td><?php echo $ord->FECHA_ASIGNA?>
-                                            <br/><font color="brown"><?php echo $ord->FECHA_ASIGNA_F?></font></td>
+                                            <td><?php echo $ord->FECHA_ASIGNA?></td>
+                                            <td><font color="brown"><?php echo $ord->FECHA_ASIGNA_F?></font></td>
 
-                                            <td><?php echo $ord->FECHA_ALMACEN?><br/><font color="green"><?php echo $ord->FECHA_ALMACEN_F?></font></td>
+                                            <td><?php echo $ord->FECHA_ALMACEN?></td>
+                                            <td></td><font color="green"><?php echo $ord->FECHA_ALMACEN_F?></font></td>
                                             <td><?php echo $ord->USUARIO?></td>
-
-
                                             <td><?php echo $ord->PRIORIDAD?></td>
                                             <td>
                                                 <br/>

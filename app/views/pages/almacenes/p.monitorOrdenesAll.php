@@ -72,7 +72,7 @@
                                             <td><?php echo $ord->CEDIS?></td>
                                             <td align="right"><?php echo $ord->PRODUCTOS?></td>
                                             <td align="right"><?php echo number_format($ord->PIEZAS,0)?></td>
-                                            <td><?php echo $ord->ARCHIVO?></td>
+                                            <td><a class="imp" p="" o = "<?php echo $ord->ID_ORD?>"><?php echo $ord->ARCHIVO?></a></td>
                                             <td><b><?php echo $ord->STATUS?></b> <br/> <font color="blue"><?php echo $ord->STA_INT?></font></td>
                                             <td><?php echo $ord->FECHA_ASIGNA?>
                                             <br/><font color="brown"><?php echo $ord->FECHA_ASIGNA_F?></font></td>
@@ -127,6 +127,13 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
+
+    $(".imp").click(function(){
+        var param = $(this).attr('p')
+        var ord = $(this).attr('o')
+        //$.alert("Impresion de la orden" + ord + " cedis " + param)
+        window.open("index.wms.php?action=impOrden&orden="+ord+"&t=s&param="+param, "_blank")
+    })
 
     $(".utilOdn").change(function(){
         var t = $(this).val()
