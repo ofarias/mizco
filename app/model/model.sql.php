@@ -659,16 +659,25 @@ class intelisis extends sqlbase {
 
 
 	function findCdn($regWms){
-		$info=array();
+		$info=array();$listas=array();$detalles=array();
 		foreach ($regWms['cabecera'] as $c){
-			$id=$c->ID_INT_F; $cadena = $c->COMPRADOR; $cliente = $c->CLIENTE;
-			$this->query = "SELECT * FROM CteEnviarA where cliente = '$cliente' and cadena = '$cadena'"; 
-			$res = $this->EjecutaQuerySimple();
-			$row=sqlsrv_fetch_array($res);
-			$info[$id]=$row['ID'];
-			$listas[$id]=$row['ListaPreciosEsp']; 
+			if(is_null($c->ENVIARA)){ /// Trata de encontrar nuevas determinantes.
+				$id=$c->ID_INT_F; $cadena = $c->COMPRADOR; $cliente = $c->CLIENTE; 
+				$depto = substr($c->PROVEEDOR, strlen($c->PROVEEDOR)-3);
+				if($depto == '050'){
+					$lista = 'WAL-MART SC';
+				}elseif($depto == '060' or $depto == '870'){
+					$lista = 'WAL-MART BOD';
+				}
+				$this->query = "SELECT * FROM CteEnviarA where cliente = '$cliente' and cadena = '$cadena' and ListaPreciosEsp = '$lista'"; 
+				$res = $this->EjecutaQuerySimple();
+				$row=sqlsrv_fetch_array($res);
+				$info[$id]=$row['ID'];
+				$listas[$id]=$row['ListaPreciosEsp']; 
+				$detalles[$id]=$row['Nombre']; 
+			}
 		}
-		return array("info"=>$info, "listas"=>$listas);
+		return array("info"=>$info, "listas"=>$listas, "detalles"=>$detalles);
 	}
 
 	function valInt($regWms){
@@ -722,7 +731,7 @@ class intelisis extends sqlbase {
 				(SELECT Consecutivo + 1  FROM VENTAC WHERE MOV = '$mov'), 
 				'$obs', 
 				'$oc', 
-				(SELECT ListaPreciosEsp FROM CteEnviarA where cliente='$cliente' and cadena = '$cadena' and ID = $enviarA), 
+				(SELECT ListaPreciosEsp FROM CteEnviarA where cliente='$cliente' and ID = $enviarA), 
 				$idInt
 				)";
 			//echo '<br/>'.$this->query.'<br/>';

@@ -3670,7 +3670,24 @@ class wms extends database {
             }
         }
         $ids = substr($ids, 0 , strlen($ids)-1);
+        $this->actDet($ids);
         return $this->validaInt($ids);
+    }
+
+    function actDet($ids){
+        $data=array();
+        $this->query="SELECT * FROM FTC_INT_FACT WHERE ID_INT_F IN ($ids)";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        if(count($data)>0){
+            foreach ($data as $k) {
+                $this->query="UPDATE FTC_INT_FACT SET ENVIARA = (SELECT ID_INT FROM FTC_INT_DET WHERE DET_WM = DETERMINANTE),  DET_INTELISIS= (SELECT DET_IN FROM FTC_INT_DET WHERE DET_WM = DETERMINANTE), LISTAPRECIOSESP = (SELECT LISTA_INT FROM FTC_INT_DET WHERE DET_WM = DETERMINANTE) WHERE id_int_f = $k->ID_INT_F";
+                $this->queryActualiza();
+            }
+        }
+        return;
     }
 
     function insertaTransferencia($data){
@@ -3691,6 +3708,7 @@ class wms extends database {
     }
 
     function validaInt($ids){
+        $determinantes=array();
         $this->query ="SELECT * FROM FTC_INT_FACT WHERE ID_INT_F IN ($ids)";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
@@ -3701,7 +3719,23 @@ class wms extends database {
         while($tsArray=ibase_fetch_object($res)){
             $partidas[] =$tsArray;
         }
-        return array("cabecera"=>$cabecera, "partidas"=>$partidas);
+
+        foreach ($cabecera as $c) {
+            $depto = substr($c->PROVEEDOR, strlen($c->PROVEEDOR)-3);    
+            $this->query = "SELECT count(*) as val FROM FTC_INT_DET WHERE DET_WM = '$c->DETERMINANTE' and depto = '$depto'";
+            $res=$this->Ejecutaquerysimple();
+            $row=ibase_fetch_object($res);
+            if($row->VAL== 0){
+                $this->query ="INSERT INTO FTC_INT_DET (ID_DET, DET_WM, DEPTO) VALUES (NULL, '$c->DETERMINANTE', '$depto')";
+                $this->grabaBD();
+            }
+        }
+        $this->query="SELECT * FROM FTC_INT_DET WHERE det_in is null";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $determinantes[] =$tsArray;
+        }
+        return array("cabecera"=>$cabecera, "partidas"=>$partidas, "determinantes"=>$determinantes);
     }
 
     function valWms($valData){
@@ -3724,10 +3758,15 @@ class wms extends database {
             $this->query="EXECUTE PROCEDURE FTC_INT_VAL_FAT_PART ($idc)";
             $this->grabaBD();
         }
-        $this->query = "SELECT (select first 1 status from FTC_INT_FACT_LOG l where l.ID_INT_FP is null and l.id_int_f = f.ID_INT_F order by l.id desc) as val, f.* FROM FTC_INT_FACT f where ENVIARA > 0 and id_int_f = $idc";
-        $res=$this->EjecutaQuerySimple();
-        while($tsArray=ibase_fetch_object($res)){
-            $data[]=$tsArray;
+
+        foreach ($valData['valCab'] as $vc){
+            $idc = $vc['id'];
+            $this->query = "SELECT (select first 1 status from FTC_INT_FACT_LOG l where l.ID_INT_FP is null and l.id_int_f = f.ID_INT_F order by l.id desc) as val, f.* FROM FTC_INT_FACT f where ENVIARA > 0 and id_int_f = $idc";
+            //echo 'consulta de las validaciones: '.$this->query;
+            $res=$this->EjecutaQuerySimple();
+            while($tsArray=ibase_fetch_object($res)){
+                $data[]=$tsArray;
+            }
         }
         return $data;
     }

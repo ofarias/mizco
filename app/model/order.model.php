@@ -15,7 +15,7 @@ class orders extends database {
                             VALUES (NULL, '$name', current_timestamp, 0, $usuario, '$tipo') RETURNING id_f;";
         $res=$this->grabaBD();
         $idf = ibase_fetch_object($res)->ID_F;
-        echo '<br/> Numero de archivo'.$idf;
+        //echo '<br/> Numero de archivo'.$idf;
         //die;
         return $idf;
     }
@@ -110,6 +110,11 @@ class orders extends database {
 
         foreach ($info['listas'] as $k => $v){
             $this->query="UPDATE FTC_INT_FACT SET LISTAPRECIOSESP = '$v' where id_int_f = $k";
+            $this->queryActualiza();
+        }
+
+        foreach ($info['detalles'] as $k => $v){
+            $this->query="UPDATE FTC_INT_FACT SET DET_INTELISIS = '$v' where id_int_f = $k";
             $this->queryActualiza();
         }
         return;
