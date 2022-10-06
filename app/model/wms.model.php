@@ -3683,7 +3683,8 @@ class wms extends database {
         }
         if(count($data)>0){
             foreach ($data as $k) {
-                $this->query="UPDATE FTC_INT_FACT SET ENVIARA = (SELECT ID_INT FROM FTC_INT_DET WHERE DET_WM = DETERMINANTE),  DET_INTELISIS= (SELECT DET_IN FROM FTC_INT_DET WHERE DET_WM = DETERMINANTE), LISTAPRECIOSESP = (SELECT LISTA_INT FROM FTC_INT_DET WHERE DET_WM = DETERMINANTE) WHERE id_int_f = $k->ID_INT_F";
+                $depto = substr($k->PROVEEDOR, strlen($k->PROVEEDOR)-3);
+                $this->query="UPDATE FTC_INT_FACT SET ENVIARA = (SELECT ID_INT FROM FTC_INT_DET WHERE DET_WM = DETERMINANTE and depto ='$depto'),  DET_INTELISIS= (SELECT DET_IN FROM FTC_INT_DET WHERE DET_WM = DETERMINANTE and depto ='$depto'), LISTAPRECIOSESP = (SELECT LISTA_INT FROM FTC_INT_DET WHERE DET_WM = DETERMINANTE and depto ='$depto') WHERE id_int_f = $k->ID_INT_F";
                 $this->queryActualiza();
             }
         }
