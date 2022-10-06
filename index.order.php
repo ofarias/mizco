@@ -26,7 +26,10 @@ if (isset($_POST['enviarA'])) {
     $res=$controller_ord->articulos($_POST['articulos']); echo json_encode($res); exit();
 }elseif (isset($_POST['chgSta'])) {
     $res=$controller_ord->chgSta($_POST['file'], $_POST['chgSta']); echo json_encode($res); exit();
-}else{
+}elseif(isset($_POST['revPedido'])){
+    $res=$controller_ord->revPedido($_POST['revPedido'], $i=0); echo json_encode($res);exit();
+}
+else{
     switch ($_GET['action']) {
         case 'login':
             $controller->Login();

@@ -112,6 +112,21 @@ class order_controller {
         $res=$orders->chgSta($file, $sta);
         return $res;
     }
+
+    function revPedido($movID, $i){
+        $sql = new intelisis;
+        $order = new orders;
+        $info = $order->revPedido($movID);
+        $intelisis =$sql->revPedido($movID, $info);
+        $act=$order->actPartidas($movID, $intelisis);
+        if(count($intelisis)<count($info) and $i==0){
+            //echo '<br/>entra en la insercion';
+            $insInt=$sql->insParInt($movID, $info);
+            $i++;
+            $this->revPedido($movID, $i);
+        }
+        return array("int"=>count($intelisis), "wms"=>count($info));
+    }
 }
 ?>
 

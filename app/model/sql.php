@@ -20,7 +20,6 @@ abstract class sqlbase {
     private static $pwd = "4phP2018+";
     //private static $usr = "sa";
     //private static $pwd = "genseg01+";
-    
     private $cnx;
     protected $query;
     private $host = "localhost";

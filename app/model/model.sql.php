@@ -843,4 +843,32 @@ class intelisis extends sqlbase {
         $movid = $movid[0];
 		return array("movid"=>$movid, "idint"=>$id, "docs"=> 1, "errors"=>0);
 	}
+
+	function revPedido($movID){
+		$data=array();
+		$this->query="SELECT * FROM ventaD where id = (SELECT ID FROM VENTA WHERE mov='Pedido' and movID = '$movID')";
+		$res=$this->Ejecutaquerysimple();
+		while ($tsArray=sqlsrv_fetch_array($res)){
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function insParInt($movID, $info){
+		foreach ($info as $par) {
+			$this->query="SELECT * FROM VENTAD WHERE ID =(SELECT ID FROM VENTA WHERE MOV = 'Pedido' and movID = '$movID') and Renglon = $par->RENGLON";
+			$res=$this->Ejecutaquerysimple();
+			$row = sqlsrv_fetch_array($res);
+			if(isset($row)){
+				//echo '<br/> Se encontro la partida'.$par->RENGLON;
+			}else{
+				$this->query="INSERT INTO VENTAD (ID, Renglon, RenglonID, RenglonTipo, Almacen, Cantidad, Articulo, Precio, Impuesto1, Unidad, DescripcionExtra, CantidadInventario, OrdenCompra, Factor )
+									VALUES ((SELECT ID FROM VENTA WHERE MOV= 'Pedido' and movID = '$movID'), $par->RENGLON, $par->RENGLONID, '$par->RENGLONTIPO', (SELECT Almacen FROM VENTA WHERE MOV= 'Pedido' and movID = '$movID'), ($par->CANTIDAD / $par->UNIDAD),
+									 (SELECT TOP 1 Articulo from listaPreciosD where CodigoCliente = '$par->COMPRADOR' and Lista = (SELECT ListaPreciosEsp FROM Venta where id = (SELECT ID FROM VENTA where MOV= 'Pedido' and movID = '$movID'))),
+									  ($par->PRECIO * $par->UNIDAD), 16, (SELECT TOP 1 UNIDAD FROM ArtUnidad u where u.Articulo = '$par->ARTICULO' and u.Factor = $par->UNIDAD), '$par->ORDENCOMPRA', $par->CANTIDADINVENTARIO, '$par->ORDENCOMPRA', $par->UNIDAD)";
+				$this->grabaBD();
+			}
+		}
+		return;
+	}
 }

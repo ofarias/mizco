@@ -120,6 +120,23 @@ class orders extends database {
         return;
     }
 
+    function revPedido($movID){
+        $data=array();
+        $this->query="SELECT * FROM FTC_INT_FACT_PAR WHERE ID = (SELECT ID_INT_F FROM FTC_INT_FACT WHERE MOVID = '$movID')";
+        $res=$this->Ejecutaquerysimple();
+        while ($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function actPartidas($movID, $info){
+        $prods = count($info);
+        $this->query="UPDATE FTC_INT_FACT SET PROD_INT = $prods where MOVID = '$movID'";
+        $this->queryActualiza();
+        return;
+    }
+
 }?>
 
 

@@ -109,7 +109,7 @@
                                             $tipo = empty($ord->MOVID)? "ord_s":"ord_e";
                                             
                                     ?>
-                                       <tr class="<?php echo $tipo?> , ord" >  
+                                       <tr class="<?php echo $tipo?> , ord, valPedido" movID="<?php echo $ord->MOVID?>" >  
                                             <td><?php echo $ln ?></td>
                                             <td><?php echo substr($ord->FECHAEMISION,0,10)?><br/><font color=" #0197a3"><?php echo $ord->ORDENCOMPRA?></font></td>
                                             <td align="center"><font color="green"><?php echo $ord->CLIENTE;?></font><br/><a class="enviarA" cte="<?php echo $ord->CLIENTE?>" 
@@ -118,7 +118,8 @@
                                             <td title="<?php echo $ord->ID_INT_F?> / <?php echo $ord->ID_INT?>"><?php echo $ord->MOV;?><br/><?php echo $ord->MOVID?></td>
                                             <td><?php echo $ord->ESTATUS?></td>
                                             <td align="right"><?php echo '$ '. number_format($ord->MONTO,2)?></td>
-                                            <td align="center"><a class="art" idwms="<?php echo $ord->ID_INT_F?>"><?php echo $ord->ARTICULOS?></a></td>
+                                            <td align="center"><a class="art" idwms="<?php echo $ord->ID_INT_F?>"><?php echo $ord->ARTICULOS?></a><label id="<?php echo $ord->MOVID?>"></label>
+                                            </td>
                                             <td align="center">
                                                 <?php if(empty($ord->MOVID)){?>
                                                     <a class="valInt" idwms="<?php echo $ord->ID_INT_F?>" >validar</a>
@@ -304,7 +305,6 @@
         })
     })
 
-
     $(".art").click(function(){
         var idwms = $(this).attr('idwms')
         var info = ''
@@ -343,9 +343,46 @@
 
             }
         })
-
-        
     })
+
+    $(document).ready(function(){
+        $(".valPedido").each(function(){
+            var pedido = $(this).attr('movID')
+            if (pedido ){
+                $.ajax({
+                    url:'index.order.php',
+                    type:'post',
+                    dataType:'json',
+                    data:{revPedido:pedido},
+                    success:function(data){
+                        if(data.int < data.wms){
+                            document.getElementById(pedido).innerHTML='&nbsp;&nbsp;<a class="afectar" pedido="'+pedido+'">--></a>'                        }
+                    }, 
+                    error:function(){
+                        //alert('algo ocurrio')
+                    }
+                })
+            }else{
+                //alert('No se encontro el pedido')
+            }
+        })
+    })
+
+    $("body").on("click",".afectar", function(e){
+        e.preventDefault();
+        var pedido = $(this).attr('pedido')
+        $.alert('Afectar el pedido' + pedido)
+        $.ajax({
+            url:'index.order.php',
+            type:'post',
+            dataType:'json',
+            data:{afectaPedido:pedido},
+            success:function(data){
+                
+            }
+        })
+    })
+
 
 </script>
 
