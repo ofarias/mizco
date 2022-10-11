@@ -2072,6 +2072,9 @@ class wms extends database {
     function iniciaSurt($id_o){
         $this->query="UPDATE FTC_ALMACEN_ORDEN SET FECHA_CARGA_F = current_timestamp WHERE ID_ORD = $id_o and FECHA_CARGA_F is null";
         $this->queryActualiza();
+
+        $this->query="UPDATE FTC_ALMACEN_ORDEN SET IMP = IMP +1 WHERE ID_ORD = $id_o";
+        $this->queryActualiza();
         return;
     }
 

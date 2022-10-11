@@ -1721,7 +1721,7 @@ class wms_controller {
         $pdf->SetX(40);
         $pdf->write(5, "Cedis : ". $cedis."");
         $pdf->SetX(150);
-        $pdf->write(5, "Fecha Inicio Surtido : ". $cabecera->FECHA_CARGA_F."\n");
+        $pdf->write(5, "Fecha Inicio Surtido : ". $cabecera->FECHA_ALMACEN."\n");
         $pdf->SetX(40);
         $pdf->SetX(150);
         $pdf->write(5, "Fecha Final Surtido : ". $cabecera->FECHA_ALMACEN_F."\n");
