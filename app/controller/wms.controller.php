@@ -1412,6 +1412,11 @@ class wms_controller {
                 $pagina = $this->load_template('Reportes');
                 $html = $this->load_page('app/views/pages/almacenes/p.monitorOrdenesAll.php');
                 $ordenes = $data->ordenesAll($op);
+                $xls = explode(":", substr($param,1));
+                if(@$xls[5]=='xls'){
+                    echo '<br/> Genera excel';
+                    $this->ordXls($ordenes);
+                }
                 include 'app/views/pages/almacenes/p.monitorOrdenesAll.php';
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
@@ -2202,6 +2207,136 @@ class wms_controller {
                     mkdir($ruta);
                 }
                 $nom='Movimientos del producto '.$prod.'_'.date("d-m-Y H_i_s").'_'.$usuario.'.xlsx';
+                $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+            /// salida a descargar
+                $x->save($ruta.$nom);
+                ob_end_clean();
+                return array("status"=>'ok',"nombre"=>$nom, "ruta"=>$ruta, "completa"=>'..\\..\\Reportes_Almacen\\'.$nom, "tipo"=>'x');
+    }
+
+    function ordXls($ordenes){
+        $usuario = $_SESSION['user']->NOMBRE;   
+        $xls= new PHPExcel();
+        $data = new wms;
+        $col='A';$ln=5; $i=0;$sali=0; $entr=0; $sali1=0; $entr1=0; $sali2=0; $entr2=0;
+    
+        $xls->setActiveSheetIndex()
+            ->setCellValue('A1', 'Importadora Mizco SA de CV')
+            ->setCellValue('A2', 'Reporte de Ordenes')
+        ;
+
+        $xls->setActiveSheetIndex()
+            ->setCellValue($col.$ln,   'Mov Int')
+            ->setCellValue(++$col.$ln, 'Cliente')
+            ->setCellValue(++$col.$ln, 'Cedis')
+            ->setCellValue(++$col.$ln, 'Fecha Carga')
+            //->setCellValue(++$col.$ln, 'Fecha Asignacion' )
+            ->setCellValue(++$col.$ln, 'Fecha Almacen')
+            ->setCellValue(++$col.$ln, 'Fecha Inicia Almacen')
+            ->setCellValue(++$col.$ln, 'Fecha Final Almacen')
+            ->setCellValue(++$col.$ln, 'Fecha Primera Impresion')
+            ->setCellValue(++$col.$ln, 'Num Aperturas')
+            ->setCellValue(++$col.$ln, 'Dias Totales')
+            ->setCellValue(++$col.$ln, 'Estado Intelisis')
+            ->setCellValue(++$col.$ln, 'Productos')
+            ->setCellValue(++$col.$ln, 'Piezas')            
+        ;
+        $col= 'A';
+        foreach($ordenes as $o){
+            $ln++;$i++;//$entr+=$ent->PIEZAS;
+            //$entr1 = $ent->ALMACEN == 1? $entr1+$ent->PIEZAS:$entr1+0;
+            //$entr2 = $ent->ALMACEN == 2? $entr2+$ent->PIEZAS:$entr2+0;
+
+            $ini = strtotime($o->FECHA_CARGA); $fin=strtotime($o->FECHA_ALMACEN_F);
+            $diff=abs($fin - $ini);
+            $years = floor($diff / (365*60*60*24));
+            $months = floor(($diff - $years * 365*60*60*24)/ (30*60*60*24));
+            $days = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/(60*60*24));  
+            $xls->setActiveSheetIndex()
+                ->setCellValue($col.$ln, $o->ARCHIVO)
+                ->setCellValue(++$col.$ln, $o->CLIENTE)
+                ->setCellValue(++$col.$ln, $o->CEDIS)
+                ->setCellValue(++$col.$ln, $o->FECHA_CARGA)
+                ->setCellValue(++$col.$ln, $o->FECHA_ASIGNA_F)
+                ->setCellValue(++$col.$ln, $o->FECHA_ALMACEN)
+                ->setCellValue(++$col.$ln, $o->FECHA_ALMACEN_F)
+                ->setCellValue(++$col.$ln, $o->FECHA_CARGA_F)
+                ->setCellValue(++$col.$ln, $o->NUM_PROD)
+                ->setCellValue(++$col.$ln, $days)
+                ->setCellValue(++$col.$ln, $o->STA_INT)
+                ->setCellValue(++$col.$ln, $o->PRODUCTOS)
+                ->setCellValue(++$col.$ln, $o->PIEZAS)
+                ;
+            $col='A';
+        }
+
+        
+        $xls->getActiveSheet()->getColumnDimension($col)->setWidth(15);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(45);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(45);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(25);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(25);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(25);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(25);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(25);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(12);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(12);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(25);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(12);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(12);
+        //$xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(12);
+        //$xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+        //$xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+
+        /*
+        $xls->setActiveSheetIndex()
+            ->mergeCells('A3:C3')
+            ->setCellValue('A3', 'Piezas Entradas: ')
+            ->setCellValue('D3', number_format($entr,2))
+
+            ->setCellValue('A4', 'Piezas Almacen 1: ')
+            ->setCellValue('D4', number_format($entr1,2))
+
+            ->setCellValue('A5', 'Piezas Almacen 2: ')
+            ->setCellValue('D5', number_format($entr2,2))
+
+            ->setCellValue('A7', 'Piezas Salidas: ')
+            ->setCellValue('D7', number_format($sali,2))
+
+            ->setCellValue('A8', 'Salidas Almacen 1: ')
+            ->setCellValue('D8', number_format($sali1,2))
+
+            ->setCellValue('A9', 'Salidas Almacen 2: ')
+            ->setCellValue('D9', number_format($sali2,2))
+
+            ->setCellValue('A11', 'Disponibilidad globla: ')
+            ->setCellValue('D11', number_format($entr - $sali,2))
+
+        ;
+        */
+
+        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+        $col='A';
+        //$xls->getActiveSheet()->getColumnDimension($col)->setWidth(4);
+        
+        //$xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+        /// Unir celdas
+        $xls->getActiveSheet()->mergeCells('A1:P1');
+        // Alineando
+        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+        /// Estilando
+        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+            array('font' => array(
+                    'size'=>20,
+                )
+            )
+        );
+
+        $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
+                if(!file_exists($ruta) ){
+                    mkdir($ruta);
+                }
+                $nom='Ordenes Cerradas.xlsx';
                 $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
             /// salida a descargar
                 $x->save($ruta.$nom);

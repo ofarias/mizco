@@ -10,7 +10,13 @@
                 <br/>
                 Fecha inicial:&nbsp;&nbsp;<input type="date" class="ini" value="<?php echo date('d/m/Y')?>" > Fecha Final:&nbsp;&nbsp;<input type="date" class="fin" value="<?php echo date('d/m/Y')?>" >&nbsp;&nbsp;<button class="btn-sm btn-info filtro" tipo='normal'>Ir</button>
                 Todos <input type="button" value="Todos" class="btn-sm btn-primary filtro" tipo="all">
-                <br/><label>Pedidos:</label><?php echo $lt?>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                    <select class="tipo">
+                        <option value="a">Seleccione el tipo</option>
+                        <option value="c">Cerradas</option>
+                    </select>
+                    &nbsp;&nbsp;&nbsp; <a  style="cursor:pointer;" class="xls">xls</a>
+                <br/><br>
             </p>
             </div>
             <br/>
@@ -127,6 +133,18 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
+    $(".xls").click(function(){
+        var urls = window.location.href
+        $.ajax({
+            url:urls+':xls',
+            type:'get',
+            success:function(response){
+                setTimeout(function(){
+                    window.open("../Reportes_Almacen/Ordenes Cerradas.xlsx", 'download')
+                }, 2000);
+            }
+        })
+    })
 
     $(".imp").click(function(){
         var param = $(this).attr('p')
@@ -195,7 +213,8 @@
         var fin = $(".fin").val()
         var sta = $(".status").val()
         var tipo= $(this).attr('tipo')
-        window.open("index.wms.php?action=wms_menu&opc=o:"+ini+":"+fin+":"+sta+":"+tipo, "_self")
+        var sub = $(".tipo").children("option:selected").val()
+        window.open("index.wms.php?action=wms_menu&opc=o:"+ini+":"+fin+":"+sta+":"+tipo+":"+sub, "_self")
     })
     /*
     $(".marca").click(function(){

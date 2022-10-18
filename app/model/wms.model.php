@@ -885,7 +885,8 @@ class wms extends database {
             $p.= ($param[3]=='' or isset($param[3]))? " and (archivo starting with 'Pedido' or archivo starting with 'Salida' or archivo starting with 'Traspaso' )  ":" and archivo starting with '$param[3]' "; /// Forzando a que siempre jale pedidos
         }
         $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD > 0 $op $p";
-        //echo $this->query;
+        echo $this->query;
+        die;
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -3429,7 +3430,16 @@ class wms extends database {
             $ff = $param[1];
             $i = !empty($fi)? " and dia_carga >= '".$fi."'":'';
             $f = !empty($ff)? " and dia_carga <= '".$ff."'":'';
-            $this->query="SELECT * from FTC_ALMACEN_ORDENES WHERE ID_ORD > 0 $i $f";
+            $sub = $param[4];
+            if($sub == 'c'){
+                $fai = $param[0];
+                $faf = $param[1];
+                $i = !empty($fi)? " and fecha_almacen_f >= '".$fi."'":'';
+                $f = !empty($ff)? " and fecha_almacen_f <= '".$ff."'":'';
+                $this->query="SELECT * from FTC_ALMACEN_ORDENES WHERE ID_ORD > 0 $i $f";
+            }else{
+                $this->query="SELECT * from FTC_ALMACEN_ORDENES WHERE ID_ORD > 0 $i $f";
+            }
         }else{
             $this->query="SELECT * from FTC_ALMACEN_ORDENES WHERE ID_ORD > 0";
         }
@@ -3510,7 +3520,9 @@ class wms extends database {
         $te=0;
         for ($row=2; $row <= $highestRow; $row++){ //10
             $col = 'A';
-            $A = date('d/m/Y',PHPExcel_Shared_Date::ExcelToPHP($sheet->getCell($col.$row)->getValue()+1));//FECHA
+            //echo 'fecha:'.$sheet->getCell($col.$row)->getValue()+1;
+            //$A = date('d/m/Y',PHPExcel_Shared_Date::ExcelToPHP($sheet->getCell($col.$row)->getValue()+1));//FECHA
+            $A = date('d/m/Y',PHPExcel_Shared_Date::ExcelToPHP($sheet->getCell($col.$row)->getValue()));//FECHA
             $B = $sheet->getCell(++$col.$row)->getValue();//observacion
             $C = $sheet->getCell(++$col.$row)->getValue();//SKU
             $D = $sheet->getCell(++$col.$row)->getValue();//Piezas
@@ -3524,7 +3536,6 @@ class wms extends database {
             $L = $sheet->getCell(++$col.$row)->getValue();//Disponible
             $M = $sheet->getCell(++$col.$row)->getValue();//Disponible
             $N = $sheet->getCell(++$col.$row)->getValue();//Disponible
-
             if(strpos(($A.$B.$C.$D.$E.$F.$G.$H.$I),"|")){
                     $errors .= $row.',';
                     $te++;
