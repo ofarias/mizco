@@ -29,8 +29,9 @@ foreach($orden as $od){
             </p>
             <p><input type="text" placeholder="Persona Asignada" class="asignar" size="80" cedis="<?php echo (isset($param)? $param:'todos')?>" value="<?php echo $pers?>"></p>
             <?php echo (!empty(@$param))? '<b>Cedis: '.$param.'</b><br/>':''?>
-            <input type="button" name="" value="Imprimir" class="btn-sm btn-primary imp" p="<?php echo $param?>"> &nbsp;&nbsp;&nbsp;
-            <input type="button" value="<?php echo $status==7? 'Finalizado':'Finalizar' ?>" <?php echo $status==7? 'disabled':'' ?> cedis="<?php echo $cabecera->CEDIS?>" class="finSurt" >
+            <input type="button" name="" value="Imprimir" class="btn-sm btn-primary imp" p="<?php echo $param?>" cliente = "<?php echo $cabecera->CLIENTE?>" cedis = "<?php echo $cabecera->CEDIS?>" orig = "<?php echo $cabecera->ORDEN?>" pedido = "<?php echo $cabecera->ARCHIVO?>"
+            > &nbsp;&nbsp;&nbsp;
+            <input type="button" value="<?php echo $status==7? 'Finalizado':'Finalizar' ?>" <?php echo $status==7? 'disabled':'' ?> cedis="<?php echo $cabecera->CEDIS?>" class="finSurt hidden" >
             &nbsp;&nbsp;&nbsp;<input type="checkbox" <?php echo $cabecera->CAJAS ==0? 'checked':''?> class="surtAuto"> <label>Surtido Automatico </label>
         </div>
             <br/>
@@ -156,6 +157,8 @@ foreach($orden as $od){
                         label += '<br/> Asignado <a class="posicion" prod="' + idProd + '" nom="'+ idProd +'">' + nuevo + '</a> : ' + cantidad + '<a class="movs" prod="'+nuevo+'"> xls </a>';
                     }
                     document.getElementById(valor).innerHTML = label
+
+
                 }, 
                 error:function(){
 
@@ -221,7 +224,23 @@ foreach($orden as $od){
     $(".imp").click(function(){
         var param = $(this).attr('p')
         //$.alert("Impresion de la orden" + ord + " cedis " + param)
-        window.open("index.wms.php?action=impOrden&orden="+ord+"&t=s&param="+param, "_blank")
+        var cte = $(this).attr('cliente')
+        var cds = $(this).attr('cedis')
+        var org = $(this).attr('orig')
+        var ped = $(this).attr('pedido')
+        var dir = "index.wms.php?action=impOrden&orden="+ord+"&t=s&param="+param
+        $.ajax({
+            url:dir,
+            type:'get',
+            success:function(response){
+                //'Picking list '.$cabecera->CLIENTE.' '.$cabecera->CEDIS.' '.$cabecera->ORDEN.' '.$cabecera->ARCHIVO.'.pdf'
+                setTimeout(function(){
+                    //window.open("../Reportes_Almacen/Ordenes Cerradas.xlsx", 'download')
+                    window.open("..//Reportes_Almacen//Picking//Picking list "+ cte + ' ' + cds +' '+ org +' '+ ped + '.pdf', 'download')
+                }, 2000);
+            }
+        })
+        //window.open("index.wms.php?action=impOrden&orden="+ord+"&t=s&param="+param, "download")
     })
 
     $(".fCedis").click(function(){
@@ -299,7 +318,8 @@ foreach($orden as $od){
     })
 
     function revisaSurt(){
-         $(".ordd").each(function(){
+        var tam = $(".ordd").length
+        $(".ordd").each(function(i){
             var mod = $(this).attr("mod")
             var ln = $(this).attr("ln")
             var ordd = $(this).attr('ordd')
@@ -324,7 +344,6 @@ foreach($orden as $od){
                                     if (k=='ID_MS'){ var movs=val}    
                                     if (k == 'CATEGORIA'){ var s_cat = val}
                                     if (k == 'PRODUCTO'){ var s_prod = val}
-
                                 }
                                 pos.innerHTML+="<b>Lin: </b> " + s_lin
                                 pos.innerHTML+="<b> Tar: </b> " + s_tar
@@ -332,6 +351,9 @@ foreach($orden as $od){
                                 pos.innerHTML+="<b> " + s_prod + "<b/><br/>"
                                 pos.innerHTML+="<b> Cat: </b> " + s_cat + "<br/>"
                             }
+                        }
+                        if(i == (tam-1)){
+                            $(".finSurt").removeClass('hidden')
                         }
                     }else{
                         comp.text('Sin existencia')
@@ -341,6 +363,7 @@ foreach($orden as $od){
                     comp.text("No se pudo leer la informacion, revise con soporte tecnico al 55-5055-3392")
                 }
             })
+            
         })
     }
 
@@ -356,7 +379,6 @@ foreach($orden as $od){
                     data:{pxc:ordd}, 
                     success:function(data){
                         if(data.sta == 'ok'){
-                            //$(this).val(data.valor)
                             $("#u_"+ordd).val(data.valor)
                         }
                     }, 

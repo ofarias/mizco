@@ -60,7 +60,7 @@
                             ?>
                             <tr class=" <?php echo $row->STATUS?>" id="linc<?php echo $i?>" <?php echo $color;?> <?php echo trim($row->STATUS)=='Alta'? '':'hidden'?> >
                                 <td>
-                                    <a class="posicion" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"><?php echo $row->ID_INT;?></a><br/><a class="movs" prod="<?php echo $row->ID_INT;?>">Movs a Excel</a>
+                                    <a class="posicion" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"><?php echo $row->ID_INT;?></a>&nbsp;&nbsp;&nbsp;<i class="glyphicon glyphicon-info-sign infoAgrupada" prod="<?php echo $row->ID_PINT?>" nom="<?php echo $row->ID_INT?>"></i><br/><a class="movs" prod="<?php echo $row->ID_INT;?>">Movs a Excel</a>
                                     <br/>
                                     <input type="checkbox" name="desc" class="desc" <?php echo $row->STATUS == 'Alta'? '':'checked' ?> prod = "<?php echo $row->ID_PINT?>"> desc
                                 </td>
@@ -112,6 +112,85 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+
+    $(".infoAgrupada").click(function(){
+        //posicion
+        var prod = $(this).attr('prod')
+        var nombre = $(this).attr('nom')
+        var almacenes = ''
+        var lineas = ''
+        var tarimas = ''
+        var cantidades = ''
+        var categorias = ''
+        var comps = ''
+        var movs  = ''
+        var info = "El producto <b>"+ nombre +"</b> se encuenta en: <br/><br/>"
+        info += 'Ubicacion Actual:<br/><br/>'
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{posiciones:prod, tipo:'a'},
+            success:function(data){
+                for(const [key, value] of Object.entries(data.datos)){
+                    for(const[k,val] of Object.entries(value)){
+                        if(k == 'LINEA'){var lin = val}
+                        if(k == 'TARIMA'){var tar = val}
+                        if(k == 'DISPONIBLE'){var disp = val}
+                        if(k == 'ID_COMPS'){ var idComps = val}
+                        if(k == 'CATEGORIA'){ var cat = val}
+                        if(k == 'ID_AM'){ var mov = val}
+                        if(k == 'ALMACEN'){var almacen = val}
+                        if(k == 'PIEZAS'){var pzas = val}
+                        if(k == 'PIEZAS_SAL'){var pSal = val}
+                        if(k == 'PIEZAS_SURT'){var pSurt = val}
+                    }
+                    if (parseFloat(disp) > 0){
+                        info += 'Almacen: <b>'+ almacen +'</b> : <b>' +lin + '</b> : <b><input type="hidden" value="'+idComps+'" class="comps"> <input type="hidden" value="'+mov+'" class="idmovs"> ' + tar + 
+                        '</b> Exist: <b>' + (pzas - pSal) +
+                        '</b> En Surtido: <b>' + pSurt +
+                        '</b> Disp: <b><input type="hidden" value="'+disp+'" class= "disps" >'+ disp + 
+                        '</b> Cat: <b>' + cat + '</b>' +
+                        '<br/>'
+                    }
+                }
+                if(data.status='ok'){
+                    $.confirm({
+                        columnClass: 'col-md-8',
+                        title:'Ubicacion del producto',
+                        content: '' + 
+                            '<form action="index.wms.php" type="post" name="reubicaCant" class="formName">'+
+                            '<div class="form-group">'+
+                            '<label> </label> <br/>'+
+                            info +
+                            '</div>' +
+                            '</form>'
+                        ,
+                        buttons:{
+                            Cerrar:{
+                                text:'Cerrar',
+                                btnClass:'btn-red',
+                                keys:['esc'],
+                                action:function(){
+                                    return
+                                }
+                            }
+                        }/*,
+                        onContentReady:function(){
+                            var jc = this;
+                            this.content.find('form').on('submit', function(e){
+                                e.preventDefault();
+                                jc.$$formSubmit.trigger('click');
+                            });
+                        }*/
+                    });
+                }
+            },
+            error:function(error){
+            }
+        })
+    })
 
     $(".descon").click(function(){
         $(".Descontinuado").show()
@@ -170,7 +249,7 @@
             url:'index.wms.php',
             type:'post',
             dataType:'json',
-            data:{posiciones:prod},
+            data:{posiciones:prod, tipo:'n'},
             success:function(data){
                 for(const [key, value] of Object.entries(data.datos)){
                     for(const[k,val] of Object.entries(value)){

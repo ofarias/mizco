@@ -104,7 +104,8 @@ if (isset($_POST['usuario'])) {
 }elseif(isset($_POST['actCorreo'])){
     $res=$controller_wms->actCorreo($_POST['datos']);echo json_encode($res);exit();
 }elseif(isset($_POST['posiciones'])){
-    $res=$controller_wms->posiciones($_POST['posiciones']);echo json_encode($res);exit();
+    $tipo= isset($_POST['tipo'])? $_POST['tipo']:'';
+    $res=$controller_wms->posiciones($_POST['posiciones'], $tipo);echo json_encode($res);exit();
 }elseif(isset($_POST['liberar'])){
     $res=$controller_wms->liberar($_POST['liberar']);echo json_encode($res);exit();
 }elseif(isset($_POST['movsProd'])){
@@ -127,6 +128,8 @@ if (isset($_POST['usuario'])) {
     $res=$controller_wms->sincInt($_POST['ln'], $_POST['t']);echo json_encode($res);exit();
 }elseif(isset($_POST['utilOdn'])){
     $res=$controller_wms->utilOdn($_POST['utilOdn'], $_POST['ln'], $_POST['obs']);echo json_encode($res);exit();
+}elseif(isset($_POST['impCont'])){
+    $res=$controller_wms->impCont($_POST['impCont']);echo json_encode($res);exit();
 }
 else{
     switch ($_GET['action']) {

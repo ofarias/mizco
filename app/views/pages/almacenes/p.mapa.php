@@ -40,7 +40,7 @@
                                             }
                                         ?>
                                             <tr>
-                                                <td class="odd gradeX exe compp" t="l" idc="<?php echo $k->ID_COMP?>" desc="<?php echo $k->ETIQUETA?>" tar="" <?php echo $colorL?> id="<?php echo $k->ID_COMP?>"> <?php echo $k->ETIQUETA?></td>
+                                                <td class="odd gradeX exe compp" t="l" idc="<?php echo $k->ID_COMP?>" desc="<?php echo $k->ETIQUETA?>" tar="" <?php echo $colorL?> id="<?php echo $k->ID_COMP?>" title="Contenido de la linea"> <?php echo $k->ETIQUETA?> &nbsp;&nbsp;<a><i class="glyphicon glyphicon-print contenido" ></i></a> </td>
 
                                                 <?php foreach ($infoA1['sec'] as $sec):?>
                                                     <?php if($sec->COMPP == $k->ID_COMP):
@@ -76,6 +76,7 @@
     
     var alm = <?php echo "'".$param."'"?>;
     var titulo = ''; var tipo = ''; var tarDisp = 0;
+
     $(".info").mouseover(function(){
         var contenido = ''
         var comp = $(this)
@@ -379,6 +380,13 @@
                                 action:function(){
                                 }
                                 },
+                                contenido:{
+                                    text:'Contenido',
+                                    btnClass:'btn-warning',
+                                    action:function(){
+                                        impCont(idc)
+                                    }
+                                }
                             },
                         });
                     }
@@ -496,10 +504,32 @@
                 action:function(){
                 }
                 },
+                contenido:{
+                    text:'Contenido',
+                    btnClass:'btn-warning',
+                    action:function(){
+                        impCont(idc)
+                    }
+                },
             },
         });
         }
     })
+
+    function impCont(idc){
+        $.ajax({
+            url:'index.wms.php',
+            type:'post',
+            dataType:'json',
+            data:{impCont:idc},
+            success:function(data){
+                window.open("..//Reportes_Almacen//contenido//" + data.nombre , "download")
+            },
+            error:function(){
+
+            }
+        })
+    }
     
     $("body").on("click",".prod", function(e){
         e.preventDefault();

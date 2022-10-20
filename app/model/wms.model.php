@@ -885,8 +885,6 @@ class wms extends database {
             $p.= ($param[3]=='' or isset($param[3]))? " and (archivo starting with 'Pedido' or archivo starting with 'Salida' or archivo starting with 'Traspaso' )  ":" and archivo starting with '$param[3]' "; /// Forzando a que siempre jale pedidos
         }
         $this->query="SELECT * FROM FTC_ALMACEN_ORDENES WHERE ID_ORD > 0 $op $p";
-        echo $this->query;
-        die;
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -3087,8 +3085,10 @@ class wms extends database {
 
     function finSurt($ord, $cedis){
         $this->query="UPDATE FTC_ALMACEN_ORDEN_DET set status = 7 WHERE ID_ORD = $ord and cedis = '$cedis'";
+        echo '<br/>'.$this->query;
         $this->queryActualiza();
         $this->finSurtOrd($ord);
+        $registra = $this->actStatus( 1, 'Fin', 'Surtido', $ids=','.$ord, 'Finaliza Surtido'); ///actStatus($tabla, $tipo, $sub, $ids, $obs)
         return array("msg"=>'Se ha Finalizado la orden del cedis '.$cedis);
     }
 
@@ -3182,10 +3182,13 @@ class wms extends database {
         }
     }
 
-    function posiciones($prod){
+    function posiciones($prod, $t){
         $data=array();
-        $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE id_PROD = $prod order by fecha_ingreso asc, id_am asc ";
-        //$this->query="  SELECT LINEA,TARIMA,SUM(DISPONIBLE) AS DISPONIBLE ,ID_COMPS,CATEGORIA,ID_AM,ALMACEN,SUM(PIEZAS),SUM(PIEZAS_SAL),SUM(PIEZAS_SURT) FROM FTC_ALMACEN_MOV_DET WHERE id_PROD = $prod group by Almacen, linea, tarima,  fecha_ingreso, id_am, id_comps, categoria order by fecha_ingreso asc, id_am asc";
+        if($t=='a'){
+            $this->query="  SELECT LINEA,TARIMA,SUM(DISPONIBLE) AS DISPONIBLE ,ID_COMPS,CATEGORIA, '' as ID_AM, ALMACEN,SUM(PIEZAS) AS PIEZAS,SUM(PIEZAS_SAL) as PIEZAS_SAL,SUM(PIEZAS_SURT) AS PIEZAS_SURT FROM FTC_ALMACEN_MOV_DET WHERE id_PROD = $prod group by Almacen, linea, tarima, id_comps, categoria order by linea asc, tarima asc ";
+        }else{
+            $this->query="SELECT * FROM FTC_ALMACEN_MOV_DET WHERE id_PROD = $prod order by fecha_ingreso asc, id_am asc ";
+        }
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
@@ -3847,19 +3850,21 @@ class wms extends database {
     }
 
     function insertMov($cabecera, $partidas){
-            $idmiv=$cabecera->ID_MOV_INT;
+            $idmiv=$cabecera->ID_MOV_INT; $motivo='';
             $arts = count($partidas);
             $usuario = $_SESSION['user']->ID;
             $this->query="INSERT INTO FTC_ALMACEN_ORDEN ( ID_ORD, IDCLIENTE, CLIENTE, CEDIS, FECHA_CARGA, FECHA_ASIGNA, FECHA_ALMACEN, FECHA_CARGA_F, FECHA_ASIGNA_F, FECHA_ALMACEN_F, STATUS, NUM_PROD, CAJAS, PRIORIDAD, ARCHIVO, USUARIO, ORIGINAL, MOV, MOVID, STA_INT, ID_INT ) VALUES ($idmiv, '', '$cabecera->MOV', '', CURRENT_TIMESTAMP, NULL, NULL, NULL, NULL, NULL, 1, $arts, 0, 0,'$cabecera->MOV'||'$cabecera->MOVID', $usuario,'', '$cabecera->MOV', '$cabecera->MOVID', '$cabecera->ESTATUS', $cabecera->ID_MOV_INT) returning ID_ORD";
             $res=$this->grabaBD();
             $id=ibase_fetch_object($res)->ID_ORD; 
-        
+        $i=0;
         foreach ($partidas as $p ){
-            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD, CADENA, ASIG, ETIQUETA, PARTIDA) VALUES (NULL, $id, '$p->ARTICULO', (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$p->ARTICULO'), $p->CANTIDAD, 1, '', '', 0,0,1, '$p->OBS -->'||'$p->MOTIVO -->'||'$p->SOLICITANTE', '', '', '', '', 1, NULL, 0, NULL, $p->RENGLON)";
+            $i++; if($i==1){$motivo=$p->MOTIVO;}
+            $this->query="INSERT INTO FTC_ALMACEN_ORDEN_DET (ID_ORDD, ID_ORD, PROD, DESCR, PZAS, CAJAS, COLOR, CEDIS, PZAS_SUR, CAJAS_SUR, STATUS, OBS, ORDEN, UPC, ITEM, LINEA_NWM, UNIDAD, CADENA, ASIG, ETIQUETA, PARTIDA) VALUES (NULL, $id, '$p->ARTICULO', (SELECT DESC FROM FTC_ALMACEN_PROD_INT WHERE ID_INT = '$p->ARTICULO'), $p->CANTIDAD, 1, '', '$p->MOTIVO', 0,0,1, '$p->OBS -->'||'$p->MOTIVO -->'||'$p->SOLICITANTE', '', '', '', '', 1, NULL, 0, NULL, $p->RENGLON)";
             $this->grabaBD();
         }
-
         $this->query ="UPDATE FTC_INT_MVI SET ID_ORD = $id, status_wms = 0 where ID_MOV_INT = $idmiv";
+        $this->queryActualiza();
+        $this->query ="UPDATE FTC_ALMACEN_ORDEN SET CEDIS = '$motivo' where id_ord = $id";
         $this->queryActualiza();
 
         return;
@@ -3924,6 +3929,20 @@ class wms extends database {
         $this->queryActualiza();
         
         return;
+    }
+
+    function impCont($idc){
+        $data=array();
+        $this->query="SELECT prod, max(articulo) as articulo, max(producto) as producto, max(tarima) as tarima, sum(disponible) as disponible, max(linea) as linea
+                    from FTC_CONTENIDO_COMP
+                    where compp = $idc
+                    group by prod, comps
+                    order by comps";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
     }
 
 }?>

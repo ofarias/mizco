@@ -1909,9 +1909,13 @@ class wms_controller {
                 $pdf->Ln(3);
             }
         }
-        $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\';
+        $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\Picking\\';
+        if(!file_exists($ruta) ){
+            mkdir($ruta);
+        }
         ob_end_clean();
-        $pdf->Output($ruta.'Picking list'.$cabecera->ID_ORD.'_'.$param.'.pdf', 'i');
+        //Picking list "+ orig + ' ' + pedido + '.pdf'
+        $pdf->Output($ruta.'Picking list '.$cabecera->CLIENTE.' '.$cabecera->CEDIS.' '.$cabecera->ORDEN.' '.$cabecera->ARCHIVO.'.pdf', 'f'); 
     }
 
     function surte($surte, $orden, $comps){
@@ -2035,10 +2039,10 @@ class wms_controller {
         }   
     }
 
-    function posiciones($prod){
+    function posiciones($prod, $t){
         if($_SESSION['user']){
             $data = new wms;
-            $res=$data->posiciones($prod);
+            $res=$data->posiciones($prod, $t);
             return $res;
         }      
     }
@@ -2409,6 +2413,101 @@ class wms_controller {
         $data = new wms;
         $res = $data->utilOdn($t, $ido, $obs);
         return $res;
+    }
+
+    function impCont($idc){
+        $data = new wms;
+        $info=$data->impCont($idc);
+        $usuario = $_SESSION['user']->NOMBRE;   
+        $xls= new PHPExcel();
+        $col='A';$ln=4; $i=0;$sali=0; $entr=0; $sali1=0; $entr1=0; $sali2=0; $entr2=0;
+    
+        $xls->setActiveSheetIndex()
+            ->setCellValue($col.$ln,   'Linea')
+            ->setCellValue(++$col.$ln, 'Tarima')
+            ->setCellValue(++$col.$ln, 'Articulo')
+            ->setCellValue(++$col.$ln, 'Descripcion')
+            ->setCellValue(++$col.$ln, 'Cantidad')
+        ;
+        $col= 'A';
+        foreach($info as $o){
+            $ln++;$i++;
+            $xls->setActiveSheetIndex()
+                ->setCellValue($col.$ln, $o->LINEA)
+                ->setCellValue(++$col.$ln, $o->TARIMA)
+                ->setCellValue(++$col.$ln, $o->ARTICULO)
+                ->setCellValue(++$col.$ln, $o->PRODUCTO)
+                ->setCellValue(++$col.$ln, $o->DISPONIBLE)
+                ;
+            $col='A';
+        }
+
+        $xls->setActiveSheetIndex()
+            ->setCellValue('A1', 'Importadora Mizco SA de CV')
+            ->setCellValue('A2', 'Contenido '.$o->LINEA)
+        ;
+
+        
+        $xls->getActiveSheet()->getColumnDimension($col)->setWidth(15);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(60);
+        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+        
+        /*
+        $xls->setActiveSheetIndex()
+            ->mergeCells('A3:C3')
+            ->setCellValue('A3', 'Piezas Entradas: ')
+            ->setCellValue('D3', number_format($entr,2))
+
+            ->setCellValue('A4', 'Piezas Almacen 1: ')
+            ->setCellValue('D4', number_format($entr1,2))
+
+            ->setCellValue('A5', 'Piezas Almacen 2: ')
+            ->setCellValue('D5', number_format($entr2,2))
+
+            ->setCellValue('A7', 'Piezas Salidas: ')
+            ->setCellValue('D7', number_format($sali,2))
+
+            ->setCellValue('A8', 'Salidas Almacen 1: ')
+            ->setCellValue('D8', number_format($sali1,2))
+
+            ->setCellValue('A9', 'Salidas Almacen 2: ')
+            ->setCellValue('D9', number_format($sali2,2))
+
+            ->setCellValue('A11', 'Disponibilidad globla: ')
+            ->setCellValue('D11', number_format($entr - $sali,2))
+
+        ;
+        */
+
+        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+        $col='A';
+        //$xls->getActiveSheet()->getColumnDimension($col)->setWidth(4);
+        
+        //$xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+        /// Unir celdas
+        $xls->getActiveSheet()->mergeCells('A1:E1');
+        // Alineando
+        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+        /// Estilando
+        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+            array('font' => array(
+                    'size'=>20,
+                )
+            )
+        );
+
+        $ruta='C:\\xampp\\htdocs\\Reportes_Almacen\\Contenido\\';
+                if(!file_exists($ruta) ){
+                    mkdir($ruta);
+                }
+                $nom='Contenido '.$o->LINEA.' - '.date("d-m-Y H_i_s").'.xlsx';
+                $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+            /// salida a descargar
+                $x->save($ruta.$nom);
+                ob_end_clean();
+                return array("status"=>'ok',"nombre"=>$nom, "ruta"=>$ruta, "completa"=>'..\\..\\Reportes_Almacen\\Contenido\\'.$nom, "tipo"=>'x');
     }
 }
 ?>
