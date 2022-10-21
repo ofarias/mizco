@@ -352,11 +352,12 @@ foreach($orden as $od){
                                 pos.innerHTML+="<b> Cat: </b> " + s_cat + "<br/>"
                             }
                         }
-                        if(i == (tam-1)){
-                            $(".finSurt").removeClass('hidden')
-                        }
+                        
                     }else{
                         comp.text('Sin existencia')
+                    }
+                    if(i == (tam-1)){
+                            $(".finSurt").removeClass('hidden')
                     }
                 }, 
                 error:function(){
