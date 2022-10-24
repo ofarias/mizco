@@ -3505,10 +3505,15 @@ class wms extends database {
         $sheet=$objPHPExcel->getSheet(0);
         $highestRow = $sheet->getHighestRow(); 
         $highestColumn = $sheet->getHighestColumn();
-        $walmart = $sheet->getCell('A1')->getValue() == 'WAL * MART'? 'walmart':'';
+        $walmart = ($sheet->getCell('A1')->getValue() == 'WAL * MART' or $sheet->getCell('A1')->getValue() == 'WAL*MART')? 'walmart':'';
+        $tipoWM = $sheet->getCell('A3')->getValue() == 'Ref. Documento:'? 'Dev':'pedidos';
         if($walmart == 'walmart'){
-            $res=$this->leeWalmart($file);
-            return $res;
+            if($tipoWM == 'pedidos'){
+                $res=$this->leeWalmart($file);
+                return $res;
+            }else{
+                return array("tipo"=>'DevWM');
+            }
         }
         $a = trim($sheet->getCell('A1')->getValue()) == 'SKU' and trim($sheet->getCell('B1')->getValue()) == 'PZ'? 'trans':'';
         if($a == 'trans'){

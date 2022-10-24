@@ -116,6 +116,8 @@ class sql_controller {
                                 $this->redirect("w");
                             }elseif($tipo['tipo']=='transferencias'){
                                 $res= array("docs"=>0, "errors"=>0);
+                            }elseif($tipo['tipo']=='DevWM'){
+                                $this->redirect("w");
                             }
                             else{
                                 $idf=$order->regFile($name, 'ML');
