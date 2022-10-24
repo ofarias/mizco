@@ -721,7 +721,7 @@ class intelisis extends sqlbase {
 			$depto = $depto==6? '06':$depto;
 			$depto = $depto=='5B'? '05B':$depto;
 
-			$this->query="INSERT INTO Venta (EMPRESA, MOV, FECHAEMISION, Moneda, TipoCambio, Usuario, Estatus, Cliente, Almacen, enviarA, FormaPagoTipo, comentarios, ORDENCOMPRA, Agente, Atencion, MovID, Observaciones, Referencia, ListaPreciosEsp, ReferenciaOrdenCompra) VALUES ('$empresa', '$mov',  GETDATE(), '$moneda', '$tc', '$usuario', '$estatus', '$cliente', '$almacen',
+			$this->query="INSERT INTO Venta (EMPRESA, MOV, FECHAEMISION, Moneda, TipoCambio, Usuario, Estatus, Cliente, Almacen, enviarA, FormaPagoTipo, comentarios, ORDENCOMPRA, Agente, Atencion, MovID, Observaciones, Referencia, ListaPreciosEsp, ReferenciaOrdenCompra, Condicion) VALUES ('$empresa', '$mov',  GETDATE(), '$moneda', '$tc', '$usuario', '$estatus', '$cliente', '$almacen',
 				$enviarA,
 				coalesce((select formaPago from CteEnviarA where cliente = '$cliente' and cadena = '$cadena' and ID = $enviarA), (select DESAFormaPago from cte where cliente = '$cliente'), null),
 				'$obs',
@@ -732,7 +732,11 @@ class intelisis extends sqlbase {
 				'$obs', 
 				'$oc', 
 				(SELECT ListaPreciosEsp FROM CteEnviarA where cliente='$cliente' and ID = $enviarA), 
-				$idInt
+				$idInt, 
+				IIF (
+					(SELECT CONDICION FROM CteEnviarA WHERE ID = $enviarA and cliente = '$cliente') ='' or (SELECT CONDICION FROM CteEnviarA WHERE ID = $enviarA and cliente = '$cliente') is null,
+						(SELECT CONDICION FROM cte where cliente = '$cliente'),  (SELECT CONDICION FROM CteEnviarA WHERE ID = $enviarA and cliente = '$cliente') 
+					)
 				)";
 			//echo '<br/>'.$this->query.'<br/>';
 			$this->grabaBD();

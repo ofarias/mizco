@@ -20,6 +20,21 @@
 <?php }?>
 
 <div class="row">
+            <div class="col-lg-12">
+                <div>
+                    <p>
+                        Carga de Archivos Ordenes Walmart
+                        <form action="index.int.php" method="post" enctype="multipart/form-data">
+                        <input type="file" name="files[]" multiple="" onchange="makeFileList()" id="filesToUpload" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, .cvs, .xls" />
+                        <input type="hidden" name="UPLOAD_META_DATA" value="UPLOAD_META_DATA" />
+                        <input type="hidden" name="files2upload" value="" />
+                        <input type="submit" value="Iniciar Carga"/> 
+                        <input type="hidden" value="<?php echo $tipo?>" name="tipo">   
+                        </form>
+                    </p>
+                </div>
+            </div>
+
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
