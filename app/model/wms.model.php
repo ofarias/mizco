@@ -3086,6 +3086,8 @@ class wms extends database {
     function finSurt($ord, $cedis){
         $this->query="UPDATE FTC_ALMACEN_ORDEN_DET set status = 7 WHERE ID_ORD = $ord and cedis = '$cedis'";
         $this->queryActualiza();
+        $this->query="UPDATE FTC_ALMACEN_ORDEN_DET set status = 7 where ID_ORD = $ord and (select o.cliente from FTC_ALMACEN_ORDEN o where o.id_ord = $ord) ='Salida Diversa'";
+        $this->queryActualiza();
         $this->finSurtOrd($ord);
         $registra = $this->actStatus( 1, 'Fin', 'Surtido', $ids=','.$ord, 'Finaliza Surtido'); ///actStatus($tabla, $tipo, $sub, $ids, $obs)
         return array("msg"=>'Se ha Finalizado la orden del cedis '.$cedis);
