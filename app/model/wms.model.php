@@ -3407,7 +3407,7 @@ class wms extends database {
                 $this->query="SELECT * FROM FTC_ALMACEN_ORDEN_DET WHERE ID_ORD = $id and PARTIDA = $partida and prod = '$prod' and pzas = $cantidad";
                 $res=$this->EjecutaQuerySimple();
                 while ($tsArray=ibase_fetch_object($res)) {
-                    $infoPart[]=$tsArray;
+                    @$infoPart[]=$tsArray;
                 }
                 if(count($infoPart)!=1){
                     $this->query="INSERT INTO FTC_ALMACEN_SINC_ORD (ID_SINC, ID_ORD, PARTIDA, PROD, PZAS) VALUES (NULL, $id, $partida, '$prod', $cantidad) returning ID_SINC ";
@@ -3668,9 +3668,10 @@ class wms extends database {
         $id = ibase_fetch_object($res)->ID_MVI; $renglon=0;
         for ($i=0; $i < count($info) ; $i++){ 
             $renglon += 2048; $cant = $info[$i]['PIEZAS']; $alm = 'AL PT';$art = strtoupper($info[$i]['SKU']);$uni = 'PZA'; $factor = 1; $suc = 0; $obs=$info[$i]['OBS']; $guia=$info[$i]['GUIA'];$edo_fis=$info[$i]['ESTADO'];$motivo=$info[$i]['MOTIVO']; $solicitante=$info[$i]['SOLICITUD'];
-                $this->query="INSERT INTO FTC_INT_MVI_DET (ID_MVID,ID_MVI,RENGLON,RENGLON_SUB,RENGLON_ID,RENGLON_TIPO,CANTIDAD,ALAMCEN,ARTICULO,UNIDAD,FACTOR,CANTIDAD_INVENTARIO,SUCURSAL,FECHA,USUARIO,ESTATUS,STATUS_WMS,FECHA_ELAB, OBS, GUIA, EDO_FIS, MOTIVO, SOLICITANTE) VALUES (null, $id, $renglon, 0, $i+1,'L', $cant, '$alm', '$art', '$uni', $factor, $cant*$factor, $suc, current_date, $usuario, '', 0, current_timestamp, '$obs', '$guia', '$edo_fis', '$motivo', '$solicitante')";
-                $this->grabaBD();
-
+                if(!empty($art)){
+                    $this->query="INSERT INTO FTC_INT_MVI_DET (ID_MVID,ID_MVI,RENGLON,RENGLON_SUB,RENGLON_ID,RENGLON_TIPO,CANTIDAD,ALAMCEN,ARTICULO,UNIDAD,FACTOR,CANTIDAD_INVENTARIO,SUCURSAL,FECHA,USUARIO,ESTATUS,STATUS_WMS,FECHA_ELAB, OBS, GUIA, EDO_FIS, MOTIVO, SOLICITANTE) VALUES (null, $id, $renglon, 0, $i+1,'L', $cant, '$alm', '$art', '$uni', $factor, $cant*$factor, $suc, current_date, $usuario, '', 0, current_timestamp, '$obs', '$guia', '$edo_fis', '$motivo', '$solicitante')";
+                    $this->grabaBD();
+                }
         }
         return $id; 
     }

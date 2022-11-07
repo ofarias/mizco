@@ -631,24 +631,26 @@ class intelisis extends sqlbase {
 		$id = $this->findCambio($tipo = 'Salida Diversa');
 		for ($i=0; $i < count($info) ; $i++){ 
             $cant=$info[$i]['PIEZAS']; $alm='AL PT';$art=$info[$i]['SKU']; $uni = 'PIEZA'; $factor = 1; $suc = 0; $obs=$info[$i]['OBS']; $guia=$info[$i]['GUIA'];$edo_fis=$info[$i]['ESTADO'];$motivo=$info[$i]['MOTIVO']; $solicitante=$info[$i]['SOLICITUD'];
-            $this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonID, RenglonTipo, CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) 
-				VALUES ( $id,
-					(SELECT COALESCE (MAX(Renglon), 0) + 2048 FROM INVD WHERE ID = $id),
-					0,
-					(SELECT COALESCE (MAX(RenglonID),0) + 1 FROM INVD WHERE ID = $id),
-					'L',
-					$cant,
-					'$alm',
-					'$art',
-					'',  CURRENT_TIMESTAMP,
-					'$uni', 
-					$factor,
-					$cant,
-					$suc,
-					0,
-					'$obs --> $guia --> $motivo --> $solicitante')";
-			//echo '<br/>Detalle: '.$this->query.'<br/>';
-			$this->Ejecutaquerysimple();
+            if(!empty($art)){
+	            $this->query="INSERT INTO INVD (ID, RENGLON, RENGLONSUB, RenglonID, RenglonTipo, CANTIDAD, ALMACEN, ARTICULO, ArticuloDestino, FechaRequerida, Unidad, Factor, CantidadInventario, Sucursal, SucursalOrigen, DescripcionExtra) 
+					VALUES ( $id,
+						(SELECT COALESCE (MAX(Renglon), 0) + 2048 FROM INVD WHERE ID = $id),
+						0,
+						(SELECT COALESCE (MAX(RenglonID),0) + 1 FROM INVD WHERE ID = $id),
+						'L',
+						$cant,
+						'$alm',
+						'$art',
+						'',  CURRENT_TIMESTAMP,
+						'$uni', 
+						$factor,
+						$cant,
+						$suc,
+						0,
+						'$obs --> $guia --> $motivo --> $solicitante')";
+				//echo '<br/>Detalle: '.$this->query.'<br/>';
+				$this->Ejecutaquerysimple();
+            }
         }	
         $this->query ="SELECT MOVID FROM INV WHERE ID = $id ";
         $res=$this->Ejecutaquerysimple();
