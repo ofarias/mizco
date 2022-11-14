@@ -436,7 +436,7 @@ class intelisis extends sqlbase {
 	}
 
 	function infoInt($doc){
-		$cabecera=array(); $detalle=array();
+		$cabecera=array(); $detalle=array(); $partidas=array();
 		if($doc < 187033){
 			$tabla =' INV '; $tablap = ' INVD ';
 		}else{
