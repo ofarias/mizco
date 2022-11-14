@@ -1470,6 +1470,8 @@ class wms_controller {
     }
 
     function detOrden($id_o, $t, $param, $out){
+        //echo '<br/> ido ='.$id_o. '  t = '.$t.'  param: '.$param. '  out: '.$out;
+        //die;
         if($_SESSION['user']){
             $data = new wms;
             if($t=='p'){/// que es t lo define el usuario ? 

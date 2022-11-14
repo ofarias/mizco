@@ -628,7 +628,8 @@ class intelisis extends sqlbase {
 	}
 
 	function insertaMovInv($info){
-		$id = $this->findCambio($tipo = 'Salida Diversa');
+		// $id = $this->findCambio($tipo = 'Salida Diversa');
+		$id = $this->creaFolio($tipo='Salida Diversa');
 		for ($i=0; $i < count($info) ; $i++){ 
             $cant=$info[$i]['PIEZAS']; $alm='AL PT';$art=$info[$i]['SKU']; $uni = 'PIEZA'; $factor = 1; $suc = 0; $obs=$info[$i]['OBS']; $guia=$info[$i]['GUIA'];$edo_fis=$info[$i]['ESTADO'];$motivo=$info[$i]['MOTIVO']; $solicitante=$info[$i]['SOLICITUD'];
             if(!empty($art)){

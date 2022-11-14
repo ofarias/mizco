@@ -78,7 +78,18 @@
                                             <td><?php echo $ord->CEDIS?></td>
                                             <td align="right"><?php echo $ord->PRODUCTOS?></td>
                                             <td align="right"><?php echo number_format($ord->PIEZAS,0)?></td>
-                                            <td><a class="imp" p="" o = "<?php echo $ord->ID_ORD?>"><?php echo $ord->ARCHIVO?></a></td>
+                                            
+
+                                            <td><a class="imp" o="<?php echo $ord->ID_ORD?>"
+                                                p="<?php echo $param?>" 
+                                                cliente = "<?php echo $ord->CLIENTE?>" 
+                                                cedis = "<?php echo $ord->CEDIS?>" 
+                                                orig = "<?php echo $ord->ORDEN?>" 
+                                                pedido = "<?php echo $ord->ARCHIVO?>">
+                                                <?php echo $ord->ARCHIVO?>
+                                                </a>
+                                            </td>
+
                                             <td><b><?php echo $ord->STATUS?></b> <br/> <font color="blue"><?php echo $ord->STA_INT?></font></td>
                                             <td><?php echo $ord->FECHA_ASIGNA?>
                                             <br/><font color="brown"><?php echo $ord->FECHA_ASIGNA_F?></font></td>
@@ -145,12 +156,35 @@
             }
         })
     })
-
+/*
     $(".imp").click(function(){
         var param = $(this).attr('p')
         var ord = $(this).attr('o')
-        //$.alert("Impresion de la orden" + ord + " cedis " + param)
-        window.open("index.wms.php?action=impOrden&orden="+ord+"&t=s&param="+param, "_blank")
+        $.alert("Impresion de la orden" + ord + " cedis " + param)
+        //window.open("index.wms.php?action=impOrden&orden="+ord+"&t=s&param="+param, "download")
+
+    })
+*/
+    
+    $(".imp").click(function(){
+        var ord =$(this).attr('o')
+        var param = ''
+        var cte = $(this).attr('cliente')
+        var cds = $(this).attr('cedis')
+        var org = $(this).attr('orig')
+        var ped = $(this).attr('pedido')
+        var dir = "index.wms.php?action=impOrden&orden="+ord+"&t=s&param="+param
+        $.ajax({
+            url:dir,
+            type:'get',
+            success:function(response){
+                //'Picking list '.$cabecera->CLIENTE.' '.$cabecera->CEDIS.' '.$cabecera->ORDEN.' '.$cabecera->ARCHIVO.'.pdf'
+                setTimeout(function(){
+                    //window.open("../Reportes_Almacen/Ordenes Cerradas.xlsx", 'download')
+                    window.open("..//Reportes_Almacen//Picking//Picking list "+ cte + ' ' + cds +' '+ org +' '+ ped + '.pdf', 'download')
+                }, 2000);
+            }
+        })
     })
 
     $(".utilOdn").change(function(){
